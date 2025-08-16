@@ -9,6 +9,7 @@ export interface Task {
   updated_at: string
   order: number
   status: TaskStatus
+  isExecuting?: boolean // 実行中フラグ（order=1のタスクのみ有効）
 }
 
 export interface DailyStats {
