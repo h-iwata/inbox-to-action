@@ -71,19 +71,25 @@ export const ClassifyMode: React.FC = () => {
     const deltaY = clientY - startPosition.current.y
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
     
-    // 中央エリア（キャンセルゾーン）
-    if (distance < 30) {
-      setDragDirection('center')
-    } 
-    // 方向判定
-    else if (distance > 50) {
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        setDragDirection(deltaX < 0 ? 'left' : 'right')
+    // 方向判定のしきい値を大きくして、明確な方向のみ判定
+    if (distance > 80) {
+      // より明確な方向判定（45度の範囲で判定）
+      const angle = Math.atan2(deltaY, deltaX)
+      const degrees = angle * (180 / Math.PI)
+      
+      // 各方向の判定範囲（45度ずつ）
+      if (degrees >= -135 && degrees < -45) {
+        setDragDirection('up')
+      } else if (degrees >= -45 && degrees < 45) {
+        setDragDirection('right')
+      } else if (degrees >= 45 && degrees < 135) {
+        setDragDirection('down')
       } else {
-        setDragDirection(deltaY < 0 ? 'up' : 'down')
+        setDragDirection('left')
       }
     } else {
-      setDragDirection(null)
+      // しきい値未満はすべてキャンセル扱い
+      setDragDirection('center')
     }
   }
 
@@ -91,24 +97,17 @@ export const ClassifyMode: React.FC = () => {
   const handleOperationEnd = () => {
     if (!isOperating || !currentTask) return
     
-    // 方向に基づいてアクション
-    if (dragDirection && dragDirection !== 'center' && dragDirection !== null) {
-      switch (dragDirection) {
-        case 'up':
-          handleClassify('study')
-          break
-        case 'down':
-          handleClassify('hobby')
-          break
-        case 'left':
-          handleClassify('work')
-          break
-        case 'right':
-          handleClassify('life')
-          break
-      }
+    // 方向に基づいてアクション（centerやnullの場合はキャンセル）
+    if (dragDirection === 'up') {
+      handleClassify('study')
+    } else if (dragDirection === 'down') {
+      handleClassify('hobby')
+    } else if (dragDirection === 'left') {
+      handleClassify('work')
+    } else if (dragDirection === 'right') {
+      handleClassify('life')
     } else {
-      // キャンセル
+      // center または null の場合はすべてキャンセル
       setIsOperating(false)
       setDragDirection(null)
     }
@@ -206,66 +205,163 @@ export const ClassifyMode: React.FC = () => {
         
         {/* 操作オーバーレイ */}
         {isOperating && (
-          <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-fade-in">
-            {/* ドラッグ方向インジケーター */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-64 h-64 md:w-96 md:h-96">
-                {/* 中央のキャンセルゾーン */}
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in">
+            {/* 画面全体を使った4方向ゾーン */}
+            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+              {/* 上部ゾーン - 学習 */}
+              <div className={`
+                col-span-3 flex items-start justify-center pt-8
+                transition-all duration-200
+                ${dragDirection === 'up' 
+                  ? 'bg-gradient-to-b from-violet-600/50 to-transparent' 
+                  : ''
+                }
+              `}>
                 <div className={`
-                  absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                  w-20 h-20 rounded-full flex items-center justify-center
+                  flex flex-col items-center justify-center
+                  px-8 py-4 rounded-2xl
+                  bg-gradient-to-br from-violet-600 to-violet-700
                   transition-all duration-200
-                  ${dragDirection === 'center' 
-                    ? 'bg-gray-600/80 scale-110 shadow-lg shadow-gray-600/50' 
-                    : 'bg-gray-700/50 scale-100'
+                  ${dragDirection === 'up' 
+                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
+                    : 'scale-100 opacity-70'
                   }
                 `}>
-                  <span className={`text-2xl transition-opacity ${dragDirection === 'center' ? 'opacity-100' : 'opacity-50'}`}>
+                  <div className={`text-4xl md:text-5xl transition-transform ${
+                    dragDirection === 'up' ? 'scale-125' : 'scale-100'
+                  }`}>
+                    📚
+                  </div>
+                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                    学習
+                  </div>
+                </div>
+              </div>
+
+              {/* 左側ゾーン - 仕事 */}
+              <div className={`
+                row-start-2 flex items-center justify-start pl-8
+                transition-all duration-200
+                ${dragDirection === 'left' 
+                  ? 'bg-gradient-to-r from-sky-600/50 to-transparent' 
+                  : ''
+                }
+              `}>
+                <div className={`
+                  flex flex-col items-center justify-center
+                  px-6 py-4 rounded-2xl
+                  bg-gradient-to-br from-sky-600 to-sky-700
+                  transition-all duration-200
+                  ${dragDirection === 'left' 
+                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
+                    : 'scale-100 opacity-70'
+                  }
+                `}>
+                  <div className={`text-4xl md:text-5xl transition-transform ${
+                    dragDirection === 'left' ? 'scale-125' : 'scale-100'
+                  }`}>
+                    🏢
+                  </div>
+                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                    仕事
+                  </div>
+                </div>
+              </div>
+
+              {/* 中央キャンセルゾーン */}
+              <div className="row-start-2 col-start-2 flex items-center justify-center">
+                <div className={`
+                  w-32 h-32 md:w-40 md:h-40 rounded-full 
+                  flex flex-col items-center justify-center
+                  transition-all duration-200
+                  ${dragDirection === 'center' 
+                    ? 'bg-gray-600/90 scale-110 shadow-2xl ring-4 ring-gray-400/50' 
+                    : 'bg-gray-700/70 scale-100'
+                  }
+                `}>
+                  <span className={`text-4xl md:text-5xl transition-opacity ${
+                    dragDirection === 'center' ? 'opacity-100' : 'opacity-60'
+                  }`}>
                     ❌
                   </span>
+                  <span className={`text-white text-sm md:text-base mt-2 font-medium ${
+                    dragDirection === 'center' ? 'opacity-100' : 'opacity-60'
+                  }`}>
+                    キャンセル
+                  </span>
                 </div>
+              </div>
 
-                {/* 方向別ドロップゾーン */}
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className={`
-                      absolute flex flex-col items-center justify-center
-                      w-24 h-24 md:w-32 md:h-32 rounded-2xl
-                      bg-gradient-to-br ${category.color}
-                      transition-all duration-200
-                      ${category.position === 'top' ? 'top-0 left-1/2 -translate-x-1/2' : ''}
-                      ${category.position === 'bottom' ? 'bottom-0 left-1/2 -translate-x-1/2' : ''}
-                      ${category.position === 'left' ? 'left-0 top-1/2 -translate-y-1/2' : ''}
-                      ${category.position === 'right' ? 'right-0 top-1/2 -translate-y-1/2' : ''}
-                      ${dragDirection === category.position 
-                        ? 'scale-110 shadow-2xl ring-4 ring-white/60' 
-                        : 'scale-90 opacity-60'
-                      }
-                    `}
-                  >
-                    <div className={`text-3xl md:text-4xl transition-transform ${
-                      dragDirection === category.position ? 'scale-125' : 'scale-100'
-                    }`}>
-                      {category.icon}
-                    </div>
-                    <div className="text-white font-bold text-sm md:text-base mt-1">
-                      {category.label}
-                    </div>
+              {/* 右側ゾーン - 生活 */}
+              <div className={`
+                row-start-2 col-start-3 flex items-center justify-end pr-8
+                transition-all duration-200
+                ${dragDirection === 'right' 
+                  ? 'bg-gradient-to-l from-teal-600/50 to-transparent' 
+                  : ''
+                }
+              `}>
+                <div className={`
+                  flex flex-col items-center justify-center
+                  px-6 py-4 rounded-2xl
+                  bg-gradient-to-br from-teal-600 to-teal-700
+                  transition-all duration-200
+                  ${dragDirection === 'right' 
+                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
+                    : 'scale-100 opacity-70'
+                  }
+                `}>
+                  <div className={`text-4xl md:text-5xl transition-transform ${
+                    dragDirection === 'right' ? 'scale-125' : 'scale-100'
+                  }`}>
+                    🏠
                   </div>
-                ))}
+                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                    生活
+                  </div>
+                </div>
+              </div>
 
-                {/* カーソル/タッチ位置のトラッカー */}
-                <div 
-                  className="fixed w-4 h-4 bg-white rounded-full shadow-lg pointer-events-none z-50"
-                  style={{
-                    left: `${currentPosition.x}px`,
-                    top: `${currentPosition.y}px`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                />
+              {/* 下部ゾーン - 趣味 */}
+              <div className={`
+                row-start-3 col-span-3 flex items-end justify-center pb-8
+                transition-all duration-200
+                ${dragDirection === 'down' 
+                  ? 'bg-gradient-to-t from-pink-600/50 to-transparent' 
+                  : ''
+                }
+              `}>
+                <div className={`
+                  flex flex-col items-center justify-center
+                  px-8 py-4 rounded-2xl
+                  bg-gradient-to-br from-pink-600 to-pink-700
+                  transition-all duration-200
+                  ${dragDirection === 'down' 
+                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
+                    : 'scale-100 opacity-70'
+                  }
+                `}>
+                  <div className={`text-4xl md:text-5xl transition-transform ${
+                    dragDirection === 'down' ? 'scale-125' : 'scale-100'
+                  }`}>
+                    🎮
+                  </div>
+                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                    趣味
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* カーソル/タッチ位置のトラッカー */}
+            <div 
+              className="fixed w-6 h-6 bg-white rounded-full shadow-2xl pointer-events-none z-50 ring-2 ring-white/50"
+              style={{
+                left: `${currentPosition.x}px`,
+                top: `${currentPosition.y}px`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
           </div>
         )}
 
@@ -325,20 +421,11 @@ export const ClassifyMode: React.FC = () => {
           >
             {/* タスク内容 */}
             <div className="text-center">
-              <h3 className={`font-bold text-gray-100 mb-4 flex items-center justify-center break-words ${isMobile ? 'text-base min-h-[2.5em]' : 'text-xl md:text-2xl min-h-[3em]'}`}>
+              <h3 className={`font-bold text-gray-100 flex items-center justify-center break-words ${isMobile ? 'text-base min-h-[2.5em]' : 'text-xl md:text-2xl min-h-[3em]'}`}>
                 <span className="block w-full overflow-wrap break-words">
                   {currentTask.title}
                 </span>
               </h3>
-              
-              {/* 操作ヒント */}
-              <div className="text-xs text-gray-500 mt-4">
-                {isMobile ? (
-                  <p>タップしてドラッグ</p>
-                ) : (
-                  <p>クリックしてドラッグ または キーボード操作</p>
-                )}
-              </div>
             </div>
           </div>
         </div>

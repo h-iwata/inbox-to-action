@@ -138,24 +138,51 @@ function App() {
       {isMobile && (
         <>
           <ModeNavigator />
-          {/* フリック操作のヒント表示 */}
-          <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 pointer-events-none">
-            <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-400 opacity-0 animate-fade-in-out">
-              ← スワイプでモード切替 →
+          {/* モバイル版操作ヒント */}
+          <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 pointer-events-none z-30">
+            <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-400">
+              {currentMode === 'classify' && inboxTasks.length > 0 ? (
+                <span className="flex items-center gap-2">
+                  <span className="text-blue-400">👆</span>
+                  画面をタップして分類
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span>←</span>
+                  スワイプでモード切替
+                  <span>→</span>
+                </span>
+              )}
             </div>
           </div>
         </>
       )}
       
-      <style>{`
-        @keyframes fade-in-out {
-          0%, 100% { opacity: 0; }
-          10%, 90% { opacity: 1; }
-        }
-        .animate-fade-in-out {
-          animation: fade-in-out 3s ease-in-out;
-        }
-      `}</style>
+      {/* PC版操作ヒント */}
+      {!isMobile && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-none z-30">
+          <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-400">
+            {currentMode === 'classify' && inboxTasks.length > 0 ? (
+              <span className="flex items-center gap-3">
+                <span>W/↑: 学習</span>
+                <span className="text-gray-600">|</span>
+                <span>A/←: 仕事</span>
+                <span className="text-gray-600">|</span>
+                <span>D/→: 生活</span>
+                <span className="text-gray-600">|</span>
+                <span>S/↓: 趣味</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <span>Tab: 次のモード</span>
+                <span className="text-gray-600">|</span>
+                <span>Shift+Tab: 前のモード</span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+      
     </div>
   )
 }
