@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from './store'
-import { cleanupExpiredTasks, updateStats } from './store/slices/tasksSlice'
+import { cleanupExpiredTasks, updateStats, selectInboxTasks } from './store/slices/tasksSlice'
 import { setMode, type AppMode } from './store/slices/uiSlice'
 import { Header } from './components/Layout/Header'
 import { ModeNavigator } from './components/Layout/ModeNavigator'
@@ -14,6 +14,7 @@ import { useResponsive } from './hooks/useResponsive'
 function App() {
   const dispatch = useDispatch()
   const currentMode = useSelector((state: RootState) => state.ui.currentMode)
+  const inboxTasks = useSelector(selectInboxTasks)
   const { isMobile } = useResponsive()
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -54,17 +55,21 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [currentMode, dispatch, isMobile])
 
-  // モバイル版の左右フリックでモード切り替え
+  // モバイル版の左右フリックでモード切り替え（分類モード中は無効）
   useEffect(() => {
     if (!isMobile) return
+    
+    // 分類モードでInboxタスクがある場合はフリック無効
+    const isClassifying = currentMode === 'classify' && inboxTasks.length > 0
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (isClassifying) return
       touchStartX.current = e.touches[0].clientX
       touchStartY.current = e.touches[0].clientY
     }
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (!touchStartX.current || !touchStartY.current || isTransitioning) return
+      if (!touchStartX.current || !touchStartY.current || isTransitioning || isClassifying) return
 
       const touchEndX = e.changedTouches[0].clientX
       const touchEndY = e.changedTouches[0].clientY
@@ -104,7 +109,7 @@ function App() {
       window.removeEventListener('touchstart', handleTouchStart)
       window.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [currentMode, dispatch, isMobile, isTransitioning])
+  }, [currentMode, dispatch, isMobile, isTransitioning, inboxTasks.length])
 
   const renderMode = () => {
     switch (currentMode) {
