@@ -1,14 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
+import { Send, Inbox } from 'lucide-react'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
   const tasks = useSelector(selectInboxTasks)
   const [inputValue, setInputValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const tasksEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -16,9 +19,19 @@ export const CreateMode: React.FC = () => {
       setIsSubmitting(true)
       dispatch(addTask(inputValue.trim()))
       setInputValue('')
-      setTimeout(() => setIsSubmitting(false), 300)
+      setTimeout(() => {
+        setIsSubmitting(false)
+        tasksEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      }, 300)
     }
   }
+
+  // Auto-focus input when component mounts or when all tasks are deleted
+  useEffect(() => {
+    if (tasks.length === 0) {
+      inputRef.current?.focus()
+    }
+  }, [tasks.length])
 
   const handleDelete = (id: string) => {
     dispatch(deleteTask(id))
@@ -27,90 +40,118 @@ export const CreateMode: React.FC = () => {
   const isEmpty = tasks.length === 0
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* カテゴリヒント */}
-      <div className="mb-4 flex justify-center gap-4 text-sm">
-        <span className="px-3 py-1 bg-sky-900/40 text-sky-300 rounded-full flex items-center gap-1">
-          {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4" })}
-          {categoryIcons.work.label}
-        </span>
-        <span className="px-3 py-1 bg-teal-900/40 text-teal-300 rounded-full flex items-center gap-1">
-          {React.createElement(categoryIcons.life.icon, { className: "w-4 h-4" })}
-          {categoryIcons.life.label}
-        </span>
-        <span className="px-3 py-1 bg-violet-900/40 text-violet-300 rounded-full flex items-center gap-1">
-          {React.createElement(categoryIcons.study.icon, { className: "w-4 h-4" })}
-          {categoryIcons.study.label}
-        </span>
-        <span className="px-3 py-1 bg-pink-900/40 text-pink-300 rounded-full flex items-center gap-1">
-          {React.createElement(categoryIcons.hobby.icon, { className: "w-4 h-4" })}
-          {categoryIcons.hobby.label}
-        </span>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="mb-6">
-        {isEmpty ? (
-          <div className="relative">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="今日やりたいことは？ [仕事/生活/学習/趣味]"
-              maxLength={100}
-              className="w-full h-40 px-6 text-xl bg-gray-800/80 backdrop-blur-sm border-2 border-gray-700 rounded-2xl focus:border-blue-500 focus:outline-none transition-all placeholder-gray-500 resize-none pt-16 text-gray-100"
-              autoFocus
-            />
-            <div className="absolute top-4 right-4 text-sm text-gray-500">
-              {inputValue.length}/100
-            </div>
+    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-200px)]">
+      {isEmpty ? (
+        // 初回入力時：中央に大きな入力ボックス
+        <div className="flex-1 flex flex-col justify-center">
+          {/* カテゴリヒント */}
+          <div className="mb-8 flex justify-center gap-4 text-sm">
+            <span className="px-3 py-1 bg-sky-900/40 text-sky-300 rounded-full flex items-center gap-1">
+              {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4" })}
+              {categoryIcons.work.label}
+            </span>
+            <span className="px-3 py-1 bg-teal-900/40 text-teal-300 rounded-full flex items-center gap-1">
+              {React.createElement(categoryIcons.life.icon, { className: "w-4 h-4" })}
+              {categoryIcons.life.label}
+            </span>
+            <span className="px-3 py-1 bg-violet-900/40 text-violet-300 rounded-full flex items-center gap-1">
+              {React.createElement(categoryIcons.study.icon, { className: "w-4 h-4" })}
+              {categoryIcons.study.label}
+            </span>
+            <span className="px-3 py-1 bg-pink-900/40 text-pink-300 rounded-full flex items-center gap-1">
+              {React.createElement(categoryIcons.hobby.icon, { className: "w-4 h-4" })}
+              {categoryIcons.hobby.label}
+            </span>
           </div>
-        ) : (
-          <div className="relative">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="新しいタスクを追加 [仕事/生活/学習/趣味]"
-              maxLength={100}
-              className="w-full h-12 px-4 text-base bg-gray-800/80 backdrop-blur-sm border-2 border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none transition-all placeholder-gray-500 text-gray-100"
-            />
-            <div className="absolute top-1/2 right-2 -translate-y-1/2">
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isSubmitting}
-                className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                追加
-              </button>
-            </div>
-          </div>
-        )}
-      </form>
-
-      {!isEmpty && (
-        <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          {tasks.map((task, index) => (
-            <div
-              key={task.id}
-              className="animate-slide-in"
-              style={{
-                animationDelay: `${index * 50}ms`,
-              }}
-            >
-              <TaskCard
-                task={task}
-                variant="create"
-                onDelete={handleDelete}
+          
+          <form onSubmit={handleSubmit}>
+            <div className="relative max-w-2xl mx-auto">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="今日やりたいことは？"
+                maxLength={100}
+                className="w-full px-6 py-8 text-xl bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-2xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 shadow-xl"
+                autoFocus
               />
+              <div className="absolute top-3 right-4 text-sm text-gray-500">
+                {inputValue.length}/100
+              </div>
+              {inputValue && (
+                <button
+                  type="submit"
+                  className="absolute bottom-3 right-3 p-3 bg-gradient-to-r from-violet-600 to-blue-600 rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                >
+                  <Send className="w-5 h-5 text-white" />
+                </button>
+              )}
             </div>
-          ))}
+          </form>
+          
+          <div className="text-center mt-8">
+            <p className="text-gray-500">タスクを入力してEnterキーで追加</p>
+          </div>
         </div>
-      )}
-
-      {isEmpty && (
-        <div className="text-center mt-12">
-          <p className="text-gray-500 text-lg">タスクを入力してEnterキーで追加</p>
-        </div>
+      ) : (
+        // タスクがある時：AIチャット風レイアウト
+        <>
+          {/* Inboxヘッダー */}
+          <div className="mb-4 px-2">
+            <div className="flex items-center gap-2 text-gray-400">
+              <Inbox className="w-5 h-5" />
+              <span className="font-semibold">Inbox</span>
+              <span className="text-sm bg-gray-700 px-2 py-0.5 rounded-full">{tasks.length}</span>
+            </div>
+          </div>
+          
+          {/* タスクリスト（スクロール可能） */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 px-2 pb-4">
+            {tasks.map((task, index) => (
+              <div
+                key={task.id}
+                className="animate-slide-in"
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                }}
+              >
+                <TaskCard
+                  task={task}
+                  variant="create"
+                  onDelete={handleDelete}
+                />
+              </div>
+            ))}
+            <div ref={tasksEndRef} />
+          </div>
+          
+          {/* 常に下部に固定された入力ボックス */}
+          <div className="border-t border-gray-700 pt-4">
+            <form onSubmit={handleSubmit}>
+              <div className="relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="新しいタスクを追加..."
+                  maxLength={100}
+                  className="w-full px-4 py-3 pr-14 bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100"
+                />
+                {inputValue && (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-4 h-4 text-white" />
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </>
       )}
 
       <style>{`

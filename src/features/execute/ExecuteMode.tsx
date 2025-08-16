@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
-import { FileText, Check, Loader2 } from 'lucide-react'
+import { FileText, Check, Loader2, Sparkles, Zap } from 'lucide-react'
 import type { Category } from '../../types'
 
 const categoryInfo = {
@@ -139,26 +139,29 @@ export const ExecuteMode: React.FC = () => {
                 )}
                 
                 {task.isExecuting === false && (
-                  <div 
-                    className="mb-3 p-2 bg-gray-700/50 rounded-lg text-center cursor-pointer hover:bg-gray-700/70 transition-colors" 
+                  <button
+                    className="mb-3 w-full p-3 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg text-center cursor-pointer hover:from-gray-600 hover:to-gray-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md" 
                     onClick={() => handleToggleExecuting(task.id)}
                   >
-                    <span className="text-gray-300 text-sm flex items-center justify-center gap-2">
-                      {React.createElement(actionIcons.pause, {
-                        className: "w-4 h-4"
+                    <span className="text-gray-200 text-sm font-medium flex items-center justify-center gap-2">
+                      {React.createElement(actionIcons.play, {
+                        className: "w-4 h-4 text-green-400"
                       })}
-                      一時停止中 - クリックで実行開始
+                      実行を開始する
                     </span>
-                  </div>
+                  </button>
                 )}
                 {task.isExecuting === true && (
-                  <div className="mb-3 p-2 bg-amber-900/20 rounded-lg text-center">
-                    <span className="text-amber-400 text-sm flex items-center justify-center gap-2 animate-pulse">
-                      {React.createElement(actionIcons.executing, {
-                        className: "w-4 h-4"
-                      })}
-                      実行中
-                    </span>
+                  <div className="mb-3 relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-lg blur-md animate-pulse" />
+                    <div className="relative p-2 bg-gradient-to-r from-amber-900/30 to-orange-900/30 rounded-lg border border-amber-500/30">
+                      <span className="text-amber-400 text-sm font-semibold flex items-center justify-center gap-2">
+                        {React.createElement(actionIcons.executing, {
+                          className: "w-4 h-4 animate-pulse"
+                        })}
+                        実行中
+                      </span>
+                    </div>
                   </div>
                 )}
                 
@@ -171,29 +174,71 @@ export const ExecuteMode: React.FC = () => {
                     
                     {/* 完了ボタン */}
                     {task.isExecuting === true && (
-                      <button
-                        onClick={() => handleComplete(task.id)}
-                        disabled={!!completingTaskId}
-                        className={`
-                          w-full px-4 py-3 rounded-lg font-bold transition-all
-                          ${completingTaskId 
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                            : 'bg-green-600 hover:bg-green-700 text-white transform hover:scale-105 active:scale-95'
-                          }
-                        `}
-                      >
-                        {isCompleting ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            完了中...
-                          </span>
-                        ) : (
-                          <span className="flex items-center justify-center gap-2">
-                            <Check className="w-4 h-4" />
-                            完了
-                          </span>
+                      <div className="relative group">
+                        {/* グロウエフェクト */}
+                        <div className={`
+                          absolute -inset-1 rounded-xl opacity-0 blur-xl transition-all duration-500
+                          ${!completingTaskId && !isCompleting ? 'group-hover:opacity-100' : ''}
+                          bg-gradient-to-r ${info.gradient}
+                        `} />
+                        
+                        <button
+                          onClick={() => handleComplete(task.id)}
+                          disabled={!!completingTaskId}
+                          className={`
+                            relative w-full px-6 py-4 rounded-xl font-bold
+                            transition-all duration-300 transform
+                            ${completingTaskId 
+                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                              : `
+                                bg-gradient-to-r ${info.gradient} text-white 
+                                hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]
+                                shadow-lg
+                              `
+                            }
+                          `}
+                        >
+                          <div className="relative">
+                            {isCompleting ? (
+                              <span className="flex items-center justify-center gap-3">
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span className="text-lg">完了中...</span>
+                              </span>
+                            ) : (
+                              <>
+                                {/* メインコンテンツ */}
+                                <span className="flex items-center justify-center gap-3">
+                                  <div className="relative">
+                                    <Check className="w-6 h-6" />
+                                    {/* キラキラエフェクト */}
+                                    <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-yellow-300 animate-pulse" />
+                                  </div>
+                                  <span className="text-lg font-extrabold tracking-wide">完了</span>
+                                  <Zap className="w-5 h-5 text-yellow-300" />
+                                </span>
+                                
+                                {/* ホバー時の追加エフェクト */}
+                                <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+                                  <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-700" />
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </button>
+                        
+                        {/* パルスリングエフェクト */}
+                        {!completingTaskId && !isCompleting && (
+                          <div className="absolute -inset-1 rounded-xl pointer-events-none">
+                            <div className={`
+                              absolute inset-0 rounded-xl opacity-30
+                              bg-gradient-to-r ${info.gradient}
+                              animate-pulse-slow
+                            `} />
+                          </div>
                         )}
-                      </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -224,6 +269,17 @@ export const ExecuteMode: React.FC = () => {
         }
         .animate-slide-in-bottom {
           animation: slide-in-bottom 0.5s ease-out;
+        }
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
       `}</style>
     </div>

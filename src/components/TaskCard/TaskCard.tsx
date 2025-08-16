@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Task } from '../../types'
+import { X, Flame, Pause } from 'lucide-react'
 
 interface TaskCardProps {
   task: Task
@@ -23,7 +24,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'create':
-        return 'bg-gray-800 border border-gray-700 p-3 rounded-lg hover:shadow-lg transition-shadow'
+        return 'bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 p-4 rounded-xl hover:bg-gray-800/70 hover:border-gray-600 transition-all group'
       case 'list':
         return 'bg-gray-800 border border-gray-700 p-4 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors'
       case 'execute':
@@ -74,13 +75,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <div className="flex items-center gap-2 mt-1">
               {isExecuting ? (
                 <>
-                  <span className="text-amber-500">🔥</span>
+                  <Flame className="w-4 h-4 text-amber-500" />
                   <span className="text-sm text-amber-400 font-medium">実行中</span>
                   <span className="text-gray-500">∞</span>
                 </>
               ) : (
                 <>
-                  <span className="text-gray-400">⏸️</span>
+                  <Pause className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-400 font-medium">一時停止</span>
                   <span className="text-gray-500">∞</span>
                 </>
@@ -110,9 +111,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation()
                 onDelete(task.id)
               }}
-              className="text-gray-500 hover:text-red-400 transition-colors"
+              className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1 hover:bg-red-900/20 rounded-lg"
             >
-              ×
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
