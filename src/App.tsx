@@ -10,6 +10,7 @@ import { ClassifyMode } from './features/classify/ClassifyMode'
 import { ListMode } from './features/list/ListMode'
 import { ExecuteMode } from './features/execute/ExecuteMode'
 import { useResponsive } from './hooks/useResponsive'
+import { ChevronLeft, ChevronRight, Hand } from 'lucide-react'
 
 function App() {
   const dispatch = useDispatch()
@@ -143,14 +144,14 @@ function App() {
             <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-400">
               {currentMode === 'classify' && inboxTasks.length > 0 ? (
                 <span className="flex items-center gap-2">
-                  <span className="text-blue-400">👆</span>
+                  <Hand className="w-4 h-4 text-blue-400" />
                   画面をタップして分類
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <span>←</span>
+                  <ChevronLeft className="w-4 h-4" />
                   スワイプでモード切替
-                  <span>→</span>
+                  <ChevronRight className="w-4 h-4" />
                 </span>
               )}
             </div>

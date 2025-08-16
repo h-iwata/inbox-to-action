@@ -3,18 +3,18 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../../store'
 import { setMode, type AppMode } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
+import { modeIcons } from '../../config/icons'
 
 interface ModeItem {
   id: AppMode
   label: string
-  icon: string
 }
 
 const modes: ModeItem[] = [
-  { id: 'create', label: '作成', icon: '✏️' },
-  { id: 'classify', label: '分類', icon: '📋' },
-  { id: 'list', label: '一覧', icon: '📄' },
-  { id: 'execute', label: '実行', icon: '🎯' },
+  { id: 'create', label: '作成' },
+  { id: 'classify', label: '分類' },
+  { id: 'list', label: '一覧' },
+  { id: 'execute', label: '実行' },
 ]
 
 export const ModeNavigator: React.FC = () => {
@@ -40,7 +40,11 @@ export const ModeNavigator: React.FC = () => {
                   : 'text-gray-400 hover:bg-gray-800'
               }`}
             >
-              <div className="text-2xl mb-1">{mode.icon}</div>
+              <div className="mb-1">
+                {React.createElement(modeIcons[mode.id], {
+                  className: "w-6 h-6 mx-auto"
+                })}
+              </div>
               <div className="text-xs font-medium">{mode.label}</div>
             </button>
           ))}
@@ -64,7 +68,11 @@ export const ModeNavigator: React.FC = () => {
                     : 'text-gray-400 border-transparent hover:text-gray-200 hover:bg-gray-800'
                 }`}
               >
-                <span className="mr-2">{mode.icon}</span>
+                <span className="mr-2">
+                  {React.createElement(modeIcons[mode.id], {
+                    className: "w-4 h-4 inline-block"
+                  })}
+                </span>
                 {mode.label}
               </button>
             ))}

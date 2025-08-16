@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { moveToTop, deleteTask, selectTasksByCategory, selectDailyStats, changeCategory, toggleExecuting, reorderTasksInCategory } from '../../store/slices/tasksSlice'
 import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { useResponsive } from '../../hooks/useResponsive'
+import { categoryIcons, actionIcons } from '../../config/icons'
+import { BarChart3 } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 export const ListMode: React.FC = () => {
@@ -13,11 +15,11 @@ export const ListMode: React.FC = () => {
   const [dragOverCategory, setDragOverCategory] = useState<Category | null>(null)
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
 
-  const categories: { id: Category; label: string; icon: string; color: string }[] = [
-    { id: 'work', label: '仕事', icon: '🏢', color: 'from-sky-800 to-sky-900' },
-    { id: 'life', label: '生活', icon: '🏠', color: 'from-teal-800 to-teal-900' },
-    { id: 'study', label: '学習', icon: '📚', color: 'from-violet-800 to-violet-900' },
-    { id: 'hobby', label: '趣味', icon: '🎮', color: 'from-pink-800 to-pink-900' },
+  const categories: { id: Category; label: string; icon: any; color: string }[] = [
+    { id: 'work', ...categoryIcons.work, color: 'from-sky-800 to-sky-900' },
+    { id: 'life', ...categoryIcons.life, color: 'from-teal-800 to-teal-900' },
+    { id: 'study', ...categoryIcons.study, color: 'from-violet-800 to-violet-900' },
+    { id: 'hobby', ...categoryIcons.hobby, color: 'from-pink-800 to-pink-900' },
   ]
 
   const handleMoveToTop = (taskId: string) => {
@@ -127,7 +129,9 @@ export const ListMode: React.FC = () => {
           >
             <div className={`bg-gradient-to-r ${category.color} text-white px-6 py-3 flex items-center justify-between`}>
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{category.icon}</span>
+                {React.createElement(category.icon, {
+                  className: "w-6 h-6 text-white"
+                })}
                 <h3 className="text-lg font-bold">{category.label}</h3>
               </div>
               <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
@@ -178,7 +182,10 @@ export const ListMode: React.FC = () => {
 
       {/* 統計情報 */}
       <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 p-6">
-        <h3 className="text-lg font-bold text-gray-200 mb-4">📊 今日の活動</h3>
+        <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5" />
+          今日の活動
+        </h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-400">{dailyStats.created}</div>
@@ -199,7 +206,9 @@ export const ListMode: React.FC = () => {
       <div className="mt-6 text-center">
         <div className="inline-flex items-center gap-4 px-4 py-2 bg-gray-800/50 rounded-full text-sm text-gray-400">
           <span className="flex items-center gap-2">
-            <span className="text-xs">💡</span>
+            {React.createElement(actionIcons.help, {
+              className: "w-4 h-4"
+            })}
             {isMobile ? (
               <>
                 <span>タスクをタップで最優先に設定</span>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useResponsive } from '../../hooks/useResponsive'
 import { AboutModal } from '../AboutModal/AboutModal'
+import { Inbox, Info, HelpCircle } from 'lucide-react'
 
 export const Header: React.FC = () => {
   const { isMobile } = useResponsive()
@@ -15,7 +16,7 @@ export const Header: React.FC = () => {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-lg blur-lg opacity-50"></div>
                 <div className="relative bg-gray-900 rounded-lg p-2">
-                  <span className="text-2xl">📥</span>
+                  <Inbox className="w-7 h-7 text-violet-400" />
                 </div>
               </div>
               <div>
@@ -37,10 +38,10 @@ export const Header: React.FC = () => {
               aria-label="このアプリについて"
             >
               {isMobile ? (
-                <span className="text-xl">❓</span>
+                <HelpCircle className="w-5 h-5" />
               ) : (
                 <>
-                  <span className="text-lg">ℹ️</span>
+                  <Info className="w-4 h-4" />
                   <span className="text-sm">このアプリについて</span>
                 </>
               )}

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { classifyTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
+import { categoryIcons, actionIcons } from '../../config/icons'
+import { Trophy } from 'lucide-react'
 import type { Category } from '../../types'
 
 export const ClassifyMode: React.FC = () => {
@@ -183,7 +185,7 @@ export const ClassifyMode: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
-          <div className="text-6xl mb-4">🎉</div>
+          <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
           <p className="text-gray-400">新しいタスクを追加するか、一覧を確認してください</p>
         </div>
@@ -193,10 +195,10 @@ export const ClassifyMode: React.FC = () => {
 
   // カテゴリ情報
   const categories = [
-    { id: 'study' as Category, label: '学習', icon: '📚', color: 'from-violet-600 to-violet-700', position: 'top' },
-    { id: 'work' as Category, label: '仕事', icon: '🏢', color: 'from-sky-600 to-sky-700', position: 'left' },
-    { id: 'life' as Category, label: '生活', icon: '🏠', color: 'from-teal-600 to-teal-700', position: 'right' },
-    { id: 'hobby' as Category, label: '趣味', icon: '🎮', color: 'from-pink-600 to-pink-700', position: 'bottom' },
+    { id: 'study' as Category, ...categoryIcons.study, position: 'top' },
+    { id: 'work' as Category, ...categoryIcons.work, position: 'left' },
+    { id: 'life' as Category, ...categoryIcons.life, position: 'right' },
+    { id: 'hobby' as Category, ...categoryIcons.hobby, position: 'bottom' },
   ]
 
   return (
@@ -227,13 +229,15 @@ export const ClassifyMode: React.FC = () => {
                     : 'scale-100 opacity-70'
                   }
                 `}>
-                  <div className={`text-4xl md:text-5xl transition-transform ${
+                  <div className={`transition-transform ${
                     dragDirection === 'up' ? 'scale-125' : 'scale-100'
                   }`}>
-                    📚
+                    {React.createElement(categoryIcons.study.icon, {
+                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                    })}
                   </div>
                   <div className="text-white font-bold text-lg md:text-xl mt-2">
-                    学習
+                    {categoryIcons.study.label}
                   </div>
                 </div>
               </div>
@@ -257,13 +261,15 @@ export const ClassifyMode: React.FC = () => {
                     : 'scale-100 opacity-70'
                   }
                 `}>
-                  <div className={`text-4xl md:text-5xl transition-transform ${
+                  <div className={`transition-transform ${
                     dragDirection === 'left' ? 'scale-125' : 'scale-100'
                   }`}>
-                    🏢
+                    {React.createElement(categoryIcons.work.icon, {
+                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                    })}
                   </div>
                   <div className="text-white font-bold text-lg md:text-xl mt-2">
-                    仕事
+                    {categoryIcons.work.label}
                   </div>
                 </div>
               </div>
@@ -279,11 +285,13 @@ export const ClassifyMode: React.FC = () => {
                     : 'bg-gray-700/70 scale-100'
                   }
                 `}>
-                  <span className={`text-4xl md:text-5xl transition-opacity ${
+                  <div className={`transition-opacity ${
                     dragDirection === 'center' ? 'opacity-100' : 'opacity-60'
                   }`}>
-                    ❌
-                  </span>
+                    {React.createElement(actionIcons.cancel, {
+                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                    })}
+                  </div>
                   <span className={`text-white text-sm md:text-base mt-2 font-medium ${
                     dragDirection === 'center' ? 'opacity-100' : 'opacity-60'
                   }`}>
@@ -311,13 +319,15 @@ export const ClassifyMode: React.FC = () => {
                     : 'scale-100 opacity-70'
                   }
                 `}>
-                  <div className={`text-4xl md:text-5xl transition-transform ${
+                  <div className={`transition-transform ${
                     dragDirection === 'right' ? 'scale-125' : 'scale-100'
                   }`}>
-                    🏠
+                    {React.createElement(categoryIcons.life.icon, {
+                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                    })}
                   </div>
                   <div className="text-white font-bold text-lg md:text-xl mt-2">
-                    生活
+                    {categoryIcons.life.label}
                   </div>
                 </div>
               </div>
@@ -341,13 +351,15 @@ export const ClassifyMode: React.FC = () => {
                     : 'scale-100 opacity-70'
                   }
                 `}>
-                  <div className={`text-4xl md:text-5xl transition-transform ${
+                  <div className={`transition-transform ${
                     dragDirection === 'down' ? 'scale-125' : 'scale-100'
                   }`}>
-                    🎮
+                    {React.createElement(categoryIcons.hobby.icon, {
+                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                    })}
                   </div>
                   <div className="text-white font-bold text-lg md:text-xl mt-2">
-                    趣味
+                    {categoryIcons.hobby.label}
                   </div>
                 </div>
               </div>
@@ -380,7 +392,11 @@ export const ClassifyMode: React.FC = () => {
               ${category.position === 'right' ? 'right-0 top-1/2 -translate-y-1/2 w-32 h-24 md:w-40 md:h-32' : ''}
             `}
           >
-            <div className="text-3xl md:text-4xl mb-1">{category.icon}</div>
+            <div className="mb-1">
+              {React.createElement(category.icon, {
+                className: "w-8 h-8 md:w-10 md:h-10 text-white mx-auto"
+              })}
+            </div>
             <div className="text-sm md:text-base font-bold">{category.label}</div>
             {!isMobile && (
               <div className="text-xs opacity-80 mt-1">

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { TaskCard } from '../../components/TaskCard/TaskCard'
+import { categoryIcons } from '../../config/icons'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -29,10 +30,22 @@ export const CreateMode: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       {/* カテゴリヒント */}
       <div className="mb-4 flex justify-center gap-4 text-sm">
-        <span className="px-3 py-1 bg-sky-900/40 text-sky-300 rounded-full">🏢 仕事</span>
-        <span className="px-3 py-1 bg-teal-900/40 text-teal-300 rounded-full">🏠 生活</span>
-        <span className="px-3 py-1 bg-violet-900/40 text-violet-300 rounded-full">📚 学習</span>
-        <span className="px-3 py-1 bg-pink-900/40 text-pink-300 rounded-full">🎮 趣味</span>
+        <span className="px-3 py-1 bg-sky-900/40 text-sky-300 rounded-full flex items-center gap-1">
+          {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4" })}
+          {categoryIcons.work.label}
+        </span>
+        <span className="px-3 py-1 bg-teal-900/40 text-teal-300 rounded-full flex items-center gap-1">
+          {React.createElement(categoryIcons.life.icon, { className: "w-4 h-4" })}
+          {categoryIcons.life.label}
+        </span>
+        <span className="px-3 py-1 bg-violet-900/40 text-violet-300 rounded-full flex items-center gap-1">
+          {React.createElement(categoryIcons.study.icon, { className: "w-4 h-4" })}
+          {categoryIcons.study.label}
+        </span>
+        <span className="px-3 py-1 bg-pink-900/40 text-pink-300 rounded-full flex items-center gap-1">
+          {React.createElement(categoryIcons.hobby.icon, { className: "w-4 h-4" })}
+          {categoryIcons.hobby.label}
+        </span>
       </div>
       
       <form onSubmit={handleSubmit} className="mb-6">

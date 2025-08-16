@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
+import { categoryIcons, actionIcons } from '../../config/icons'
+import { FileText, Check, Loader2 } from 'lucide-react'
 import type { Category } from '../../types'
 
 const categoryInfo = {
-  work: { label: '仕事', icon: '🏢', color: 'from-sky-800 to-sky-900' },
-  life: { label: '生活', icon: '🏠', color: 'from-teal-800 to-teal-900' },
-  study: { label: '学習', icon: '📚', color: 'from-violet-800 to-violet-900' },
-  hobby: { label: '趣味', icon: '🎮', color: 'from-pink-800 to-pink-900' },
+  work: { ...categoryIcons.work, color: 'from-sky-800 to-sky-900' },
+  life: { ...categoryIcons.life, color: 'from-teal-800 to-teal-900' },
+  study: { ...categoryIcons.study, color: 'from-violet-800 to-violet-900' },
+  hobby: { ...categoryIcons.hobby, color: 'from-pink-800 to-pink-900' },
 }
 
 export const ExecuteMode: React.FC = () => {
@@ -80,7 +82,7 @@ export const ExecuteMode: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
-          <div className="text-6xl mb-4">📝</div>
+          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-100 mb-2">実行するタスクがありません</h2>
           <p className="text-gray-400">タスクを作成して分類してください</p>
         </div>
@@ -110,7 +112,9 @@ export const ExecuteMode: React.FC = () => {
             >
               <div className={`bg-gradient-to-r ${info.color} text-white px-4 py-2 flex items-center justify-between`}>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">{info.icon}</span>
+                  {React.createElement(info.icon, {
+                    className: "w-6 h-6 text-white"
+                  })}
                   <span className="font-bold">{info.label}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -130,7 +134,7 @@ export const ExecuteMode: React.FC = () => {
                 {/* 完了時の祝福アニメーション */}
                 {isCompleting && (
                   <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="text-6xl animate-ping">✅</div>
+                    <Check className="w-16 h-16 text-green-500 animate-ping" />
                   </div>
                 )}
                 
@@ -139,12 +143,22 @@ export const ExecuteMode: React.FC = () => {
                     className="mb-3 p-2 bg-gray-700/50 rounded-lg text-center cursor-pointer hover:bg-gray-700/70 transition-colors" 
                     onClick={() => handleToggleExecuting(task.id)}
                   >
-                    <span className="text-gray-300 text-sm">⏸️ 一時停止中 - クリックで実行開始</span>
+                    <span className="text-gray-300 text-sm flex items-center justify-center gap-2">
+                      {React.createElement(actionIcons.pause, {
+                        className: "w-4 h-4"
+                      })}
+                      一時停止中 - クリックで実行開始
+                    </span>
                   </div>
                 )}
                 {task.isExecuting === true && (
                   <div className="mb-3 p-2 bg-amber-900/20 rounded-lg text-center">
-                    <span className="text-amber-400 text-sm animate-pulse">🔥 実行中</span>
+                    <span className="text-amber-400 text-sm flex items-center justify-center gap-2 animate-pulse">
+                      {React.createElement(actionIcons.executing, {
+                        className: "w-4 h-4"
+                      })}
+                      実行中
+                    </span>
                   </div>
                 )}
                 
@@ -170,12 +184,13 @@ export const ExecuteMode: React.FC = () => {
                       >
                         {isCompleting ? (
                           <span className="flex items-center justify-center gap-2">
-                            <span className="animate-spin">⏳</span>
+                            <Loader2 className="w-4 h-4 animate-spin" />
                             完了中...
                           </span>
                         ) : (
                           <span className="flex items-center justify-center gap-2">
-                            ✓ 完了
+                            <Check className="w-4 h-4" />
+                            完了
                           </span>
                         )}
                       </button>
