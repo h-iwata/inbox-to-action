@@ -10,7 +10,7 @@ import { ClassifyMode } from './features/classify/ClassifyMode'
 import { ListMode } from './features/list/ListMode'
 import { ExecuteMode } from './features/execute/ExecuteMode'
 import { useResponsive } from './hooks/useResponsive'
-import { ChevronLeft, ChevronRight, Hand } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Hand, Info } from 'lucide-react'
 
 function App() {
   const dispatch = useDispatch()
@@ -132,57 +132,54 @@ function App() {
       <Header />
       {!isMobile && <ModeNavigator />}
       
-      <main className={`container mx-auto px-4 py-8 ${isMobile ? 'pb-20' : ''} transition-opacity duration-300 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
-        {renderMode()}
-      </main>
-
-      {isMobile && (
-        <>
-          <ModeNavigator />
-          {/* モバイル版操作ヒント */}
-          <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 pointer-events-none z-30">
-            <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-400">
-              {currentMode === 'classify' && inboxTasks.length > 0 ? (
+      {/* 操作ヒントエリア */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex items-center justify-center">
+          <div className="bg-gray-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs text-gray-400 flex items-center gap-2">
+            <Info className="w-3 h-3" />
+            {isMobile ? (
+              currentMode === 'classify' && inboxTasks.length > 0 ? (
                 <span className="flex items-center gap-2">
-                  <Hand className="w-4 h-4 text-blue-400" />
+                  <Hand className="w-3 h-3 text-blue-400" />
                   画面をタップして分類
                 </span>
+              ) : currentMode === 'list' ? (
+                <span>タップで最優先設定 • 長押しで削除 • ドラッグで並び替え</span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3 h-3" />
                   スワイプでモード切替
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3 h-3" />
                 </span>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-      
-      {/* PC版操作ヒント */}
-      {!isMobile && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-none z-30">
-          <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-400">
-            {currentMode === 'classify' && inboxTasks.length > 0 ? (
-              <span className="flex items-center gap-3">
-                <span>W/↑: 学習</span>
-                <span className="text-gray-600">|</span>
-                <span>A/←: 仕事</span>
-                <span className="text-gray-600">|</span>
-                <span>D/→: 生活</span>
-                <span className="text-gray-600">|</span>
-                <span>S/↓: 趣味</span>
-              </span>
+              )
             ) : (
-              <span className="flex items-center gap-2">
-                <span>Tab: 次のモード</span>
-                <span className="text-gray-600">|</span>
-                <span>Shift+Tab: 前のモード</span>
-              </span>
+              currentMode === 'classify' && inboxTasks.length > 0 ? (
+                <span>
+                  W/↑: 学習 •
+                  A/←: 仕事 •
+                  D/→: 生活 •
+                  S/↓: 趣味
+                </span>
+              ) : currentMode === 'list' ? (
+                <span>クリックで最優先設定 • 右クリックで削除 • ドラッグ＆ドロップで並び替え</span>
+              ) : currentMode === 'execute' ? (
+                <span>1〜4キー：実行中タスクを完了</span>
+              ) : (
+                <span>
+                  Tab: 次のモード •
+                  Shift+Tab: 前のモード
+                </span>
+              )
             )}
           </div>
         </div>
-      )}
+      </div>
+      
+      <main className={`container mx-auto px-4 py-4 ${isMobile ? 'pb-24' : 'pb-8'} transition-opacity duration-300 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
+        {renderMode()}
+      </main>
+
+      {isMobile && <ModeNavigator />}
       
     </div>
   )

@@ -2,15 +2,13 @@ import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { moveToTop, deleteTask, selectTasksByCategory, selectDailyStats, changeCategory, toggleExecuting, reorderTasksInCategory } from '../../store/slices/tasksSlice'
 import { TaskCard } from '../../components/TaskCard/TaskCard'
-import { useResponsive } from '../../hooks/useResponsive'
-import { categoryIcons, actionIcons } from '../../config/icons'
+import { categoryIcons } from '../../config/icons'
 import { BarChart3 } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
   const dailyStats = useSelector(selectDailyStats)
-  const { isMobile } = useResponsive()
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [dragOverCategory, setDragOverCategory] = useState<Category | null>(null)
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
@@ -199,34 +197,6 @@ export const ListMode: React.FC = () => {
             <div className="text-3xl font-bold text-green-400">{dailyStats.completed}</div>
             <div className="text-sm text-gray-400">完了</div>
           </div>
-        </div>
-      </div>
-
-      {/* 操作ヒント */}
-      <div className="mt-6 text-center">
-        <div className="inline-flex items-center gap-4 px-4 py-2 bg-gray-800/50 rounded-full text-sm text-gray-400">
-          <span className="flex items-center gap-2">
-            {React.createElement(actionIcons.help, {
-              className: "w-4 h-4"
-            })}
-            {isMobile ? (
-              <>
-                <span>タスクをタップで最優先に設定</span>
-                <span className="text-gray-600">|</span>
-                <span>長押しで削除</span>
-                <span className="text-gray-600">|</span>
-                <span>ドラッグで並び替え</span>
-              </>
-            ) : (
-              <>
-                <span>クリックで最優先に設定</span>
-                <span className="text-gray-600">|</span>
-                <span>右クリックで削除</span>
-                <span className="text-gray-600">|</span>
-                <span>ドラッグ＆ドロップで並び替え</span>
-              </>
-            )}
-          </span>
         </div>
       </div>
     </div>

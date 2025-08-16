@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { classifyTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
-import { Trophy } from 'lucide-react'
+import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import type { Category } from '../../types'
 
 export const ClassifyMode: React.FC = () => {
@@ -19,15 +19,31 @@ export const ClassifyMode: React.FC = () => {
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // アニメーション用の状態
+  const [isClassifying, setIsClassifying] = useState(false)
+  const [classifiedDirection, setClassifiedDirection] = useState<'up' | 'down' | 'left' | 'right' | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
 
-  const handleClassify = (category: Category) => {
-    if (currentTask) {
-      dispatch(classifyTask({ id: currentTask.id, category }))
-      // アニメーション後にリセット
+  const handleClassify = (category: Category, direction: 'up' | 'down' | 'left' | 'right') => {
+    if (currentTask && !isClassifying) {
+      setIsClassifying(true)
+      setClassifiedDirection(direction)
+      setShowSuccess(true)
+      
+      // カードが飛んでいくアニメーション
       setTimeout(() => {
-        setIsOperating(false)
-        setDragDirection(null)
-      }, 300)
+        dispatch(classifyTask({ id: currentTask.id, category }))
+        setShowSuccess(false)
+        
+        // 次のカードが現れるアニメーション
+        setTimeout(() => {
+          setIsClassifying(false)
+          setClassifiedDirection(null)
+          setIsOperating(false)
+          setDragDirection(null)
+        }, 100)
+      }, 150)
     }
   }
 
@@ -101,13 +117,13 @@ export const ClassifyMode: React.FC = () => {
     
     // 方向に基づいてアクション（centerやnullの場合はキャンセル）
     if (dragDirection === 'up') {
-      handleClassify('study')
+      handleClassify('study', 'up')
     } else if (dragDirection === 'down') {
-      handleClassify('hobby')
+      handleClassify('hobby', 'down')
     } else if (dragDirection === 'left') {
-      handleClassify('work')
+      handleClassify('work', 'left')
     } else if (dragDirection === 'right') {
-      handleClassify('life')
+      handleClassify('life', 'right')
     } else {
       // center または null の場合はすべてキャンセル
       setIsOperating(false)
@@ -127,22 +143,22 @@ export const ClassifyMode: React.FC = () => {
         case 'w':
         case 'arrowup':
           e.preventDefault()
-          handleClassify('study')
+          handleClassify('study', 'up')
           break
         case 'a':
         case 'arrowleft':
           e.preventDefault()
-          handleClassify('work')
+          handleClassify('work', 'left')
           break
         case 's':
         case 'arrowdown':
           e.preventDefault()
-          handleClassify('hobby')
+          handleClassify('hobby', 'down')
           break
         case 'd':
         case 'arrowright':
           e.preventDefault()
-          handleClassify('life')
+          handleClassify('life', 'right')
           break
       }
     }
@@ -193,181 +209,206 @@ export const ClassifyMode: React.FC = () => {
     )
   }
 
-  // カテゴリ情報
-  const categories = [
-    { id: 'study' as Category, ...categoryIcons.study, position: 'top' },
-    { id: 'work' as Category, ...categoryIcons.work, position: 'left' },
-    { id: 'life' as Category, ...categoryIcons.life, position: 'right' },
-    { id: 'hobby' as Category, ...categoryIcons.hobby, position: 'bottom' },
-  ]
+
+  // アニメーション用のクラスとスタイル
+  const getClassifyAnimation = () => {
+    if (!classifiedDirection) return ''
+    switch (classifiedDirection) {
+      case 'up': return 'animate-fly-up'
+      case 'down': return 'animate-fly-down'
+      case 'left': return 'animate-fly-left'
+      case 'right': return 'animate-fly-right'
+      default: return ''
+    }
+  }
+  
+  const getClassifyStyle = () => {
+    if (!classifiedDirection) return {}
+    return {
+      zIndex: 100,
+      position: 'relative' as const
+    }
+  }
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-200px)]" ref={containerRef}>
-      <div className="relative h-full flex items-center justify-center">
+    <div className="max-w-5xl mx-auto h-[calc(100vh-200px)] flex flex-col" ref={containerRef}>
+      {/* ヘッダー：残りタスク数とプレビュー */}
+      <div className="mb-4 px-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Layers className="w-5 h-5 text-violet-400" />
+            <span className="text-gray-300 font-medium">未分類タスク</span>
+            <span className="bg-violet-600/20 text-violet-400 px-2 py-0.5 rounded-full text-sm font-bold">
+              {inboxTasks.length}
+            </span>
+          </div>
+          
+          {/* 次のタスクのプレビュー（スタック表現） */}
+          {inboxTasks.length > 1 && (
+            <div className="text-xs text-gray-500">
+              次: {inboxTasks[1].title.length > 20 
+                ? inboxTasks[1].title.substring(0, 20) + '...' 
+                : inboxTasks[1].title}
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="relative flex-1 flex items-center justify-center">
         
         {/* 操作オーバーレイ */}
         {isOperating && (
           <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in">
-            {/* 画面全体を使った4方向ゾーン */}
-            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-              {/* 上部ゾーン - 学習 */}
+            {/* シンプルな方向指示 */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* 上 - 学習 */}
               <div className={`
-                col-span-3 flex items-start justify-center pt-8
-                transition-all duration-200
-                ${dragDirection === 'up' 
-                  ? 'bg-gradient-to-b from-violet-600/50 to-transparent' 
-                  : ''
-                }
+                absolute top-20 left-1/2 -translate-x-1/2
+                transition-all duration-75
+                ${dragDirection === 'up' ? 'scale-125 -translate-y-2' : 'scale-100 opacity-60'}
               `}>
-                <div className={`
-                  flex flex-col items-center justify-center
-                  px-8 py-4 rounded-2xl
-                  bg-gradient-to-br from-violet-600 to-violet-700
-                  transition-all duration-200
-                  ${dragDirection === 'up' 
-                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
-                    : 'scale-100 opacity-70'
-                  }
-                `}>
-                  <div className={`transition-transform ${
-                    dragDirection === 'up' ? 'scale-125' : 'scale-100'
-                  }`}>
+                <div className="flex flex-col items-center gap-2">
+                  <div className={`
+                    p-4 rounded-full
+                    ${dragDirection === 'up' 
+                      ? 'bg-violet-500/30 backdrop-blur-md ring-2 ring-violet-400 shadow-lg' 
+                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    }
+                  `}>
                     {React.createElement(categoryIcons.study.icon, {
-                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                      className: `w-8 h-8 ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`
                     })}
                   </div>
-                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                  <span className={`font-medium text-sm ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`}>
                     {categoryIcons.study.label}
-                  </div>
+                  </span>
                 </div>
               </div>
 
-              {/* 左側ゾーン - 仕事 */}
+              {/* 左 - 仕事 */}
               <div className={`
-                row-start-2 flex items-center justify-start pl-8
-                transition-all duration-200
-                ${dragDirection === 'left' 
-                  ? 'bg-gradient-to-r from-sky-600/50 to-transparent' 
-                  : ''
-                }
+                absolute left-20 top-1/2 -translate-y-1/2
+                transition-all duration-75
+                ${dragDirection === 'left' ? 'scale-125 -translate-x-2' : 'scale-100 opacity-60'}
               `}>
-                <div className={`
-                  flex flex-col items-center justify-center
-                  px-6 py-4 rounded-2xl
-                  bg-gradient-to-br from-sky-600 to-sky-700
-                  transition-all duration-200
-                  ${dragDirection === 'left' 
-                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
-                    : 'scale-100 opacity-70'
-                  }
-                `}>
-                  <div className={`transition-transform ${
-                    dragDirection === 'left' ? 'scale-125' : 'scale-100'
-                  }`}>
+                <div className="flex flex-col items-center gap-2">
+                  <div className={`
+                    p-4 rounded-full
+                    ${dragDirection === 'left' 
+                      ? 'bg-sky-500/30 backdrop-blur-md ring-2 ring-sky-400 shadow-lg' 
+                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    }
+                  `}>
                     {React.createElement(categoryIcons.work.icon, {
-                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                      className: `w-8 h-8 ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`
                     })}
                   </div>
-                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                  <span className={`font-medium text-sm ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`}>
                     {categoryIcons.work.label}
-                  </div>
+                  </span>
                 </div>
               </div>
 
-              {/* 中央キャンセルゾーン */}
-              <div className="row-start-2 col-start-2 flex items-center justify-center">
-                <div className={`
-                  w-32 h-32 md:w-40 md:h-40 rounded-full 
-                  flex flex-col items-center justify-center
-                  transition-all duration-200
-                  ${dragDirection === 'center' 
-                    ? 'bg-gray-600/90 scale-110 shadow-2xl ring-4 ring-gray-400/50' 
-                    : 'bg-gray-700/70 scale-100'
-                  }
-                `}>
-                  <div className={`transition-opacity ${
-                    dragDirection === 'center' ? 'opacity-100' : 'opacity-60'
-                  }`}>
+              {/* 中央 - キャンセル */}
+              <div className={`
+                transition-all duration-75
+                ${dragDirection === 'center' ? 'scale-110' : 'scale-100 opacity-60'}
+              `}>
+                <div className="flex flex-col items-center gap-2">
+                  <div className={`
+                    p-4 rounded-full
+                    ${dragDirection === 'center' 
+                      ? 'bg-red-500/30 backdrop-blur-md ring-2 ring-red-400 shadow-lg' 
+                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    }
+                  `}>
                     {React.createElement(actionIcons.cancel, {
-                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                      className: `w-8 h-8 ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`
                     })}
                   </div>
-                  <span className={`text-white text-sm md:text-base mt-2 font-medium ${
-                    dragDirection === 'center' ? 'opacity-100' : 'opacity-60'
-                  }`}>
+                  <span className={`font-medium text-sm ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`}>
                     キャンセル
                   </span>
                 </div>
               </div>
 
-              {/* 右側ゾーン - 生活 */}
+              {/* 右 - 生活 */}
               <div className={`
-                row-start-2 col-start-3 flex items-center justify-end pr-8
-                transition-all duration-200
-                ${dragDirection === 'right' 
-                  ? 'bg-gradient-to-l from-teal-600/50 to-transparent' 
-                  : ''
-                }
+                absolute right-20 top-1/2 -translate-y-1/2
+                transition-all duration-75
+                ${dragDirection === 'right' ? 'scale-125 translate-x-2' : 'scale-100 opacity-60'}
               `}>
-                <div className={`
-                  flex flex-col items-center justify-center
-                  px-6 py-4 rounded-2xl
-                  bg-gradient-to-br from-teal-600 to-teal-700
-                  transition-all duration-200
-                  ${dragDirection === 'right' 
-                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
-                    : 'scale-100 opacity-70'
-                  }
-                `}>
-                  <div className={`transition-transform ${
-                    dragDirection === 'right' ? 'scale-125' : 'scale-100'
-                  }`}>
+                <div className="flex flex-col items-center gap-2">
+                  <div className={`
+                    p-4 rounded-full
+                    ${dragDirection === 'right' 
+                      ? 'bg-teal-500/30 backdrop-blur-md ring-2 ring-teal-400 shadow-lg' 
+                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    }
+                  `}>
                     {React.createElement(categoryIcons.life.icon, {
-                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                      className: `w-8 h-8 ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`
                     })}
                   </div>
-                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                  <span className={`font-medium text-sm ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`}>
                     {categoryIcons.life.label}
-                  </div>
+                  </span>
                 </div>
               </div>
 
-              {/* 下部ゾーン - 趣味 */}
+              {/* 下 - 趣味 */}
               <div className={`
-                row-start-3 col-span-3 flex items-end justify-center pb-8
-                transition-all duration-200
-                ${dragDirection === 'down' 
-                  ? 'bg-gradient-to-t from-pink-600/50 to-transparent' 
-                  : ''
-                }
+                absolute bottom-20 left-1/2 -translate-x-1/2
+                transition-all duration-75
+                ${dragDirection === 'down' ? 'scale-125 translate-y-2' : 'scale-100 opacity-60'}
               `}>
-                <div className={`
-                  flex flex-col items-center justify-center
-                  px-8 py-4 rounded-2xl
-                  bg-gradient-to-br from-pink-600 to-pink-700
-                  transition-all duration-200
-                  ${dragDirection === 'down' 
-                    ? 'scale-125 shadow-2xl ring-4 ring-white/60' 
-                    : 'scale-100 opacity-70'
-                  }
-                `}>
-                  <div className={`transition-transform ${
-                    dragDirection === 'down' ? 'scale-125' : 'scale-100'
-                  }`}>
+                <div className="flex flex-col items-center gap-2">
+                  <div className={`
+                    p-4 rounded-full
+                    ${dragDirection === 'down' 
+                      ? 'bg-pink-500/30 backdrop-blur-md ring-2 ring-pink-400 shadow-lg' 
+                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    }
+                  `}>
                     {React.createElement(categoryIcons.hobby.icon, {
-                      className: `w-12 h-12 md:w-14 md:h-14 text-white`
+                      className: `w-8 h-8 ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`
                     })}
                   </div>
-                  <div className="text-white font-bold text-lg md:text-xl mt-2">
+                  <span className={`font-medium text-sm ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`}>
                     {categoryIcons.hobby.label}
-                  </div>
+                  </span>
                 </div>
               </div>
             </div>
 
+            {/* ドラッグライン */}
+            {dragDirection && dragDirection !== 'center' && (
+              <svg 
+                className="absolute inset-0 pointer-events-none z-40"
+                style={{ width: '100%', height: '100%' }}
+              >
+                <line
+                  x1={startPosition.current.x}
+                  y1={startPosition.current.y}
+                  x2={currentPosition.x}
+                  y2={currentPosition.y}
+                  stroke={
+                    dragDirection === 'up' ? '#a78bfa' :
+                    dragDirection === 'down' ? '#f9a8d4' :
+                    dragDirection === 'left' ? '#7dd3fc' :
+                    dragDirection === 'right' ? '#5eead4' :
+                    '#94a3b8'
+                  }
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                  opacity="0.5"
+                />
+              </svg>
+            )}
+            
             {/* カーソル/タッチ位置のトラッカー */}
             <div 
-              className="fixed w-6 h-6 bg-white rounded-full shadow-2xl pointer-events-none z-50 ring-2 ring-white/50"
+              className="fixed w-4 h-4 bg-white rounded-full shadow-lg pointer-events-none z-50 ring-2 ring-white/30"
               style={{
                 left: `${currentPosition.x}px`,
                 top: `${currentPosition.y}px`,
@@ -377,75 +418,142 @@ export const ClassifyMode: React.FC = () => {
           </div>
         )}
 
-        {/* カテゴリボタン（通常表示） */}
-        {!isOperating && categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => handleClassify(category.id)}
-            className={`
-              absolute flex flex-col items-center justify-center
-              bg-gradient-to-br ${category.color} text-white rounded-2xl
-              shadow-lg hover:shadow-xl transition-all hover:scale-105
-              ${category.position === 'top' ? 'top-0 left-1/2 -translate-x-1/2 w-32 h-24 md:w-40 md:h-32' : ''}
-              ${category.position === 'bottom' ? 'bottom-0 left-1/2 -translate-x-1/2 w-32 h-24 md:w-40 md:h-32' : ''}
-              ${category.position === 'left' ? 'left-0 top-1/2 -translate-y-1/2 w-32 h-24 md:w-40 md:h-32' : ''}
-              ${category.position === 'right' ? 'right-0 top-1/2 -translate-y-1/2 w-32 h-24 md:w-40 md:h-32' : ''}
-            `}
-          >
-            <div className="mb-1">
-              {React.createElement(category.icon, {
-                className: "w-8 h-8 md:w-10 md:h-10 text-white mx-auto"
-              })}
+        {/* カテゴリヒント（小さく表示） */}
+        {!isOperating && (
+          <>
+            {/* 上下左右のカテゴリインジケーター */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500">
+              <ChevronUp className="w-4 h-4 text-violet-400" />
+              <span>{categoryIcons.study.label}</span>
             </div>
-            <div className="text-sm md:text-base font-bold">{category.label}</div>
-            {!isMobile && (
-              <div className="text-xs opacity-80 mt-1">
-                {category.position === 'top' && 'W / ↑'}
-                {category.position === 'left' && 'A / ←'}
-                {category.position === 'right' && 'D / →'}
-                {category.position === 'bottom' && 'S / ↓'}
-              </div>
-            )}
-          </button>
-        ))}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500">
+              <ChevronDown className="w-4 h-4 text-pink-400" />
+              <span>{categoryIcons.hobby.label}</span>
+            </div>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-xs text-gray-500">
+              <ChevronLeft className="w-4 h-4 text-sky-400" />
+              <span>{categoryIcons.work.label}</span>
+            </div>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-xs text-gray-500">
+              <span>{categoryIcons.life.label}</span>
+              <ChevronRight className="w-4 h-4 text-teal-400" />
+            </div>
+          </>
+        )}
 
         {/* 中央のタスクカードスタック */}
-        <div className="relative">
-          {/* 背後のカード（スタック表現 - 改善版） */}
-          {inboxTasks.length > 3 && (
-            <div className="absolute inset-0 bg-gray-700/20 rounded-xl transform rotate-3 translate-y-3" />
-          )}
-          {inboxTasks.length > 2 && (
-            <div className="absolute inset-0 bg-gray-700/30 rounded-xl transform -rotate-2 translate-y-2" />
-          )}
-          {inboxTasks.length > 1 && (
-            <div className="absolute inset-0 bg-gray-700/40 rounded-xl transform rotate-1 translate-y-1" />
-          )}
+        <div className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}>
+          {/* 背後のカード（スタック表現） */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {inboxTasks.slice(1, Math.min(4, inboxTasks.length)).map((task, index) => (
+              <div
+                key={task.id}
+                className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
+                style={{
+                  width: isMobile ? '200px' : '320px',
+                  height: isMobile ? '120px' : '180px',
+                  transform: `
+                    translateY(${(index + 1) * 4}px) 
+                    translateX(${(index + 1) * 2}px)
+                    rotate(${index % 2 === 0 ? 1 : -1}deg)
+                    scale(${1 - (index + 1) * 0.05})
+                  `,
+                  zIndex: -index - 1,
+                  opacity: 0.3 - index * 0.1
+                }}
+              />
+            ))}
+          </div>
           
           {/* メインのタスクカード */}
           <div
             ref={cardRef}
             className={`
-              relative bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl
-              ${isMobile ? 'p-4 w-[calc(100vw-300px)] max-w-[200px]' : 'p-6 md:p-8 min-w-[280px] max-w-[400px]'}
-              border-2 border-gray-600
-              ${isOperating ? 'scale-95 opacity-90' : 'hover:scale-105'}
-              transition-all duration-200 cursor-pointer select-none
+              relative bg-gradient-to-br from-violet-900/90 via-purple-800/90 to-indigo-900/90 
+              backdrop-blur-sm rounded-2xl shadow-2xl
+              ${isMobile ? 'p-6 w-[240px] h-[140px]' : 'p-8 w-[340px] h-[200px]'}
+              border-2 border-violet-500/30
+              ${isOperating ? 'scale-95 opacity-90' : 'hover:scale-105 hover:border-violet-400/50'}
+              transition-all duration-75 cursor-pointer select-none
+              flex items-center justify-center
+              ${isClassifying ? getClassifyAnimation() : ''}
             `}
+            style={isClassifying ? getClassifyStyle() : {}}
             onMouseDown={handleMouseDown}
             onTouchStart={handleOperationStart}
           >
+            {/* カードデザイン */}
+            <div className="absolute top-3 right-3">
+              <Sparkles className="w-5 h-5 text-yellow-400/50 animate-pulse" />
+            </div>
+            <div className="absolute bottom-3 left-3">
+              <div className="text-xs text-violet-300/50 font-mono">#{currentTask.id.slice(-4)}</div>
+            </div>
+            
             {/* タスク内容 */}
-            <div className="text-center">
-              <h3 className={`font-bold text-gray-100 flex items-center justify-center break-words ${isMobile ? 'text-base min-h-[2.5em]' : 'text-xl md:text-2xl min-h-[3em]'}`}>
-                <span className="block w-full overflow-wrap break-words">
+            <div className="text-center px-4">
+              <h3 className={`font-bold text-white flex items-center justify-center break-words ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+                <span className="block w-full overflow-wrap break-words drop-shadow-lg">
                   {currentTask.title}
                 </span>
               </h3>
             </div>
+            
+            {/* ホバーエフェクト */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
           </div>
         </div>
       </div>
+      
+      {/* フッター: 分類統計 */}
+      <div className="mt-4 px-4">
+        <div className="flex items-center justify-center gap-6 text-xs">
+          <div className="flex items-center gap-2">
+            {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4 text-sky-400" })}
+            <span className="text-gray-400">仕事</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {React.createElement(categoryIcons.life.icon, { className: "w-4 h-4 text-teal-400" })}
+            <span className="text-gray-400">生活</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {React.createElement(categoryIcons.study.icon, { className: "w-4 h-4 text-violet-400" })}
+            <span className="text-gray-400">学習</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {React.createElement(categoryIcons.hobby.icon, { className: "w-4 h-4 text-pink-400" })}
+            <span className="text-gray-400">趣味</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* 成功エフェクト */}
+      {showSuccess && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {/* 中央のスパークル */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-success-bounce">
+              <Sparkles className="w-20 h-20 text-yellow-400 drop-shadow-2xl" />
+            </div>
+          </div>
+          
+          {/* パーティクルエフェクト */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute animate-particle"
+                style={{
+                  animationDelay: `${i * 0.02}s`,
+                  transform: `rotate(${i * 60}deg) translateY(-60px)`
+                }}
+              >
+                <div className="w-2 h-2 bg-yellow-400 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes fade-in {
@@ -453,8 +561,54 @@ export const ClassifyMode: React.FC = () => {
           to { opacity: 1; }
         }
         .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
+          animation: fade-in 0.1s ease-out;
         }
+        
+        @keyframes fly-up {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-60vh) scale(0.7); opacity: 0; }
+        }
+        @keyframes fly-down {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(60vh) scale(0.7); opacity: 0; }
+        }
+        @keyframes fly-left {
+          0% { transform: translateX(0) scale(1); opacity: 1; }
+          100% { transform: translateX(-60vw) scale(0.7); opacity: 0; }
+        }
+        @keyframes fly-right {
+          0% { transform: translateX(0) scale(1); opacity: 1; }
+          100% { transform: translateX(60vw) scale(0.7); opacity: 0; }
+        }
+        
+        @keyframes slide-up-fade-in {
+          0% { transform: translateY(20px) scale(0.95); opacity: 0; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        @keyframes success-bounce {
+          0%, 100% { transform: scale(0); opacity: 0; }
+          50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        @keyframes particle {
+          0% { 
+            transform: translateY(0) scale(1); 
+            opacity: 1; 
+          }
+          100% { 
+            transform: translateY(-100px) scale(0); 
+            opacity: 0; 
+          }
+        }
+        
+        .animate-fly-up { animation: fly-up 0.15s ease-out forwards; }
+        .animate-fly-down { animation: fly-down 0.15s ease-out forwards; }
+        .animate-fly-left { animation: fly-left 0.15s ease-out forwards; }
+        .animate-fly-right { animation: fly-right 0.15s ease-out forwards; }
+        .animate-slide-up-fade-in { animation: slide-up-fade-in 0.2s ease-out; }
+        .animate-success-bounce { animation: success-bounce 0.2s ease-out; }
+        .animate-particle { animation: particle 0.3s ease-out forwards; }
       `}</style>
     </div>
   )

@@ -248,13 +248,6 @@ export const ExecuteMode: React.FC = () => {
         })}
       </div>
 
-      {isDesktop && topTasks.length > 0 && (
-        <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            キーボードの1-{topTasks.length}キーで実行中のタスクを完了できます
-          </p>
-        </div>
-      )}
       
       <style>{`
         @keyframes slide-in-bottom {

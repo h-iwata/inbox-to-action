@@ -40,7 +40,7 @@ export const CreateMode: React.FC = () => {
   const isEmpty = tasks.length === 0
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-200px)]">
+    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-240px)]">
       {isEmpty ? (
         // 初回入力時：中央に大きな入力ボックス
         <div className="flex-1 flex flex-col justify-center">
@@ -107,7 +107,7 @@ export const CreateMode: React.FC = () => {
           </div>
           
           {/* タスクリスト（スクロール可能） */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 px-2 pb-4">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 px-2 pb-4 mb-2">
             {tasks.map((task, index) => (
               <div
                 key={task.id}
@@ -127,7 +127,7 @@ export const CreateMode: React.FC = () => {
           </div>
           
           {/* 常に下部に固定された入力ボックス */}
-          <div className="border-t border-gray-700 pt-4">
+          <div className="border-t border-gray-700 pt-4 pb-8">
             <form onSubmit={handleSubmit}>
               <div className="relative">
                 <input
@@ -137,13 +137,20 @@ export const CreateMode: React.FC = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="新しいタスクを追加..."
                   maxLength={100}
-                  className="w-full px-4 py-3 pr-14 bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100"
+                  className="w-full px-5 py-4 pr-16 text-base bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100"
                 />
+                
+                {/* 文字数カウンター */}
+                <div className="absolute top-1 right-2 text-xs text-gray-500">
+                  {inputValue.length}/100
+                </div>
+                
+                {/* 送信ボタン */}
                 {inputValue && (
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute right-2 bottom-2 p-2 bg-gradient-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-4 h-4 text-white" />
                   </button>
