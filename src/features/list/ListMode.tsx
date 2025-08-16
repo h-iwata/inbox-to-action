@@ -12,10 +12,10 @@ export const ListMode: React.FC = () => {
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
 
   const categories: { id: Category; label: string; icon: string; color: string }[] = [
-    { id: 'work', label: '仕事', icon: '🏢', color: 'from-blue-500 to-cyan-500' },
-    { id: 'life', label: '生活', icon: '🏠', color: 'from-green-500 to-emerald-500' },
-    { id: 'study', label: '学習', icon: '📚', color: 'from-purple-500 to-indigo-500' },
-    { id: 'hobby', label: '趣味', icon: '🎮', color: 'from-orange-500 to-red-500' },
+    { id: 'work', label: '仕事', icon: '🏢', color: 'from-sky-800 to-sky-900' },
+    { id: 'life', label: '生活', icon: '🏠', color: 'from-teal-800 to-teal-900' },
+    { id: 'study', label: '学習', icon: '📚', color: 'from-violet-800 to-violet-900' },
+    { id: 'hobby', label: '趣味', icon: '🎮', color: 'from-pink-800 to-pink-900' },
   ]
 
   const handleMoveToTop = (taskId: string) => {
@@ -116,8 +116,8 @@ export const ListMode: React.FC = () => {
         return (
           <div 
             key={category.id} 
-            className={`bg-white rounded-2xl shadow-sm border-2 overflow-hidden transition-all ${
-              isDropTarget ? 'border-blue-500 shadow-lg scale-[1.02]' : 'border-gray-200'
+            className={`bg-gray-800 rounded-2xl shadow-lg border-2 overflow-hidden transition-all ${
+              isDropTarget ? 'border-blue-500 shadow-xl scale-[1.02]' : 'border-gray-700'
             } ${isEmpty && !isDropTarget ? 'opacity-50' : ''}`}
             onDragOver={(e) => handleDragOver(e, category.id)}
             onDragLeave={handleDragLeave}
@@ -135,7 +135,7 @@ export const ListMode: React.FC = () => {
             
             <div className={`p-4 space-y-3 min-h-[100px] ${isEmpty ? 'flex items-center justify-center' : ''}`}>
               {isEmpty && !isDropTarget ? (
-                <p className="text-gray-400 text-sm">タスクをドラッグして追加</p>
+                <p className="text-gray-500 text-sm">タスクをドラッグして追加</p>
               ) : (
                 tasks.map((task) => (
                   <div
@@ -175,20 +175,20 @@ export const ListMode: React.FC = () => {
       })}
 
       {/* 統計情報 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">📊 今日の活動</h3>
+      <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 p-6">
+        <h3 className="text-lg font-bold text-gray-200 mb-4">📊 今日の活動</h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">{dailyStats.created}</div>
-            <div className="text-sm text-gray-600">作成</div>
+            <div className="text-3xl font-bold text-blue-400">{dailyStats.created}</div>
+            <div className="text-sm text-gray-400">作成</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600">{dailyStats.classified}</div>
-            <div className="text-sm text-gray-600">分類</div>
+            <div className="text-3xl font-bold text-purple-400">{dailyStats.classified}</div>
+            <div className="text-sm text-gray-400">分類</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600">{dailyStats.completed}</div>
-            <div className="text-sm text-gray-600">完了</div>
+            <div className="text-3xl font-bold text-green-400">{dailyStats.completed}</div>
+            <div className="text-sm text-gray-400">完了</div>
           </div>
         </div>
       </div>

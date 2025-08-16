@@ -23,11 +23,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'create':
-        return 'bg-white border border-gray-200 p-3 rounded-lg hover:shadow-sm transition-shadow'
+        return 'bg-gray-800 border border-gray-700 p-3 rounded-lg hover:shadow-lg transition-shadow'
       case 'list':
-        return 'bg-white border border-gray-200 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors'
+        return 'bg-gray-800 border border-gray-700 p-4 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors'
       case 'execute':
-        return 'bg-white border-2 border-gray-300 p-6 rounded-xl shadow-sm hover:shadow-md transition-all'
+        return 'bg-gray-800 border-2 border-gray-600 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all'
       default:
         return ''
     }
@@ -36,8 +36,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isPriority = task.order === 1 && task.category !== 'inbox'
   const isExecuting = task.isExecuting === true
   const baseStyles = getVariantStyles()
-  const priorityStyles = isExecuting ? 'border-orange-500 bg-gradient-to-r from-orange-50 to-yellow-50' : 
-                         isPriority && !isExecuting ? 'border-gray-400 bg-gray-50' : ''
+  const priorityStyles = isExecuting ? 'border-amber-600/50 bg-gradient-to-r from-amber-900/10 to-orange-900/10' : 
+                         isPriority && !isExecuting ? 'border-gray-600 bg-gray-750/50' : ''
 
   const getTimeRemaining = () => {
     if (isPriority) return null
@@ -69,20 +69,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-gray-900 font-medium">{task.title}</p>
+          <p className="text-gray-100 font-medium">{task.title}</p>
           {isPriority && variant === 'list' && (
             <div className="flex items-center gap-2 mt-1">
               {isExecuting ? (
                 <>
-                  <span className="text-orange-500">🔥</span>
-                  <span className="text-sm text-orange-600 font-medium">実行中</span>
-                  <span className="text-gray-400">∞</span>
+                  <span className="text-amber-500">🔥</span>
+                  <span className="text-sm text-amber-400 font-medium">実行中</span>
+                  <span className="text-gray-500">∞</span>
                 </>
               ) : (
                 <>
                   <span className="text-gray-400">⏸️</span>
-                  <span className="text-sm text-gray-600 font-medium">一時停止</span>
-                  <span className="text-gray-400">∞</span>
+                  <span className="text-sm text-gray-400 font-medium">一時停止</span>
+                  <span className="text-gray-500">∞</span>
                 </>
               )}
             </div>
@@ -98,7 +98,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation()
                 onComplete(task.id)
               }}
-              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all transform hover:scale-105"
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105"
             >
               ✓ 完了
             </button>
@@ -110,7 +110,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation()
                 onDelete(task.id)
               }}
-              className="text-gray-400 hover:text-red-500 transition-colors"
+              className="text-gray-500 hover:text-red-400 transition-colors"
             >
               ×
             </button>

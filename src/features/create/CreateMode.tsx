@@ -29,10 +29,10 @@ export const CreateMode: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       {/* カテゴリヒント */}
       <div className="mb-4 flex justify-center gap-4 text-sm">
-        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">🏢 仕事</span>
-        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full">🏠 生活</span>
-        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">📚 学習</span>
-        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">🎮 趣味</span>
+        <span className="px-3 py-1 bg-sky-900/40 text-sky-300 rounded-full">🏢 仕事</span>
+        <span className="px-3 py-1 bg-teal-900/40 text-teal-300 rounded-full">🏠 生活</span>
+        <span className="px-3 py-1 bg-violet-900/40 text-violet-300 rounded-full">📚 学習</span>
+        <span className="px-3 py-1 bg-pink-900/40 text-pink-300 rounded-full">🎮 趣味</span>
       </div>
       
       <form onSubmit={handleSubmit} className="mb-6">
@@ -44,10 +44,10 @@ export const CreateMode: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="今日やりたいことは？ [仕事/生活/学習/趣味]"
               maxLength={100}
-              className="w-full h-40 px-6 text-xl bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-all placeholder-gray-400 resize-none pt-16"
+              className="w-full h-40 px-6 text-xl bg-gray-800/80 backdrop-blur-sm border-2 border-gray-700 rounded-2xl focus:border-blue-500 focus:outline-none transition-all placeholder-gray-500 resize-none pt-16 text-gray-100"
               autoFocus
             />
-            <div className="absolute top-4 right-4 text-sm text-gray-400">
+            <div className="absolute top-4 right-4 text-sm text-gray-500">
               {inputValue.length}/100
             </div>
           </div>
@@ -59,13 +59,13 @@ export const CreateMode: React.FC = () => {
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="新しいタスクを追加 [仕事/生活/学習/趣味]"
               maxLength={100}
-              className="w-full h-12 px-4 text-base bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-all placeholder-gray-400"
+              className="w-full h-12 px-4 text-base bg-gray-800/80 backdrop-blur-sm border-2 border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none transition-all placeholder-gray-500 text-gray-100"
             />
             <div className="absolute top-1/2 right-2 -translate-y-1/2">
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isSubmitting}
-                className="px-4 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 追加
               </button>
@@ -96,7 +96,7 @@ export const CreateMode: React.FC = () => {
 
       {isEmpty && (
         <div className="text-center mt-12">
-          <p className="text-gray-400 text-lg">タスクを入力してEnterキーで追加</p>
+          <p className="text-gray-500 text-lg">タスクを入力してEnterキーで追加</p>
         </div>
       )}
 
@@ -118,15 +118,15 @@ export const CreateMode: React.FC = () => {
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
+          background: #374151;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #888;
+          background: #4b5563;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #555;
+          background: #6b7280;
         }
       `}</style>
     </div>
