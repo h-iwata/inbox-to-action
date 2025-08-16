@@ -100,7 +100,7 @@ export const CreateMode: React.FC = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes slide-in {
           from {
             opacity: 0;
