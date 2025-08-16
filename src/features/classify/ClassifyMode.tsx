@@ -231,9 +231,9 @@ export const ClassifyMode: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-200px)] flex flex-col" ref={containerRef}>
+    <div className="max-w-5xl mx-auto h-[calc(100vh-220px)] flex flex-col" ref={containerRef}>
       {/* ヘッダー：残りタスク数とプレビュー */}
-      <div className="mb-4 px-4">
+      <div className="mb-2 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Layers className="w-5 h-5 text-violet-400" />
@@ -263,20 +263,20 @@ export const ClassifyMode: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center">
               {/* 上 - 学習 */}
               <div className={`
-                absolute top-20 left-1/2 -translate-x-1/2
+                absolute ${isMobile ? 'top-12' : 'top-20'} left-1/2 -translate-x-1/2
                 transition-all duration-75
                 ${dragDirection === 'up' ? 'scale-125 -translate-y-2' : 'scale-100 opacity-60'}
               `}>
                 <div className="flex flex-col items-center gap-2">
                   <div className={`
-                    p-4 rounded-full
+                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
                     ${dragDirection === 'up' 
                       ? 'bg-violet-500/30 backdrop-blur-md ring-2 ring-violet-400 shadow-lg' 
                       : 'bg-gray-800/50 backdrop-blur-sm'
                     }
                   `}>
                     {React.createElement(categoryIcons.study.icon, {
-                      className: `w-8 h-8 ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`
                     })}
                   </div>
                   <span className={`font-medium text-sm ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`}>
@@ -287,20 +287,20 @@ export const ClassifyMode: React.FC = () => {
 
               {/* 左 - 仕事 */}
               <div className={`
-                absolute left-20 top-1/2 -translate-y-1/2
+                absolute ${isMobile ? 'left-4' : 'left-20'} top-1/2 -translate-y-1/2
                 transition-all duration-75
                 ${dragDirection === 'left' ? 'scale-125 -translate-x-2' : 'scale-100 opacity-60'}
               `}>
                 <div className="flex flex-col items-center gap-2">
                   <div className={`
-                    p-4 rounded-full
+                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
                     ${dragDirection === 'left' 
                       ? 'bg-sky-500/30 backdrop-blur-md ring-2 ring-sky-400 shadow-lg' 
                       : 'bg-gray-800/50 backdrop-blur-sm'
                     }
                   `}>
                     {React.createElement(categoryIcons.work.icon, {
-                      className: `w-8 h-8 ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`
                     })}
                   </div>
                   <span className={`font-medium text-sm ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`}>
@@ -316,14 +316,14 @@ export const ClassifyMode: React.FC = () => {
               `}>
                 <div className="flex flex-col items-center gap-2">
                   <div className={`
-                    p-4 rounded-full
+                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
                     ${dragDirection === 'center' 
                       ? 'bg-red-500/30 backdrop-blur-md ring-2 ring-red-400 shadow-lg' 
                       : 'bg-gray-800/50 backdrop-blur-sm'
                     }
                   `}>
                     {React.createElement(actionIcons.cancel, {
-                      className: `w-8 h-8 ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`
                     })}
                   </div>
                   <span className={`font-medium text-sm ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`}>
@@ -334,20 +334,20 @@ export const ClassifyMode: React.FC = () => {
 
               {/* 右 - 生活 */}
               <div className={`
-                absolute right-20 top-1/2 -translate-y-1/2
+                absolute ${isMobile ? 'right-4' : 'right-20'} top-1/2 -translate-y-1/2
                 transition-all duration-75
                 ${dragDirection === 'right' ? 'scale-125 translate-x-2' : 'scale-100 opacity-60'}
               `}>
                 <div className="flex flex-col items-center gap-2">
                   <div className={`
-                    p-4 rounded-full
+                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
                     ${dragDirection === 'right' 
                       ? 'bg-teal-500/30 backdrop-blur-md ring-2 ring-teal-400 shadow-lg' 
                       : 'bg-gray-800/50 backdrop-blur-sm'
                     }
                   `}>
                     {React.createElement(categoryIcons.life.icon, {
-                      className: `w-8 h-8 ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`
                     })}
                   </div>
                   <span className={`font-medium text-sm ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`}>
@@ -358,20 +358,20 @@ export const ClassifyMode: React.FC = () => {
 
               {/* 下 - 趣味 */}
               <div className={`
-                absolute bottom-20 left-1/2 -translate-x-1/2
+                absolute ${isMobile ? 'bottom-12' : 'bottom-20'} left-1/2 -translate-x-1/2
                 transition-all duration-75
                 ${dragDirection === 'down' ? 'scale-125 translate-y-2' : 'scale-100 opacity-60'}
               `}>
                 <div className="flex flex-col items-center gap-2">
                   <div className={`
-                    p-4 rounded-full
+                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
                     ${dragDirection === 'down' 
                       ? 'bg-pink-500/30 backdrop-blur-md ring-2 ring-pink-400 shadow-lg' 
                       : 'bg-gray-800/50 backdrop-blur-sm'
                     }
                   `}>
                     {React.createElement(categoryIcons.hobby.icon, {
-                      className: `w-8 h-8 ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`
                     })}
                   </div>
                   <span className={`font-medium text-sm ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`}>
@@ -422,21 +422,21 @@ export const ClassifyMode: React.FC = () => {
         {!isOperating && (
           <>
             {/* 上下左右のカテゴリインジケーター */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500">
-              <ChevronUp className="w-4 h-4 text-violet-400" />
-              <span>{categoryIcons.study.label}</span>
+            <div className={`absolute ${isMobile ? 'top-2' : 'top-4'} left-1/2 -translate-x-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+              <ChevronUp className="w-3 h-3 text-violet-400" />
+              <span className="text-xs">{categoryIcons.study.label}</span>
             </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500">
-              <ChevronDown className="w-4 h-4 text-pink-400" />
-              <span>{categoryIcons.hobby.label}</span>
+            <div className={`absolute ${isMobile ? 'bottom-2' : 'bottom-4'} left-1/2 -translate-x-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+              <ChevronDown className="w-3 h-3 text-pink-400" />
+              <span className="text-xs">{categoryIcons.hobby.label}</span>
             </div>
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-xs text-gray-500">
-              <ChevronLeft className="w-4 h-4 text-sky-400" />
-              <span>{categoryIcons.work.label}</span>
+            <div className={`absolute ${isMobile ? 'left-2' : 'left-4'} top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+              <ChevronLeft className="w-3 h-3 text-sky-400" />
+              <span className="text-xs">{categoryIcons.work.label}</span>
             </div>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-xs text-gray-500">
-              <span>{categoryIcons.life.label}</span>
-              <ChevronRight className="w-4 h-4 text-teal-400" />
+            <div className={`absolute ${isMobile ? 'right-2' : 'right-4'} top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+              <span className="text-xs">{categoryIcons.life.label}</span>
+              <ChevronRight className="w-3 h-3 text-teal-400" />
             </div>
           </>
         )}
@@ -450,8 +450,8 @@ export const ClassifyMode: React.FC = () => {
                 key={task.id}
                 className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
                 style={{
-                  width: isMobile ? '200px' : '320px',
-                  height: isMobile ? '120px' : '180px',
+                  width: isMobile ? '180px' : '320px',
+                  height: isMobile ? '100px' : '180px',
                   transform: `
                     translateY(${(index + 1) * 4}px) 
                     translateX(${(index + 1) * 2}px)
@@ -471,7 +471,7 @@ export const ClassifyMode: React.FC = () => {
             className={`
               relative bg-gradient-to-br from-violet-900/90 via-purple-800/90 to-indigo-900/90 
               backdrop-blur-sm rounded-2xl shadow-2xl
-              ${isMobile ? 'p-6 w-[240px] h-[140px]' : 'p-8 w-[340px] h-[200px]'}
+              ${isMobile ? 'p-5 w-[220px] h-[120px]' : 'p-8 w-[340px] h-[200px]'}
               border-2 border-violet-500/30
               ${isOperating ? 'scale-95 opacity-90' : 'hover:scale-105 hover:border-violet-400/50'}
               transition-all duration-75 cursor-pointer select-none
@@ -491,8 +491,8 @@ export const ClassifyMode: React.FC = () => {
             </div>
             
             {/* タスク内容 */}
-            <div className="text-center px-4">
-              <h3 className={`font-bold text-white flex items-center justify-center break-words ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+            <div className="text-center px-3">
+              <h3 className={`font-bold text-white flex items-center justify-center break-words ${isMobile ? 'text-base' : 'text-xl md:text-2xl'}`}>
                 <span className="block w-full overflow-wrap break-words drop-shadow-lg">
                   {currentTask.title}
                 </span>
@@ -506,8 +506,8 @@ export const ClassifyMode: React.FC = () => {
       </div>
       
       {/* フッター: 分類統計 */}
-      <div className="mt-4 px-4">
-        <div className="flex items-center justify-center gap-6 text-xs">
+      <div className="mt-2 px-4">
+        <div className="flex items-center justify-center gap-4 text-xs">
           <div className="flex items-center gap-2">
             {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4 text-sky-400" })}
             <span className="text-gray-400">仕事</span>
