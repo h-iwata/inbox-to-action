@@ -99,10 +99,10 @@ export const CreateMode: React.FC = () => {
         <>
           {/* Inboxヘッダー */}
           <div className="mb-4 px-2">
-            <div className="flex items-center gap-2 text-gray-400">
-              <Inbox className="w-5 h-5" />
-              <span className="font-semibold">Inbox</span>
-              <span className="text-sm bg-gray-700 px-2 py-0.5 rounded-full">{tasks.length}</span>
+            <div className="flex items-center gap-2">
+              <Inbox className="w-5 h-5 text-violet-400" />
+              <span className="font-semibold text-gray-300">Inbox</span>
+              <span className="text-sm bg-violet-600/20 text-violet-400 px-2 py-0.5 rounded-full font-bold">{tasks.length}</span>
             </div>
           </div>
           

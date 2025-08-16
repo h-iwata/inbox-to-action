@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { classifyTask, selectInboxTasks } from '../../store/slices/tasksSlice'
+import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
 import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
@@ -11,6 +11,12 @@ export const ClassifyMode: React.FC = () => {
   const inboxTasks = useSelector(selectInboxTasks)
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
+  
+  // カテゴリ別のタスク数を取得
+  const workTasks = useSelector(selectTasksByCategory('work'))
+  const lifeTasks = useSelector(selectTasksByCategory('life'))
+  const studyTasks = useSelector(selectTasksByCategory('study'))
+  const hobbyTasks = useSelector(selectTasksByCategory('hobby'))
   
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
@@ -235,9 +241,9 @@ export const ClassifyMode: React.FC = () => {
       {/* ヘッダー：残りタスク数とプレビュー */}
       <div className="mb-2 px-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-violet-400" />
-            <span className="text-gray-300 font-medium">未分類タスク</span>
+            <span className="text-gray-300 font-semibold">Inbox</span>
             <span className="bg-violet-600/20 text-violet-400 px-2 py-0.5 rounded-full text-sm font-bold">
               {inboxTasks.length}
             </span>
@@ -507,22 +513,34 @@ export const ClassifyMode: React.FC = () => {
       
       {/* フッター: 分類統計 */}
       <div className="mt-2 px-4">
-        <div className="flex items-center justify-center gap-4 text-xs">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-3 text-xs">
+          <div className="flex items-center gap-1.5">
             {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4 text-sky-400" })}
             <span className="text-gray-400">仕事</span>
+            <span className="bg-sky-600/20 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">
+              {workTasks.length}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {React.createElement(categoryIcons.life.icon, { className: "w-4 h-4 text-teal-400" })}
             <span className="text-gray-400">生活</span>
+            <span className="bg-teal-600/20 text-teal-400 px-1.5 py-0.5 rounded-full font-bold">
+              {lifeTasks.length}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {React.createElement(categoryIcons.study.icon, { className: "w-4 h-4 text-violet-400" })}
             <span className="text-gray-400">学習</span>
+            <span className="bg-violet-600/20 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
+              {studyTasks.length}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {React.createElement(categoryIcons.hobby.icon, { className: "w-4 h-4 text-pink-400" })}
             <span className="text-gray-400">趣味</span>
+            <span className="bg-pink-600/20 text-pink-400 px-1.5 py-0.5 rounded-full font-bold">
+              {hobbyTasks.length}
+            </span>
           </div>
         </div>
       </div>
