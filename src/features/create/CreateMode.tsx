@@ -4,6 +4,7 @@ import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksS
 import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
 import { Send, Inbox } from 'lucide-react'
+import { useResponsive } from '../../hooks/useResponsive'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -12,6 +13,7 @@ export const CreateMode: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const tasksEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { isMobile } = useResponsive()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,7 +75,7 @@ export const CreateMode: React.FC = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="今日やりたいことは？"
                 maxLength={100}
-                className="w-full px-6 py-8 text-xl bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-2xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 shadow-xl"
+                className={`w-full px-6 py-8 text-xl bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-2xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 shadow-xl ${inputValue ? 'pr-20' : ''}`}
                 autoFocus
               />
               <div className="absolute top-3 right-4 text-sm text-gray-500">
@@ -91,7 +93,7 @@ export const CreateMode: React.FC = () => {
           </form>
           
           <div className="text-center mt-8">
-            <p className="text-gray-500">タスクを入力してEnterキーで追加</p>
+            <p className="text-gray-500">タスクを入力して追加</p>
           </div>
         </div>
       ) : (
@@ -107,7 +109,7 @@ export const CreateMode: React.FC = () => {
           </div>
           
           {/* タスクリスト（スクロール可能） */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 px-2 pb-4 mb-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 px-2 pb-4 mb-2 min-h-0">
             {tasks.map((task, index) => (
               <div
                 key={task.id}
@@ -127,7 +129,7 @@ export const CreateMode: React.FC = () => {
           </div>
           
           {/* 常に下部に固定された入力ボックス */}
-          <div className="border-t border-gray-700 pt-4 pb-8">
+          <div className="border-t border-gray-700 pt-4 pb-8 flex-shrink-0">
             <form onSubmit={handleSubmit}>
               <div className="relative">
                 <input
