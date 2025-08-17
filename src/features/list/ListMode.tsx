@@ -62,7 +62,7 @@ export const ListMode: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [gestureMode, setGestureMode] = useState<GestureMode>('none')
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const categories: { id: Category; label: string; icon: any; gradient: string }[] = [
     { id: 'work', ...categoryIcons.work, gradient: 'from-sky-800 to-sky-900' },
@@ -245,7 +245,7 @@ export const ListMode: React.FC = () => {
     inbox: []
   }
 
-  const renderTask = (task: Task, index: number, category: Category, tasks: Task[]) => {
+  const renderTask = (task: Task, index: number, category: Category) => {
     const isLongPressed = longPressTaskId === task.id
     const isBeingDragged = isDragging && dragState.taskId === task.id
     const isSwipingLeft = swipeState.taskId === task.id && swipeState.direction === 'left'
@@ -379,7 +379,7 @@ export const ListMode: React.FC = () => {
               {isEmpty ? (
                 <p className="text-gray-500 text-sm">タスクがありません</p>
               ) : (
-                tasks.map((task, index) => renderTask(task, index, category.id, tasks))
+                tasks.map((task, index) => renderTask(task, index, category.id))
               )}
             </div>
           </div>

@@ -4,7 +4,7 @@ import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { FileText, Check, Sparkles, Zap, PlayCircle, Flame } from 'lucide-react'
-import type { Category, Task } from '../../types'
+import type { Category } from '../../types'
 
 const categoryInfo = {
   work: { ...categoryIcons.work, gradient: 'from-sky-600 to-sky-700', bgLight: 'bg-sky-900/20', borderColor: 'border-sky-500/30' },
