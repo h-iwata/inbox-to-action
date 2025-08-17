@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
-import { FileText, Check, Sparkles, Zap, PlayCircle } from 'lucide-react'
+import { FileText, Check, Sparkles, Zap, PlayCircle, Flame } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 const categoryInfo = {
@@ -176,8 +176,8 @@ export const ExecuteMode: React.FC = () => {
                   <p className="text-sm text-white/70">残り {executingTaskCount} 件</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1 rounded-full">
+                <Flame className="w-4 h-4 text-orange-400 animate-pulse" />
                 <span className="text-sm text-white font-medium">実行中</span>
               </div>
             </div>
@@ -272,8 +272,8 @@ export const ExecuteMode: React.FC = () => {
                   </div>
                   
                   {isExecuting && (
-                    <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full">
-                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    <div className="flex items-center gap-1 bg-orange-500/20 px-2 py-0.5 rounded-full">
+                      <Flame className="w-3 h-3 text-orange-400 animate-pulse" />
                       <span className="text-xs text-white">実行中</span>
                     </div>
                   )}
