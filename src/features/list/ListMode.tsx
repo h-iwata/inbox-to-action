@@ -5,23 +5,12 @@ import {
   selectTasksByCategory, 
   selectDailyStats,
   selectTopTasksByCategory,
-  reorderTasksInCategory,
   changeCategory
 } from '../../store/slices/tasksSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Flame, Trash2, Inbox, GripVertical } from 'lucide-react'
+import { BarChart3, Flame, Trash2, Inbox } from 'lucide-react'
 import { useResponsive } from '../../hooks/useResponsive'
 import type { Category, Task } from '../../types'
-
-interface DragState {
-  taskId: string | null
-  startY: number
-  currentY: number
-  startX: number
-  currentX: number
-  originalIndex: number
-  category: Category | null
-}
 
 interface SwipeState {
   taskId: string | null
@@ -29,8 +18,6 @@ interface SwipeState {
   currentX: number
   direction: 'left' | 'right' | null
 }
-
-type GestureMode = 'none' | 'vertical' | 'horizontal'
 
 export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -41,28 +28,16 @@ export const ListMode: React.FC = () => {
   // 実行中のカテゴリを特定
   const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
 
-  const [dragState, setDragState] = useState<DragState>({
-    taskId: null,
-    startY: 0,
-    currentY: 0,
-    startX: 0,
-    currentX: 0,
-    originalIndex: 0,
-    category: null
-  })
-
+  // スワイプ用の状態（即座に左右移動）
   const [swipeState, setSwipeState] = useState<SwipeState>({
     taskId: null,
     startX: 0,
     currentX: 0,
     direction: null
   })
-
-  const [longPressTaskId, setLongPressTaskId] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [gestureMode, setGestureMode] = useState<GestureMode>('none')
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  // 削除確認モーダルの状態
+  const [deleteConfirm, setDeleteConfirm] = useState<{ taskId: string, title: string } | null>(null)
 
   const categories: { id: Category; label: string; icon: any; gradient: string }[] = [
     { id: 'work', ...categoryIcons.work, gradient: 'from-sky-800 to-sky-900' },
@@ -71,95 +46,43 @@ export const ListMode: React.FC = () => {
     { id: 'hobby', ...categoryIcons.hobby, gradient: 'from-pink-800 to-pink-900' },
   ]
 
-  // 長押し開始
-  const handleLongPressStart = (e: React.TouchEvent | React.MouseEvent, task: Task, index: number, category: Category) => {
+  // タッチ/マウス開始
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent, task: Task) => {
     if ('touches' in e) {
       const touch = e.touches[0]
       const startX = touch.clientX
-      const startY = touch.clientY
       
-      longPressTimerRef.current = setTimeout(() => {
-        setLongPressTaskId(task.id)
-        setDragState({
-          taskId: task.id,
-          startY,
-          currentY: startY,
-          startX,
-          currentX: startX,
-          originalIndex: index,
-          category
-        })
-        // バイブレーション（対応端末のみ）
-        if (navigator.vibrate) {
-          navigator.vibrate(50)
-        }
-      }, 500)
+      // スワイプの準備
+      setSwipeState({
+        taskId: task.id,
+        startX,
+        currentX: startX,
+        direction: null
+      })
     }
   }
 
   // タッチ/マウス移動
   const handleMove = (e: TouchEvent | MouseEvent) => {
-    if (!longPressTaskId) return
-
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     
-    const deltaX = clientX - dragState.startX
-    const deltaY = clientY - dragState.startY
-    
-    // まだ方向が決まっていない場合
-    if (gestureMode === 'none') {
-      // 横方向の移動が大きい場合はスワイプモード
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 20) {
-        setGestureMode('horizontal')
-        setSwipeState({
-          taskId: dragState.taskId,
-          startX: dragState.startX,
+    // 通常の左右スワイプ
+    if (swipeState.taskId) {
+      const deltaX = clientX - swipeState.startX
+      
+      // 横方向の移動を検出
+      if (Math.abs(deltaX) > 10) {
+        setSwipeState(prev => ({
+          ...prev,
           currentX: clientX,
           direction: deltaX > 0 ? 'right' : 'left'
-        })
-      } 
-      // 縦方向の移動が大きい場合はドラッグモード
-      else if (Math.abs(deltaY) > 20) {
-        setGestureMode('vertical')
-        setIsDragging(true)
-      }
-    }
-    
-    // 横方向モードの場合
-    if (gestureMode === 'horizontal') {
-      setSwipeState(prev => ({
-        ...prev,
-        currentX: clientX,
-        direction: deltaX > 0 ? 'right' : 'left'
-      }))
-    }
-    
-    // 縦方向モードの場合
-    if (gestureMode === 'vertical') {
-      setDragState(prev => ({
-        ...prev,
-        currentY: clientY
-      }))
-      
-      // ドラッグ位置から対象インデックスを計算
-      const draggedElement = document.querySelector(`[data-task-id="${dragState.taskId}"]`)
-      if (draggedElement) {
-        const rect = draggedElement.getBoundingClientRect()
-        const itemHeight = rect.height
-        const movement = clientY - dragState.startY
-        const newIndex = Math.round(dragState.originalIndex + movement / itemHeight)
-        setDragOverIndex(Math.max(0, newIndex))
+        }))
       }
     }
   }
 
   // タッチ/マウス終了
-  const handleEnd = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-    }
-
+  const handleEnd = (task?: Task) => {
     // スワイプ処理
     if (swipeState.taskId && swipeState.direction) {
       const swipeDistance = Math.abs(swipeState.currentX - swipeState.startX)
@@ -168,55 +91,36 @@ export const ListMode: React.FC = () => {
         if (swipeState.direction === 'left') {
           // Inboxへ戻す
           dispatch(changeCategory({ taskId: swipeState.taskId, newCategory: 'inbox' as Category }))
-        } else if (swipeState.direction === 'right') {
-          // 削除
-          if (confirm('タスクを削除しますか？')) {
-            dispatch(deleteTask(swipeState.taskId))
-          }
+        } else if (swipeState.direction === 'right' && task) {
+          // 削除確認モーダルを表示
+          setDeleteConfirm({ taskId: swipeState.taskId, title: task.title })
         }
-      }
-    }
-    
-    // ドラッグ処理
-    if (isDragging && dragOverIndex !== null && dragState.taskId && dragState.category) {
-      const tasks = tasksSelector[dragState.category]
-      if (dragOverIndex !== dragState.originalIndex && dragOverIndex < tasks.length) {
-        dispatch(reorderTasksInCategory({
-          taskId: dragState.taskId,
-          newPosition: dragOverIndex + 1,
-          category: dragState.category
-        }))
       }
     }
 
     // リセット
-    setLongPressTaskId(null)
-    setIsDragging(false)
-    setDragOverIndex(null)
-    setGestureMode('none')
     setSwipeState({
       taskId: null,
       startX: 0,
       currentX: 0,
       direction: null
     })
-    setDragState({
-      taskId: null,
-      startY: 0,
-      currentY: 0,
-      startX: 0,
-      currentX: 0,
-      originalIndex: 0,
-      category: null
-    })
+  }
+  
+  // 削除確認後の処理
+  const handleConfirmDelete = () => {
+    if (deleteConfirm) {
+      dispatch(deleteTask(deleteConfirm.taskId))
+      setDeleteConfirm(null)
+    }
   }
 
   // グローバルイベントリスナー
   useEffect(() => {
-    if (longPressTaskId) {
-      const handleGlobalMove = (e: TouchEvent | MouseEvent) => handleMove(e)
-      const handleGlobalEnd = () => handleEnd()
+    const handleGlobalMove = (e: TouchEvent | MouseEvent) => handleMove(e)
+    const handleGlobalEnd = () => handleEnd()
 
+    if (swipeState.taskId) {
       if (isMobile) {
         window.addEventListener('touchmove', handleGlobalMove, { passive: false })
         window.addEventListener('touchend', handleGlobalEnd)
@@ -234,7 +138,7 @@ export const ListMode: React.FC = () => {
         window.removeEventListener('mouseup', handleGlobalEnd)
       }
     }
-  }, [longPressTaskId, dragState, swipeState, isDragging, dragOverIndex])
+  }, [swipeState.taskId])
 
   // カテゴリごとのタスクセレクター
   const tasksSelector: Record<Category, Task[]> = {
@@ -245,39 +149,21 @@ export const ListMode: React.FC = () => {
     inbox: []
   }
 
-  const renderTask = (task: Task, index: number, category: Category) => {
-    const isLongPressed = longPressTaskId === task.id
-    const isBeingDragged = isDragging && dragState.taskId === task.id
+  const renderTask = (task: Task, index: number) => {
     const isSwipingLeft = swipeState.taskId === task.id && swipeState.direction === 'left'
     const isSwipingRight = swipeState.taskId === task.id && swipeState.direction === 'right'
     
     // スワイプ距離を制限（最大80px）
-    const rawSwipeOffset = swipeState.taskId === task.id 
+    const rawSwipeOffset = swipeState.taskId === task.id
       ? swipeState.currentX - swipeState.startX 
       : 0
     const swipeOffset = Math.max(-80, Math.min(80, rawSwipeOffset))
-    
-    const dragOffset = isBeingDragged
-      ? dragState.currentY - dragState.startY
-      : 0
 
     return (
       <div
         key={task.id}
         data-task-id={task.id}
-        className={`relative transition-all duration-300 ${
-          isBeingDragged ? 'z-50' : ''
-        } ${
-          dragOverIndex === index && !isBeingDragged ? 'mb-16' : ''
-        }`}
-        style={{
-          transform: isBeingDragged 
-            ? `translateY(${dragOffset}px) scale(1.05)` 
-            : isLongPressed && !isBeingDragged && !swipeState.direction
-              ? 'scale(1.02)'
-              : 'scale(1)',
-          opacity: isBeingDragged ? 0.9 : 1,
-        }}
+        className="relative transition-all duration-200"
       >
         {/* スワイプ背景 */}
         {(isSwipingLeft || isSwipingRight) && (
@@ -287,7 +173,8 @@ export const ListMode: React.FC = () => {
               : 'bg-red-600 left-0 pl-4'
           }`}
           style={{
-            width: `${Math.abs(swipeOffset)}px`
+            width: `${Math.abs(swipeOffset)}px`,
+            transition: 'width 0.1s ease-out'
           }}>
             {isSwipingLeft ? (
               <div className="flex items-center gap-2 text-white ml-auto">
@@ -305,28 +192,20 @@ export const ListMode: React.FC = () => {
         
         {/* タスクカード */}
         <div
-          className={`relative bg-gray-800 rounded-lg p-4 border transition-all ${
-            isLongPressed 
-              ? 'border-blue-500 shadow-lg ring-2 ring-blue-500/50' 
-              : task.order === 1 
-                ? 'border-orange-500/50 bg-gradient-to-r from-gray-800 to-gray-800/90' 
-                : 'border-gray-700'
+          className={`relative bg-gray-800 rounded-lg p-4 border transition-all duration-200 ${
+            task.order === 1 
+              ? 'border-orange-500/50 bg-gradient-to-r from-gray-800 to-gray-800/90' 
+              : 'border-gray-700'
           }`}
           style={{
             transform: `translateX(${swipeOffset}px)`,
+            transition: swipeOffset !== 0 ? 'transform 0.1s ease-out' : 'none'
           }}
-          onTouchStart={(e) => handleLongPressStart(e, task, index, category)}
-          onTouchEnd={() => {
-            if (longPressTimerRef.current && !isLongPressed) {
-              clearTimeout(longPressTimerRef.current)
-            }
-          }}
+          onTouchStart={(e) => handleTouchStart(e, task)}
+          onTouchEnd={() => handleEnd(task)}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
-              {isMobile && (
-                <GripVertical className="w-4 h-4 text-gray-500" />
-              )}
               <div className="flex-1">
                 <p className="text-gray-100 font-medium">{task.title}</p>
                 {task.order === 1 && (
@@ -379,7 +258,7 @@ export const ListMode: React.FC = () => {
               {isEmpty ? (
                 <p className="text-gray-500 text-sm">タスクがありません</p>
               ) : (
-                tasks.map((task, index) => renderTask(task, index, category.id))
+                tasks.map((task, index) => renderTask(task, index))
               )}
             </div>
           </div>
@@ -409,6 +288,32 @@ export const ListMode: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* 削除確認モーダル */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full border border-gray-700 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-100 mb-2">タスクを削除しますか？</h3>
+            <p className="text-gray-400 mb-6 text-sm break-words">
+              「{deleteConfirm.title}」を削除します。この操作は取り消せません。
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors font-medium"
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -86,7 +86,7 @@ function App() {
                   画面をタップして分類
                 </span>
               ) : currentMode === 'list' ? (
-                <span>タップで最優先設定 • 長押しで削除 • ドラッグで並び替え</span>
+                <span>左スワイプでInboxへ • 右スワイプで削除</span>
               ) : currentMode === 'execute' ? (
                 <span>実行タスクを完了ボタンで完了</span>
               ) : (
