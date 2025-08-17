@@ -294,11 +294,6 @@ const tasksSlice = createSlice({
       // 位置が変わらない場合は何もしない
       if (oldPosition === newPosition) return
       
-      // 同じカテゴリのアクティブなタスクを取得
-      const categoryTasks = state.items.filter(
-        (t) => t.category === category && t.status === 'active'
-      ).sort((a, b) => a.order - b.order)
-      
       // 順序を再計算 - state.itemsを直接更新
       if (oldPosition < newPosition) {
         // 下に移動する場合
