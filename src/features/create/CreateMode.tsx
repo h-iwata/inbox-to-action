@@ -4,7 +4,6 @@ import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksS
 import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
 import { Send, Inbox } from 'lucide-react'
-import { useResponsive } from '../../hooks/useResponsive'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -13,7 +12,6 @@ export const CreateMode: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const tasksEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const { isMobile } = useResponsive()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
