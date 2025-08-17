@@ -2,6 +2,7 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../../store'
 import { setMode, type AppMode } from '../../store/slices/uiSlice'
+import { selectInboxTasks } from '../../store/slices/tasksSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { modeIcons } from '../../config/icons'
 
@@ -20,6 +21,7 @@ const modes: ModeItem[] = [
 export const ModeNavigator: React.FC = () => {
   const dispatch = useDispatch()
   const currentMode = useSelector((state: RootState) => state.ui.currentMode)
+  const inboxTasks = useSelector(selectInboxTasks)
   const { isMobile } = useResponsive()
 
   const handleModeChange = (mode: AppMode) => {
@@ -40,10 +42,15 @@ export const ModeNavigator: React.FC = () => {
                   : 'text-gray-400 hover:bg-gray-800'
               }`}
             >
-              <div className="mb-1">
+              <div className="mb-1 relative">
                 {React.createElement(modeIcons[mode.id], {
                   className: "w-6 h-6 mx-auto"
                 })}
+                {mode.id === 'classify' && inboxTasks.length > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-violet-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {inboxTasks.length}
+                  </div>
+                )}
               </div>
               <div className="text-xs font-medium">{mode.label}</div>
             </button>
@@ -68,12 +75,17 @@ export const ModeNavigator: React.FC = () => {
                     : 'text-gray-400 border-transparent hover:text-gray-200 hover:bg-gray-800'
                 }`}
               >
-                <span className="mr-2">
+                <span className="mr-2 relative">
                   {React.createElement(modeIcons[mode.id], {
                     className: "w-4 h-4 inline-block"
                   })}
                 </span>
                 {mode.label}
+                {mode.id === 'classify' && inboxTasks.length > 0 && (
+                  <span className="ml-2 bg-violet-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                    {inboxTasks.length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
