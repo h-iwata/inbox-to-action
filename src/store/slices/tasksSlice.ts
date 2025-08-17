@@ -294,28 +294,27 @@ const tasksSlice = createSlice({
       // 位置が変わらない場合は何もしない
       if (oldPosition === newPosition) return
       
-      // 同じカテゴリのアクティブなタスクを取得
-      const categoryTasks = state.items.filter(
-        (t) => t.category === category && t.status === 'active'
-      ).sort((a, b) => a.order - b.order)
-      
-      // 順序を再計算
+      // 順序を再計算 - state.itemsを直接更新
       if (oldPosition < newPosition) {
         // 下に移動する場合
-        categoryTasks.forEach((t) => {
-          if (t.id === taskId) {
-            t.order = newPosition
-          } else if (t.order > oldPosition && t.order <= newPosition) {
-            t.order -= 1
+        state.items.forEach((t) => {
+          if (t.category === category && t.status === 'active') {
+            if (t.id === taskId) {
+              t.order = newPosition
+            } else if (t.order > oldPosition && t.order <= newPosition) {
+              t.order -= 1
+            }
           }
         })
       } else {
         // 上に移動する場合
-        categoryTasks.forEach((t) => {
-          if (t.id === taskId) {
-            t.order = newPosition
-          } else if (t.order >= newPosition && t.order < oldPosition) {
-            t.order += 1
+        state.items.forEach((t) => {
+          if (t.category === category && t.status === 'active') {
+            if (t.id === taskId) {
+              t.order = newPosition
+            } else if (t.order >= newPosition && t.order < oldPosition) {
+              t.order += 1
+            }
           }
         })
       }
