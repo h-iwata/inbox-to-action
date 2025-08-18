@@ -192,6 +192,14 @@ export const ClassifyMode: React.FC = () => {
       setDragDirection(null)
     }
 
+    // 分類モード全体でプルダウン更新を防ぐ
+    const preventPullToRefresh = (e: TouchEvent) => {
+      // 操作中、または最上部でない場合はプルダウンを防ぐ
+      if (isOperating || window.scrollY > 0) {
+        e.preventDefault()
+      }
+    }
+
     if (isOperating) {
       if (isMobile) {
         window.addEventListener('touchmove', handleMove, { passive: false })
@@ -203,12 +211,16 @@ export const ClassifyMode: React.FC = () => {
       }
     }
 
+    // 分類モードがアクティブな間、プルダウン更新を防ぐ
+    document.addEventListener('touchmove', preventPullToRefresh, { passive: false })
+
     return () => {
       window.removeEventListener('touchmove', handleMove)
       window.removeEventListener('touchend', handleEnd)
       window.removeEventListener('touchcancel', handleTouchCancel)
       window.removeEventListener('mousemove', handleMove)
       window.removeEventListener('mouseup', handleEnd)
+      document.removeEventListener('touchmove', preventPullToRefresh)
     }
   }, [isOperating, dragDirection, currentTask, isMobile])
 
@@ -262,7 +274,16 @@ export const ClassifyMode: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-220px)] flex flex-col" ref={containerRef}>
+    <div 
+      className="max-w-5xl mx-auto h-[calc(100vh-220px)] flex flex-col" 
+      ref={containerRef}
+      style={{ 
+        overscrollBehaviorY: 'contain',
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none'
+      }}
+    >
       {/* ヘッダー：残りタスク数とプレビュー */}
       <div className="mb-2 px-4">
         <div className="flex items-center justify-between">
