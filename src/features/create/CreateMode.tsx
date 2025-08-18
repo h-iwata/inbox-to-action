@@ -1,15 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
+import { setMode } from '../../store/slices/uiSlice'
 import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
-import { Send, Inbox } from 'lucide-react'
+import { Send, Inbox, Layers } from 'lucide-react'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
   const tasks = useSelector(selectInboxTasks)
   const [inputValue, setInputValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showClassifyPrompt, setShowClassifyPrompt] = useState(false)
   const tasksEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -162,6 +164,19 @@ export const CreateMode: React.FC = () => {
           
           {/* 常に下部に固定された入力ボックス */}
           <div className="border-t border-gray-700 pt-4 pb-8 flex-shrink-0">
+            {/* 分類への遷移メッセージ */}
+            {showClassifyPrompt && tasks.length > 0 && (
+              <div className="mb-3 text-center text-sm text-gray-400">
+                作成したタスクを
+                <button
+                  onClick={() => dispatch(setMode('classify'))}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+                >
+                  <Layers className="w-3 h-3" />
+                  <span>分類</span>
+                </button>
+              </div>
+            )}
             <form onSubmit={handleSubmit}>
               <div className="relative">
                 <textarea
@@ -169,6 +184,8 @@ export const CreateMode: React.FC = () => {
                   value={inputValue}
                   onChange={handleTextareaChange}
                   onKeyDown={handleKeyDown}
+                  onFocus={() => setShowClassifyPrompt(false)}
+                  onBlur={() => setShowClassifyPrompt(true)}
                   placeholder="新しいタスクを追加..."
                   maxLength={100}
                   rows={1}

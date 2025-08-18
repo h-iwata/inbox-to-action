@@ -106,7 +106,7 @@ const messages = {
 export const CategoryCompletionBar: React.FC = () => {
   const completedByCategory = useSelector(selectTodayCompletedByCategory)
   
-  const { total, percentages, maxCategory, message, level, nextLevelRequirement, progressInLevel } = useMemo(() => {
+  const { total, percentages, maxCategory, message, level, nextLevelRequirement } = useMemo(() => {
     const total = Object.values(completedByCategory).reduce((sum, count) => sum + count, 0)
     
     // カテゴリごとの割合を計算
@@ -145,9 +145,8 @@ export const CategoryCompletionBar: React.FC = () => {
     // 次のレベルまでの必要タスク数を計算
     const nextLevelThreshold = level < 5 ? (level + 1) * 4 : 20
     const nextLevelRequirement = level < 5 ? nextLevelThreshold - total : 0
-    const progressInLevel = total % 4 // 現在のレベル内での進捗
     
-    return { total, percentages, maxCategory, message, level, nextLevelRequirement, progressInLevel }
+    return { total, percentages, maxCategory, message, level, nextLevelRequirement }
   }, [completedByCategory])
 
   // レベルに応じたスタイルを取得

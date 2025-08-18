@@ -111,7 +111,7 @@ export const ExecuteMode: React.FC = () => {
                 <PenTool className="w-3 h-3" />
                 <span>作成</span>
               </button>
-              して分類してください
+              してください
             </p>
           </div>
         </div>
