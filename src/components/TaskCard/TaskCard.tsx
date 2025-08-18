@@ -69,8 +69,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       onClick={handleClick}
     >
       <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-gray-100 font-medium">{task.title}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">{task.title}</p>
           {isPriority && variant === 'list' && (
             <div className="flex items-center gap-2 mt-1">
               {isExecuting ? (
