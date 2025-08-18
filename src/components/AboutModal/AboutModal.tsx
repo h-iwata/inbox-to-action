@@ -70,18 +70,18 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               </h3>
               <div className="text-gray-300 space-y-2">
                 <p>
-                  InboxToActionは、GTD（Getting Things Done）メソッドをベースにした
-                  シンプルなタスク管理アプリです。
+                  InboxToActionは、24時間でタスクが消える新感覚のやることリストです。
                 </p>
                 <p>
-                  思いついたアイデアを即座に記録し、4つのカテゴリに分類、
-                  優先順位を決めて、着実に実行していくことができます。
+                  思いついたらメモして、4つのカテゴリに分けて、実行する。
+                  忘れることで、本当に大切なものが分かります。
                 </p>
                 <div className="mt-4 p-3 bg-gray-700/50 rounded-lg">
                   <p className="text-sm">
                     <strong className="text-cyan-400">24時間ルール：</strong>
-                    更新されないタスクは自動削除され、常にフレッシュな状態を保ちます。
-                    ただし、各カテゴリの最優先タスクは時間無制限です。
+                    タスクは作成から24時間で自動削除されます。
+                    消えたタスクを思い出すとき、その大切さに気づきます。
+                    繰り返し書くことで、実行への意欲が育ちます。
                   </p>
                 </div>
               </div>
@@ -164,8 +164,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                     <h4 className="font-semibold text-cyan-400 mb-2">一覧モード</h4>
                     <ul className="text-sm text-gray-300 space-y-1">
                       <li>• タスクをタップで最優先に設定</li>
-                      <li>• 長押しでタスク削除</li>
-                      <li>• ドラッグで順序変更・カテゴリ移動</li>
+                      <li>• 最優先タスクをタップで実行モードへ</li>
+                      <li>• 左右スワイプでInbox送り・削除</li>
                     </ul>
                   </div>
                   <div>
@@ -218,15 +218,15 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                   <div>
                     <h4 className="font-semibold text-cyan-400 mb-2">実行モード</h4>
                     <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• 1〜4キー：対応するカテゴリのタスクを完了</li>
+                      <li>• スペースキー：実行中タスクを完了</li>
+                      <li>• 1〜4キー：対応するカテゴリに切替</li>
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-semibold text-cyan-400 mb-2">マウス操作</h4>
                     <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• ドラッグ＆ドロップで順序変更・カテゴリ移動</li>
-                      <li>• 右クリックでタスク削除</li>
                       <li>• クリックで最優先設定・実行切替</li>
+                      <li>• カテゴリヘッダーをクリックで実行カテゴリ切替</li>
                     </ul>
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 </li>
                 <li className="flex items-start gap-2">
                   <Calendar className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <span>24時間ルールがあるので、毎日アプリを開く習慣が大切です</span>
+                  <span>24時間ルールで全タスクが削除されるので、毎日アプリを開く習慣が大切です</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
