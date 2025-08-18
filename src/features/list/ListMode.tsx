@@ -292,9 +292,9 @@ export const ListMode: React.FC = () => {
             }
           }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className={`font-medium ${task.order === 1 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className={`font-medium break-words whitespace-pre-wrap ${task.order === 1 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}>
                 {task.title}
               </p>
               {task.order === 1 && (

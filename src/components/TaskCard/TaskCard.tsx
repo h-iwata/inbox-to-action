@@ -111,7 +111,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation()
                 onDelete(task.id)
               }}
-              className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1 hover:bg-red-900/20 rounded-lg"
+              className="text-gray-400 hover:text-red-400 transition-all p-1.5 hover:bg-red-900/20 rounded-lg bg-gray-700/50 hover:bg-red-900/30"
             >
               <X className="w-4 h-4" />
             </button>

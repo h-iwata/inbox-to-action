@@ -494,7 +494,7 @@ export const ClassifyMode: React.FC = () => {
             className={`
               relative bg-gradient-to-br from-violet-900/90 via-purple-800/90 to-indigo-900/90 
               backdrop-blur-sm rounded-2xl shadow-2xl
-              ${isMobile ? 'p-5 w-[220px] h-[120px]' : 'p-8 w-[340px] h-[200px]'}
+              ${isMobile ? 'p-5 w-[220px] min-h-[120px]' : 'p-8 w-[340px] min-h-[200px]'}
               border-2 border-violet-500/30
               ${isOperating ? 'scale-95 opacity-90' : 'hover:scale-105 hover:border-violet-400/50'}
               transition-all duration-75 cursor-pointer select-none
@@ -514,9 +514,9 @@ export const ClassifyMode: React.FC = () => {
             </div>
             
             {/* タスク内容 */}
-            <div className="text-center px-3">
-              <h3 className={`font-bold text-white flex items-center justify-center break-words ${isMobile ? 'text-base' : 'text-xl md:text-2xl'}`}>
-                <span className="block w-full overflow-wrap break-words drop-shadow-lg">
+            <div className="text-center px-2 py-2 max-w-full overflow-hidden">
+              <h3 className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}>
+                <span className="block break-words">
                   {currentTask.title}
                 </span>
               </h3>
