@@ -222,10 +222,15 @@ export const ExecuteMode: React.FC = () => {
         <div className={`
           w-full max-w-2xl p-6 rounded-3xl
           bg-gradient-to-br ${executingInfo.gradient}
-          shadow-2xl transform transition-all duration-500
-          ${isCompleting ? 'scale-110 rotate-2 opacity-0' : 'scale-100'}
+          transform transition-all duration-500
+          ${isCompleting ? 'scale-110 rotate-2 opacity-0' : 'scale-100 hover:scale-[1.02]'}
           relative overflow-hidden
+          shadow-2xl shadow-orange-500/30
+          ring-2 ring-orange-400/60
         `}>
+          {/* 光沢エフェクト */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-50" />
+          
           {/* 背景アニメーション */}
           <div className="absolute inset-0 opacity-20">
             <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-transparent animate-pulse" />
@@ -235,27 +240,32 @@ export const ExecuteMode: React.FC = () => {
           <div className="relative">
             {/* ヘッダー */}
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 {React.createElement(executingInfo.icon, {
-                  className: "w-10 h-10 text-white"
+                  className: "w-12 h-12 text-white"
                 })}
                 <div>
                   <h3 className="text-xl font-bold text-white">{executingInfo.label}</h3>
-                  <button
-                    onClick={() => dispatch(setModeWithScroll({ 
-                      mode: 'list', 
-                      scrollToCategory: executingTask.category as Category 
-                    }))}
-                    className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded-full text-sm text-white/90 hover:text-white transition-all group"
-                  >
-                    <span>残り {executingTaskCount} 件</span>
-                    <BarChart3 className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
-                  </button>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Flame className="w-4 h-4 text-orange-300 animate-pulse" />
+                    <span className="text-xs font-semibold text-orange-200">実行中</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1 rounded-full">
-                <Flame className="w-4 h-4 text-orange-400 animate-pulse" />
-                <span className="text-sm text-white font-medium">実行中</span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="bg-white/25 px-3 py-1.5 rounded-full text-sm font-bold text-white backdrop-blur-sm">
+                  {executingTaskCount}件
+                </span>
+                <button
+                  onClick={() => dispatch(setModeWithScroll({ 
+                    mode: 'list', 
+                    scrollToCategory: executingTask.category as Category 
+                  }))}
+                  className="text-xs text-white/70 hover:text-white/90 transition-colors flex items-center gap-1"
+                >
+                  <BarChart3 className="w-3 h-3" />
+                  <span>一覧へ</span>
+                </button>
               </div>
             </div>
             
@@ -275,9 +285,10 @@ export const ExecuteMode: React.FC = () => {
                 transition-all duration-300 transform
                 ${completingTaskId 
                   ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                  : 'bg-white text-gray-900 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]'
+                  : 'bg-white text-gray-900 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] shadow-lg hover:shadow-2xl'
                 }
                 relative overflow-hidden group
+                ${!completingTaskId && 'ring-2 ring-white/30'}
               `}
             >
               {isCompleting ? (
