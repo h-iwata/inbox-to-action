@@ -188,6 +188,14 @@ export const CategoryCompletionBar: React.FC = () => {
     hobby: 'from-pink-500 to-pink-600'
   }
 
+  // カテゴリアイコンの色（Tailwindのパージングのため事前定義）
+  const categoryIconColors = {
+    work: 'text-sky-400',
+    life: 'text-teal-400',
+    study: 'text-violet-400',
+    hobby: 'text-pink-400'
+  }
+
   return (
     <div className="space-y-2.5">
       {/* ヘッダー */}
@@ -309,7 +317,7 @@ export const CategoryCompletionBar: React.FC = () => {
                   isMax ? 'text-white font-bold scale-110' : 'text-gray-500'
                 }`}
               >
-                <Icon className={`w-3 h-3 ${isMax ? 'text-' + category + '-400' : ''}`} />
+                <Icon className={`w-3 h-3 ${isMax ? categoryIconColors[category] : ''}`} />
                 <span>{categoryIcons[category].label}</span>
                 {count > 0 && (
                   <span className={`${isMax ? 'text-white' : 'text-gray-600'}`}>
