@@ -192,10 +192,10 @@ export const ClassifyMode: React.FC = () => {
       setDragDirection(null)
     }
 
-    // 分類モード全体でプルダウン更新を防ぐ
+    // ジェスチャー操作中のみプルダウン更新を防ぐ
     const preventPullToRefresh = (e: TouchEvent) => {
-      // 操作中、または最上部でない場合はプルダウンを防ぐ
-      if (isOperating || window.scrollY > 0) {
+      // 操作中のみプルダウンを防ぐ
+      if (isOperating) {
         e.preventDefault()
       }
     }
@@ -275,13 +275,11 @@ export const ClassifyMode: React.FC = () => {
 
   return (
     <div 
-      className="max-w-5xl mx-auto h-[calc(100vh-220px)] flex flex-col" 
+      className="max-w-5xl mx-auto flex flex-col" 
       ref={containerRef}
       style={{ 
-        overscrollBehaviorY: 'contain',
-        touchAction: 'none',
-        userSelect: 'none',
-        WebkitUserSelect: 'none'
+        height: 'calc(100svh - 220px)', // svhを使用してBraveの問題に対応
+        // フォールバック: svh非対応ブラウザは自動的に100vhにフォールバック
       }}
     >
       {/* ヘッダー：残りタスク数とプレビュー */}
