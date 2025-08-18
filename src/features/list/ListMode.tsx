@@ -137,6 +137,24 @@ export const ListMode: React.FC = () => {
     }
   }
 
+  // カテゴリヘッダーをタップして実行中カテゴリを切り替え
+  const handleCategoryHeaderClick = (category: Category) => {
+    // 該当カテゴリの最上位タスクを取得
+    const topTask = tasksSelector[category].find(t => t.order === 1)
+    
+    if (topTask) {
+      // バイブレーション（モバイルのみ）
+      if (navigator.vibrate) {
+        navigator.vibrate(15)
+      }
+      
+      // 現在実行中でない場合は実行中に設定
+      if (!topTask.isExecuting) {
+        dispatch(toggleExecuting(topTask.id))
+      }
+    }
+  }
+
   // タスクをクリックして最上位に移動または実行モードへ遷移
   const handleMoveToTop = (task: Task, category: Category) => {
     // すでに最上位（order=1）の場合は実行モードへ遷移
@@ -335,30 +353,33 @@ export const ListMode: React.FC = () => {
               isExecuting ? 'border-orange-400/60 shadow-orange-500/30' : 'border-gray-700/60'
             } ${isEmpty ? 'opacity-60' : ''}`}
           >
-            <div className={`p-5 bg-gradient-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm`}>
+            <div 
+              className={`p-5 bg-gradient-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm cursor-pointer hover:brightness-110 transition-all`}
+              onClick={() => handleCategoryHeaderClick(category.id)}
+            >
               <div className="flex items-center gap-3">
                 <div className={`p-2 bg-white/20 rounded-lg backdrop-blur-sm`}>
                   <category.icon className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">{category.label}</h3>
-                  {isExecuting && (
+                  {isExecuting ? (
                     <div className="flex items-center gap-1.5 mt-1">
                       <Flame className="w-4 h-4 text-orange-300 animate-pulse" />
                       <span className="text-xs font-semibold text-orange-200">実行中</span>
                     </div>
-                  )}
+                  ) : tasks.some(t => t.order === 1) ? (
+                    <div className="flex items-center gap-1.5 mt-1 opacity-60">
+                      <Play className="w-3 h-3 text-white" />
+                      <span className="text-xs text-white">タップで実行</span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="bg-white/25 px-3 py-1.5 rounded-full text-sm font-bold text-white backdrop-blur-sm">
                   {tasks.length}件
                 </span>
-                {tasks.filter(t => t.order === 1).length > 0 && (
-                  <div className="bg-orange-400/30 p-1.5 rounded-full">
-                    <Trophy className="w-4 h-4 text-white" />
-                  </div>
-                )}
               </div>
             </div>
             
