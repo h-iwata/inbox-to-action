@@ -149,9 +149,9 @@ export const ExecuteMode: React.FC = () => {
   const isCompleting = completingTaskId === executingTask.id
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] flex flex-col">
+    <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
       {/* 実行中タスクエリア（メインフォーカス） */}
-      <div className="flex-1 flex items-center justify-center px-4 mb-6">
+      <div className="flex items-center justify-center px-4 mb-6 mt-8">
         <div className={`
           w-full max-w-2xl p-8 rounded-3xl
           bg-gradient-to-br ${executingInfo.gradient}
