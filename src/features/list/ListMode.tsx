@@ -81,13 +81,19 @@ export const ListMode: React.FC = () => {
   }
 
   // タッチ/マウス移動
-  const handleMove = (e: React.TouchEvent | React.MouseEvent) => {
-    if (!swipeState.taskId) return
+  const handleMove = (e: React.TouchEvent | React.MouseEvent, taskId: string) => {
+    if (!swipeState.taskId || swipeState.taskId !== taskId) return
+    
+    // タッチイベントのデフォルト動作を防ぐ
+    if ('touches' in e) {
+      e.preventDefault()
+    }
     
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const deltaX = clientX - swipeState.startX
     
-    if (Math.abs(deltaX) > 10) {
+    // より小さい閾値でスワイプを検出
+    if (Math.abs(deltaX) > 5) {
       setSwipeState(prev => ({
         ...prev,
         currentX: clientX,
@@ -151,11 +157,12 @@ export const ListMode: React.FC = () => {
     const isSwipingLeft = swipeState.taskId === task.id && swipeState.direction === 'left'
     const isSwipingRight = swipeState.taskId === task.id && swipeState.direction === 'right'
     
-    // スワイプ距離を制限（最大80px）
-    const rawSwipeOffset = swipeState.taskId === task.id
-      ? swipeState.currentX - swipeState.startX 
-      : 0
-    const swipeOffset = Math.max(-80, Math.min(80, rawSwipeOffset))
+    // スワイプ距離を計算（最大80px）
+    let swipeOffset = 0
+    if (swipeState.taskId === task.id && swipeState.currentX !== 0) {
+      const rawOffset = swipeState.currentX - swipeState.startX
+      swipeOffset = Math.max(-80, Math.min(80, rawOffset))
+    }
 
     return (
       <motion.div
@@ -170,51 +177,86 @@ export const ListMode: React.FC = () => {
           y: { duration: 0.15 }
         }}
         className="relative"
+        style={{ overflow: 'hidden' }}
       >
         {/* スワイプ背景 */}
-        {(isSwipingLeft || isSwipingRight) && (
-          <div className={`absolute inset-y-0 flex items-center ${
-            isSwipingLeft 
-              ? 'bg-gradient-to-r from-violet-600 to-violet-500 right-0 pr-4 rounded-r-xl' 
-              : 'bg-gradient-to-l from-red-600 to-red-500 left-0 pl-4 rounded-l-xl'
-          }`}
-          style={{
-            width: `${Math.abs(swipeOffset)}px`,
-            transition: 'width 0.1s ease-out'
-          }}>
-            {isSwipingLeft ? (
-              <div className="flex items-center gap-2 text-white ml-auto">
-                <span className="font-semibold text-sm">Inbox</span>
-                <Inbox className="w-5 h-5" />
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-white">
-                <Trash2 className="w-5 h-5" />
-                <span className="font-semibold text-sm">削除</span>
-              </div>
-            )}
-          </div>
-        )}
+        <div className={`absolute inset-0 flex items-center ${
+          isSwipingLeft 
+            ? 'bg-gradient-to-r from-violet-600 to-violet-500 justify-end pr-4' 
+            : isSwipingRight
+            ? 'bg-gradient-to-l from-red-600 to-red-500 justify-start pl-4'
+            : 'hidden'
+        } rounded-xl`}
+        style={{
+          opacity: Math.abs(swipeOffset) / 80,
+          zIndex: 0
+        }}>
+          {isSwipingLeft ? (
+            <div className="flex items-center gap-2 text-white">
+              <span className="font-semibold text-sm">Inbox</span>
+              <Inbox className="w-5 h-5" />
+            </div>
+          ) : isSwipingRight ? (
+            <div className="flex items-center gap-2 text-white">
+              <Trash2 className="w-5 h-5" />
+              <span className="font-semibold text-sm">削除</span>
+            </div>
+          ) : null}
+        </div>
         
         {/* タスクカード */}
-        <motion.div
-          className={`relative bg-gradient-to-r rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg ${
+        <div
+          className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors ${
             task.order === 1 
-              ? 'from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20' 
-              : 'from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 cursor-pointer hover:shadow-xl'
+              ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20' 
+              : swipeState.taskId === task.id && Math.abs(swipeOffset) > 10
+              ? 'bg-gray-800/60 border-gray-700/50'
+              : 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 cursor-pointer hover:shadow-xl'
           }`}
           style={{
-            transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : 'none',
+            transform: `translateX(${swipeOffset}px)`,
+            transition: swipeState.taskId === task.id ? 'none' : 'transform 0.2s ease-out',
+            position: 'relative',
+            zIndex: swipeState.taskId === task.id ? 10 : 1,
           }}
-          whileTap={task.order !== 1 ? { scale: 0.97 } : {}}
-          whileHover={task.order !== 1 ? { scale: 1.02 } : {}}
-          onClick={() => handleMoveToTop(task, category)}
-          onTouchStart={(e) => handleTouchStart(e, task)}
-          onMouseDown={(e) => handleTouchStart(e, task)}
-          onTouchMove={(e) => handleMove(e)}
-          onMouseMove={(e) => handleMove(e)}
-          onTouchEnd={() => handleEnd(task)}
-          onMouseUp={() => handleEnd(task)}
+          onClick={() => {
+            // スワイプ中はクリックを無視
+            if (Math.abs(swipeOffset) < 10) {
+              handleMoveToTop(task, category)
+            }
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation()
+            handleTouchStart(e, task)
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            handleTouchStart(e, task)
+          }}
+          onTouchMove={(e) => {
+            e.stopPropagation()
+            handleMove(e, task.id)
+          }}
+          onMouseMove={(e) => {
+            if (swipeState.taskId === task.id) {
+              e.stopPropagation()
+              handleMove(e, task.id)
+            }
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation()
+            handleEnd(task)
+          }}
+          onMouseUp={(e) => {
+            e.stopPropagation()
+            handleEnd(task)
+          }}
+          onMouseLeave={() => {
+            // マウスが離れた場合もリセット
+            if (swipeState.taskId === task.id) {
+              handleEnd(task)
+            }
+          }}
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -241,7 +283,7 @@ export const ListMode: React.FC = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     )
   }
