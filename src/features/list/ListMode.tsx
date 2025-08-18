@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from '../../store'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   deleteTask, 
@@ -10,7 +11,7 @@ import {
   reorderTasksInCategory,
   toggleExecuting
 } from '../../store/slices/tasksSlice'
-import { setMode } from '../../store/slices/uiSlice'
+import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
 import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target, Play, RefreshCw, PenTool } from 'lucide-react'
 import type { Category, Task } from '../../types'
@@ -26,6 +27,7 @@ export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
   const dailyStats = useSelector(selectDailyStats)
   const topTasks = useSelector(selectTopTasksByCategory)
+  const scrollToCategory = useSelector((state: RootState) => state.ui.scrollToCategory)
   
   // 実行中のカテゴリを特定
   const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
@@ -47,6 +49,31 @@ export const ListMode: React.FC = () => {
     { id: 'study', ...categoryIcons.study, gradient: 'from-violet-500 to-violet-600', color: 'violet' },
     { id: 'hobby', ...categoryIcons.hobby, gradient: 'from-pink-500 to-pink-600', color: 'pink' },
   ]
+
+  // カテゴリセクションへの参照を保持
+  const categoryRefs = useRef<{ [key in Category]?: HTMLDivElement | null }>({})
+
+  // スクロール処理
+  useEffect(() => {
+    if (scrollToCategory && categoryRefs.current[scrollToCategory]) {
+      // 少し遅延を入れてDOMの描画完了を待つ
+      setTimeout(() => {
+        const element = categoryRefs.current[scrollToCategory]
+        if (element) {
+          // カテゴリヘッダーが画面上部から少し余裕を持って表示されるように調整
+          const yOffset = -80 // ヘッダーの上に80pxの余白を確保
+          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
+          
+          window.scrollTo({
+            top: y,
+            behavior: 'smooth'
+          })
+        }
+        // スクロール後にクリア
+        dispatch(clearScrollToCategory())
+      }, 100)
+    }
+  }, [scrollToCategory, dispatch])
 
   // カテゴリごとのタスクセレクター
   const workTasks = useSelector(selectTasksByCategory('work'))
@@ -346,6 +373,7 @@ export const ListMode: React.FC = () => {
         return (
           <motion.div 
             key={category.id}
+            ref={(el) => { categoryRefs.current[category.id] = el }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categories.indexOf(category) * 0.1 }}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
-import { setMode } from '../../store/slices/uiSlice'
+import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3 } from 'lucide-react'
@@ -175,7 +175,10 @@ export const ExecuteMode: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-bold text-white">{executingInfo.label}</h3>
                   <button
-                    onClick={() => dispatch(setMode('list'))}
+                    onClick={() => dispatch(setModeWithScroll({ 
+                      mode: 'list', 
+                      scrollToCategory: executingTask.category as Category 
+                    }))}
                     className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded-full text-sm text-white/90 hover:text-white transition-all group"
                   >
                     <span>残り {executingTaskCount} 件</span>
