@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   deleteTask, 
   selectTasksByCategory, 
-  selectDailyStats,
   selectTopTasksByCategory,
   changeCategory,
   reorderTasksInCategory,
@@ -13,7 +12,8 @@ import {
 } from '../../store/slices/tasksSlice'
 import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Target, Play, RefreshCw, PenTool } from 'lucide-react'
+import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
+import { Flame, Trash2, Inbox, Target, Play, RefreshCw, PenTool } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -25,7 +25,6 @@ interface SwipeState {
 
 export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
-  const dailyStats = useSelector(selectDailyStats)
   const topTasks = useSelector(selectTopTasksByCategory)
   const scrollToCategory = useSelector((state: RootState) => state.ui.scrollToCategory)
   
@@ -359,6 +358,16 @@ export const ListMode: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* 統計情報 - グラデーションバー（最上部に配置） */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0 }}
+        className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md"
+      >
+        <CategoryCompletionBar />
+      </motion.div>
+
       {categories.map((category) => {
         const tasks = tasksSelector[category.id]
         const isExecuting = executingCategory === category.id
@@ -433,37 +442,6 @@ export const ListMode: React.FC = () => {
           </motion.div>
         )
       })}
-
-      {/* 統計情報 */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-blue-500/20 rounded-lg">
-            <BarChart3 className="w-5 h-5 text-blue-400" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-100">今日の統計</h3>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-xl p-4 text-center border border-green-500/20">
-            <div className="flex items-center justify-center mb-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-            </div>
-            <p className="text-3xl font-bold text-green-400">{dailyStats.completed}</p>
-            <p className="text-xs text-gray-400 mt-1 font-medium">完了タスク</p>
-          </div>
-          <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 rounded-xl p-4 text-center border border-yellow-500/20">
-            <div className="flex items-center justify-center mb-2">
-              <Target className="w-5 h-5 text-yellow-400" />
-            </div>
-            <p className="text-3xl font-bold text-yellow-400">{dailyStats.created}</p>
-            <p className="text-xs text-gray-400 mt-1 font-medium">作成タスク</p>
-          </div>
-        </div>
-      </motion.div>
 
       {/* 削除確認モーダル */}
       <AnimatePresence>
