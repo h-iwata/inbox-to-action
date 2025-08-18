@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
-import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
+import { setModeWithScroll } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3 } from 'lucide-react'
