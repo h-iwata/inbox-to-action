@@ -12,7 +12,7 @@ import {
 } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target, Play, RefreshCw } from 'lucide-react'
+import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target, Play, RefreshCw, PenTool } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -389,7 +389,16 @@ export const ListMode: React.FC = () => {
                   <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-${category.color}-500/10 mb-3`}>
                     <category.icon className={`w-8 h-8 text-${category.color}-400/50`} />
                   </div>
-                  <p className="text-gray-500 text-sm font-medium">タスクがありません</p>
+                  <p className="text-gray-500 text-sm">
+                    タスクがありません
+                  </p>
+                  <button
+                    onClick={() => dispatch(setMode('create'))}
+                    className="inline-flex items-center gap-1 px-3 py-1 mt-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-sm"
+                  >
+                    <PenTool className="w-3 h-3" />
+                    <span>作成</span>
+                  </button>
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
