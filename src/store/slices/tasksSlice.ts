@@ -399,6 +399,36 @@ export const selectDailyStats = createSelector(
   (tasks) => tasks.stats.daily
 )
 
+export const selectTodayCompletedByCategory = createSelector(
+  [selectAllTasks],
+  (tasks) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const todayCompleted = tasks.filter(task => {
+      if (task.status !== 'done') return false
+      const completedDate = new Date(task.updated_at)
+      completedDate.setHours(0, 0, 0, 0)
+      return completedDate.getTime() === today.getTime()
+    })
+    
+    const byCategory = {
+      work: 0,
+      life: 0,
+      study: 0,
+      hobby: 0
+    }
+    
+    todayCompleted.forEach(task => {
+      if (task.category !== 'inbox' && task.category in byCategory) {
+        byCategory[task.category as keyof typeof byCategory]++
+      }
+    })
+    
+    return byCategory
+  }
+)
+
 export const selectWeeklyStats = createSelector(
   [selectTasksState],
   (tasks) => tasks.stats.weekly

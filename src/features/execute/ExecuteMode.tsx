@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
-import { setModeWithScroll } from '../../store/slices/uiSlice'
+import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
-import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3 } from 'lucide-react'
+import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
+import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3, PenTool } from 'lucide-react'
 import type { Category } from '../../types'
 
 const categoryInfo = {
@@ -89,24 +90,51 @@ export const ExecuteMode: React.FC = () => {
   // タスクがない場合
   if (topTasks.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-center">
-          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">実行するタスクがありません</h2>
-          <p className="text-gray-400">タスクを作成して分類してください</p>
+      <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
+        {/* 統計情報は常に表示 */}
+        <div className="px-4 mb-6">
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
+            <CategoryCompletionBar />
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center h-[40vh]">
+          <div className="text-center">
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-100 mb-2">実行するタスクがありません</h2>
+            <p className="text-gray-400">
+              タスクを
+              <button
+                onClick={() => dispatch(setMode('create'))}
+                className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+              >
+                <PenTool className="w-3 h-3" />
+                <span>作成</span>
+              </button>
+              して分類してください
+            </p>
+          </div>
         </div>
       </div>
     )
   }
 
-  // 実行中タスクがない場合
-  if (!executingTask) {
+  // 実行中タスクがない場合（ただしタスクは存在する）
+  if (!executingTask && topTasks.length > 0) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-xl font-bold text-gray-300 mb-2">実行するカテゴリを選択してください</h2>
-          <p className="text-sm text-gray-500">タップして実行を開始</p>
+      <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
+        {/* 統計情報は常に表示 */}
+        <div className="px-4 mb-6">
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
+            <CategoryCompletionBar />
+          </div>
         </div>
+
+        <div className="px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-bold text-gray-300 mb-2">実行するカテゴリを選択してください</h2>
+            <p className="text-sm text-gray-500">タップして実行を開始</p>
+          </div>
         
         <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {topTasks.map((task) => {
@@ -140,6 +168,38 @@ export const ExecuteMode: React.FC = () => {
             )
           })}
         </div>
+        </div>
+      </div>
+    )
+  }
+
+  // この時点で executingTask が存在することが保証される
+  if (!executingTask) {
+    // フォールバック（通常はここに到達しないはず）
+    return (
+      <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
+        <div className="px-4 mb-6">
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
+            <CategoryCompletionBar />
+          </div>
+        </div>
+        <div className="flex items-center justify-center h-[40vh]">
+          <div className="text-center">
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-100 mb-2">実行するタスクがありません</h2>
+            <p className="text-gray-400">
+              タスクを
+              <button
+                onClick={() => dispatch(setMode('create'))}
+                className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+              >
+                <PenTool className="w-3 h-3" />
+                <span>作成</span>
+              </button>
+              して分類してください
+            </p>
+          </div>
+        </div>
       </div>
     )
   }
@@ -150,8 +210,15 @@ export const ExecuteMode: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
+      {/* 統計情報 - グラデーションバー（最上部に配置） */}
+      <div className="px-4 mb-6">
+        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
+          <CategoryCompletionBar />
+        </div>
+      </div>
+
       {/* 実行中タスクエリア（メインフォーカス） */}
-      <div className="flex items-center justify-center px-4 mb-6 mt-8">
+      <div className="flex items-center justify-center px-4 mb-6">
         <div className={`
           w-full max-w-2xl p-8 rounded-3xl
           bg-gradient-to-br ${executingInfo.gradient}
