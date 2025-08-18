@@ -168,9 +168,9 @@ const tasksSlice = createSlice({
       const now = new Date()
       const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
       state.items = state.items.filter((task) => {
-        if (task.order === 1) return true
-        const updatedAt = new Date(task.updated_at)
-        return updatedAt > twentyFourHoursAgo
+        // 24時間ルール: 作成から24時間経過したタスクは例外なく削除
+        const createdAt = new Date(task.created_at)
+        return createdAt > twentyFourHoursAgo
       })
     },
     setFilter: (

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
+import { setModeWithScroll } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
-import { FileText, Check, Sparkles, Zap, PlayCircle, Flame } from 'lucide-react'
+import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3 } from 'lucide-react'
 import type { Category } from '../../types'
 
 const categoryInfo = {
@@ -148,9 +149,9 @@ export const ExecuteMode: React.FC = () => {
   const isCompleting = completingTaskId === executingTask.id
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] flex flex-col">
+    <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
       {/* 実行中タスクエリア（メインフォーカス） */}
-      <div className="flex-1 flex items-center justify-center px-4 mb-6">
+      <div className="flex items-center justify-center px-4 mb-6 mt-8">
         <div className={`
           w-full max-w-2xl p-8 rounded-3xl
           bg-gradient-to-br ${executingInfo.gradient}
@@ -173,7 +174,16 @@ export const ExecuteMode: React.FC = () => {
                 })}
                 <div>
                   <h3 className="text-xl font-bold text-white">{executingInfo.label}</h3>
-                  <p className="text-sm text-white/70">残り {executingTaskCount} 件</p>
+                  <button
+                    onClick={() => dispatch(setModeWithScroll({ 
+                      mode: 'list', 
+                      scrollToCategory: executingTask.category as Category 
+                    }))}
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded-full text-sm text-white/90 hover:text-white transition-all group"
+                  >
+                    <span>残り {executingTaskCount} 件</span>
+                    <BarChart3 className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                  </button>
                 </div>
               </div>
               <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1 rounded-full">

@@ -40,19 +40,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const priorityStyles = isExecuting ? 'border-amber-600/50 bg-gradient-to-r from-amber-900/10 to-orange-900/10' : 
                          isPriority && !isExecuting ? 'border-gray-600 bg-gray-750/50' : ''
 
-  const getTimeRemaining = () => {
-    if (isPriority) return null
-    
-    const now = new Date()
-    const updatedAt = new Date(task.updated_at)
-    const hoursRemaining = Math.floor((24 * 60 * 60 * 1000 - (now.getTime() - updatedAt.getTime())) / (1000 * 60 * 60))
-    
-    if (hoursRemaining <= 6) {
-      return <span className="text-red-500 text-sm font-medium">{hoursRemaining}h</span>
-    }
-    return <span className="text-gray-500 text-sm">{hoursRemaining}h</span>
-  }
-
   const handleClick = () => {
     if (variant === 'list') {
       if (isPriority && onToggleExecuting) {
@@ -69,21 +56,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       onClick={handleClick}
     >
       <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-gray-100 font-medium">{task.title}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">{task.title}</p>
           {isPriority && variant === 'list' && (
             <div className="flex items-center gap-2 mt-1">
               {isExecuting ? (
                 <>
                   <Flame className="w-4 h-4 text-amber-500" />
                   <span className="text-sm text-amber-400 font-medium">実行中</span>
-                  <span className="text-gray-500">∞</span>
                 </>
               ) : (
                 <>
                   <Pause className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-400 font-medium">一時停止</span>
-                  <span className="text-gray-500">∞</span>
                 </>
               )}
             </div>
@@ -91,8 +76,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {!isPriority && variant === 'list' && getTimeRemaining()}
-          
           {variant === 'execute' && onComplete && (
             <button
               onClick={(e) => {
@@ -111,7 +94,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation()
                 onDelete(task.id)
               }}
-              className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all p-1 hover:bg-red-900/20 rounded-lg"
+              className="text-gray-400 hover:text-red-400 transition-all p-1.5 hover:bg-red-900/20 rounded-lg bg-gray-700/50 hover:bg-red-900/30"
             >
               <X className="w-4 h-4" />
             </button>

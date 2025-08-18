@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
+import { setMode } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
-import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles, PenTool, BarChart3 } from 'lucide-react'
 import type { Category } from '../../types'
 
 export const ClassifyMode: React.FC = () => {
@@ -209,7 +210,23 @@ export const ClassifyMode: React.FC = () => {
         <div className="text-center">
           <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
-          <p className="text-gray-400">新しいタスクを追加するか、一覧を確認してください</p>
+          <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
+            <button
+              onClick={() => dispatch(setMode('list'))}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>一覧</span>
+            </button>
+            <span>を確認、または</span>
+            <button
+              onClick={() => dispatch(setMode('create'))}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <PenTool className="w-4 h-4" />
+              <span>作成</span>
+            </button>
+          </p>
         </div>
       </div>
     )
@@ -477,7 +494,7 @@ export const ClassifyMode: React.FC = () => {
             className={`
               relative bg-gradient-to-br from-violet-900/90 via-purple-800/90 to-indigo-900/90 
               backdrop-blur-sm rounded-2xl shadow-2xl
-              ${isMobile ? 'p-5 w-[220px] h-[120px]' : 'p-8 w-[340px] h-[200px]'}
+              ${isMobile ? 'p-5 w-[220px] min-h-[120px]' : 'p-8 w-[340px] min-h-[200px]'}
               border-2 border-violet-500/30
               ${isOperating ? 'scale-95 opacity-90' : 'hover:scale-105 hover:border-violet-400/50'}
               transition-all duration-75 cursor-pointer select-none
@@ -497,9 +514,9 @@ export const ClassifyMode: React.FC = () => {
             </div>
             
             {/* タスク内容 */}
-            <div className="text-center px-3">
-              <h3 className={`font-bold text-white flex items-center justify-center break-words ${isMobile ? 'text-base' : 'text-xl md:text-2xl'}`}>
-                <span className="block w-full overflow-wrap break-words drop-shadow-lg">
+            <div className="text-center px-2 py-2 max-w-full overflow-hidden">
+              <h3 className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}>
+                <span className="block break-words">
                   {currentTask.title}
                 </span>
               </h3>

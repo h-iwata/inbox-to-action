@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from '../../store'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   deleteTask, 
@@ -7,10 +8,12 @@ import {
   selectDailyStats,
   selectTopTasksByCategory,
   changeCategory,
-  reorderTasksInCategory
+  reorderTasksInCategory,
+  toggleExecuting
 } from '../../store/slices/tasksSlice'
+import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target } from 'lucide-react'
+import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Target, Play, RefreshCw, PenTool } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -24,6 +27,7 @@ export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
   const dailyStats = useSelector(selectDailyStats)
   const topTasks = useSelector(selectTopTasksByCategory)
+  const scrollToCategory = useSelector((state: RootState) => state.ui.scrollToCategory)
   
   // 実行中のカテゴリを特定
   const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
@@ -45,6 +49,31 @@ export const ListMode: React.FC = () => {
     { id: 'study', ...categoryIcons.study, gradient: 'from-violet-500 to-violet-600', color: 'violet' },
     { id: 'hobby', ...categoryIcons.hobby, gradient: 'from-pink-500 to-pink-600', color: 'pink' },
   ]
+
+  // カテゴリセクションへの参照を保持
+  const categoryRefs = useRef<{ [key in Category]?: HTMLDivElement | null }>({})
+
+  // スクロール処理
+  useEffect(() => {
+    if (scrollToCategory && categoryRefs.current[scrollToCategory]) {
+      // 少し遅延を入れてDOMの描画完了を待つ
+      setTimeout(() => {
+        const element = categoryRefs.current[scrollToCategory]
+        if (element) {
+          // カテゴリヘッダーが画面上部から少し余裕を持って表示されるように調整
+          const yOffset = -80 // ヘッダーの上に80pxの余白を確保
+          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
+          
+          window.scrollTo({
+            top: y,
+            behavior: 'smooth'
+          })
+        }
+        // スクロール後にクリア
+        dispatch(clearScrollToCategory())
+      }, 100)
+    }
+  }, [scrollToCategory, dispatch])
 
   // カテゴリごとのタスクセレクター
   const workTasks = useSelector(selectTasksByCategory('work'))
@@ -81,13 +110,19 @@ export const ListMode: React.FC = () => {
   }
 
   // タッチ/マウス移動
-  const handleMove = (e: React.TouchEvent | React.MouseEvent) => {
-    if (!swipeState.taskId) return
+  const handleMove = (e: React.TouchEvent | React.MouseEvent, taskId: string) => {
+    if (!swipeState.taskId || swipeState.taskId !== taskId) return
+    
+    // タッチイベントのデフォルト動作を防ぐ
+    if ('touches' in e) {
+      e.preventDefault()
+    }
     
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const deltaX = clientX - swipeState.startX
     
-    if (Math.abs(deltaX) > 10) {
+    // より小さい閾値でスワイプを検出
+    if (Math.abs(deltaX) > 5) {
       setSwipeState(prev => ({
         ...prev,
         currentX: clientX,
@@ -129,10 +164,42 @@ export const ListMode: React.FC = () => {
     }
   }
 
-  // タスクをクリックして最上位に移動
+  // カテゴリヘッダーをタップして実行中カテゴリを切り替え
+  const handleCategoryHeaderClick = (category: Category) => {
+    // 該当カテゴリの最上位タスクを取得
+    const topTask = tasksSelector[category].find(t => t.order === 1)
+    
+    if (topTask) {
+      // バイブレーション（モバイルのみ）
+      if (navigator.vibrate) {
+        navigator.vibrate(15)
+      }
+      
+      // 現在実行中でない場合は実行中に設定
+      if (!topTask.isExecuting) {
+        dispatch(toggleExecuting(topTask.id))
+      }
+    }
+  }
+
+  // タスクをクリックして最上位に移動または実行モードへ遷移
   const handleMoveToTop = (task: Task, category: Category) => {
-    // すでに最上位（order=1）の場合は何もしない
-    if (task.order === 1) return
+    // すでに最上位（order=1）の場合は実行モードへ遷移
+    if (task.order === 1) {
+      // バイブレーション（モバイルのみ）
+      if (navigator.vibrate) {
+        navigator.vibrate(20)
+      }
+      
+      // タスクが実行中でない場合は実行中に設定
+      if (!task.isExecuting) {
+        dispatch(toggleExecuting(task.id))
+      }
+      
+      // 実行モードへ遷移
+      dispatch(setMode('execute'))
+      return
+    }
     
     // バイブレーション（モバイルのみ）
     if (navigator.vibrate) {
@@ -151,11 +218,12 @@ export const ListMode: React.FC = () => {
     const isSwipingLeft = swipeState.taskId === task.id && swipeState.direction === 'left'
     const isSwipingRight = swipeState.taskId === task.id && swipeState.direction === 'right'
     
-    // スワイプ距離を制限（最大80px）
-    const rawSwipeOffset = swipeState.taskId === task.id
-      ? swipeState.currentX - swipeState.startX 
-      : 0
-    const swipeOffset = Math.max(-80, Math.min(80, rawSwipeOffset))
+    // スワイプ距離を計算（最大80px）
+    let swipeOffset = 0
+    if (swipeState.taskId === task.id && swipeState.currentX !== 0) {
+      const rawOffset = swipeState.currentX - swipeState.startX
+      swipeOffset = Math.max(-80, Math.min(80, rawOffset))
+    }
 
     return (
       <motion.div
@@ -170,69 +238,112 @@ export const ListMode: React.FC = () => {
           y: { duration: 0.15 }
         }}
         className="relative"
+        style={{ overflow: 'hidden' }}
       >
         {/* スワイプ背景 */}
-        {(isSwipingLeft || isSwipingRight) && (
-          <div className={`absolute inset-y-0 flex items-center ${
-            isSwipingLeft 
-              ? 'bg-gradient-to-r from-violet-600 to-violet-500 right-0 pr-4 rounded-r-xl' 
-              : 'bg-gradient-to-l from-red-600 to-red-500 left-0 pl-4 rounded-l-xl'
-          }`}
-          style={{
-            width: `${Math.abs(swipeOffset)}px`,
-            transition: 'width 0.1s ease-out'
-          }}>
-            {isSwipingLeft ? (
-              <div className="flex items-center gap-2 text-white ml-auto">
-                <span className="font-semibold text-sm">Inbox</span>
-                <Inbox className="w-5 h-5" />
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-white">
-                <Trash2 className="w-5 h-5" />
-                <span className="font-semibold text-sm">削除</span>
-              </div>
-            )}
-          </div>
-        )}
+        <div className={`absolute inset-0 flex items-center ${
+          isSwipingLeft 
+            ? 'bg-gradient-to-r from-violet-600 to-violet-500 justify-end pr-4' 
+            : isSwipingRight
+            ? 'bg-gradient-to-l from-red-600 to-red-500 justify-start pl-4'
+            : 'hidden'
+        } rounded-xl`}
+        style={{
+          opacity: Math.abs(swipeOffset) / 80,
+          zIndex: 0
+        }}>
+          {isSwipingLeft ? (
+            <div className="flex items-center gap-2 text-white">
+              <span className="font-semibold text-sm">Inbox</span>
+              <Inbox className="w-5 h-5" />
+            </div>
+          ) : isSwipingRight ? (
+            <div className="flex items-center gap-2 text-white">
+              <Trash2 className="w-5 h-5" />
+              <span className="font-semibold text-sm">削除</span>
+            </div>
+          ) : null}
+        </div>
         
         {/* タスクカード */}
-        <motion.div
-          className={`relative bg-gradient-to-r rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg ${
+        <div
+          className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors cursor-pointer ${
             task.order === 1 
-              ? 'from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20' 
-              : 'from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 cursor-pointer hover:shadow-xl'
+              ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80' 
+              : swipeState.taskId === task.id && Math.abs(swipeOffset) > 10
+              ? 'bg-gray-800/60 border-gray-700/50'
+              : 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:shadow-xl'
           }`}
           style={{
-            transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : 'none',
+            transform: `translateX(${swipeOffset}px)`,
+            transition: swipeState.taskId === task.id ? 'none' : 'transform 0.2s ease-out',
+            position: 'relative',
+            zIndex: swipeState.taskId === task.id ? 10 : 1,
           }}
-          whileTap={task.order !== 1 ? { scale: 0.97 } : {}}
-          whileHover={task.order !== 1 ? { scale: 1.02 } : {}}
-          onClick={() => handleMoveToTop(task, category)}
-          onTouchStart={(e) => handleTouchStart(e, task)}
-          onMouseDown={(e) => handleTouchStart(e, task)}
-          onTouchMove={(e) => handleMove(e)}
-          onMouseMove={(e) => handleMove(e)}
-          onTouchEnd={() => handleEnd(task)}
-          onMouseUp={() => handleEnd(task)}
+          onClick={() => {
+            // スワイプ中はクリックを無視
+            if (Math.abs(swipeOffset) < 10) {
+              handleMoveToTop(task, category)
+            }
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation()
+            handleTouchStart(e, task)
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            handleTouchStart(e, task)
+          }}
+          onTouchMove={(e) => {
+            e.stopPropagation()
+            handleMove(e, task.id)
+          }}
+          onMouseMove={(e) => {
+            if (swipeState.taskId === task.id) {
+              e.stopPropagation()
+              handleMove(e, task.id)
+            }
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation()
+            handleEnd(task)
+          }}
+          onMouseUp={(e) => {
+            e.stopPropagation()
+            handleEnd(task)
+          }}
+          onMouseLeave={() => {
+            // マウスが離れた場合もリセット
+            if (swipeState.taskId === task.id) {
+              handleEnd(task)
+            }
+          }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className={`font-medium ${task.order === 1 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className={`font-medium break-words whitespace-pre-wrap ${task.order === 1 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}>
                 {task.title}
               </p>
               {task.order === 1 && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Trophy className="w-4 h-4 text-orange-400" />
-                  <span className="text-xs text-orange-400 font-semibold">最優先タスク</span>
+                <div className="flex items-center gap-1 mt-1 opacity-70">
+                  <Play className="w-3 h-3 text-orange-400" />
+                  <span className="text-xs text-orange-400">タップで実行開始</span>
                 </div>
               )}
             </div>
             <div className="flex items-center gap-2">
               {task.order === 1 && (
-                <div className="bg-orange-400/20 p-1.5 rounded-full">
+                <motion.div 
+                  className="bg-orange-400/20 p-1.5 rounded-full"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "loop"
+                  }}
+                >
                   <Target className="w-4 h-4 text-orange-400" />
-                </div>
+                </motion.div>
               )}
               <div className={`text-sm font-semibold ${
                 task.order === 1 ? 'text-orange-400' : 'text-gray-400'
@@ -241,7 +352,7 @@ export const ListMode: React.FC = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     )
   }
@@ -256,6 +367,7 @@ export const ListMode: React.FC = () => {
         return (
           <motion.div 
             key={category.id}
+            ref={(el) => { categoryRefs.current[category.id] = el }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categories.indexOf(category) * 0.1 }}
@@ -263,30 +375,33 @@ export const ListMode: React.FC = () => {
               isExecuting ? 'border-orange-400/60 shadow-orange-500/30' : 'border-gray-700/60'
             } ${isEmpty ? 'opacity-60' : ''}`}
           >
-            <div className={`p-5 bg-gradient-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm`}>
+            <div 
+              className={`p-5 bg-gradient-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm cursor-pointer hover:brightness-110 transition-all`}
+              onClick={() => handleCategoryHeaderClick(category.id)}
+            >
               <div className="flex items-center gap-3">
                 <div className={`p-2 bg-white/20 rounded-lg backdrop-blur-sm`}>
                   <category.icon className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">{category.label}</h3>
-                  {isExecuting && (
+                  {isExecuting ? (
                     <div className="flex items-center gap-1.5 mt-1">
                       <Flame className="w-4 h-4 text-orange-300 animate-pulse" />
                       <span className="text-xs font-semibold text-orange-200">実行中</span>
                     </div>
-                  )}
+                  ) : tasks.some(t => t.order === 1) ? (
+                    <div className="flex items-center gap-1.5 mt-1 opacity-60">
+                      <RefreshCw className="w-3 h-3 text-white" />
+                      <span className="text-xs text-white">タップで切り替え</span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="bg-white/25 px-3 py-1.5 rounded-full text-sm font-bold text-white backdrop-blur-sm">
                   {tasks.length}件
                 </span>
-                {tasks.filter(t => t.order === 1).length > 0 && (
-                  <div className="bg-orange-400/30 p-1.5 rounded-full">
-                    <Trophy className="w-4 h-4 text-white" />
-                  </div>
-                )}
               </div>
             </div>
             
@@ -296,7 +411,16 @@ export const ListMode: React.FC = () => {
                   <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-${category.color}-500/10 mb-3`}>
                     <category.icon className={`w-8 h-8 text-${category.color}-400/50`} />
                   </div>
-                  <p className="text-gray-500 text-sm font-medium">タスクがありません</p>
+                  <p className="text-gray-500 text-sm">
+                    タスクがありません
+                  </p>
+                  <button
+                    onClick={() => dispatch(setMode('create'))}
+                    className="inline-flex items-center gap-1 px-3 py-1 mt-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-sm"
+                  >
+                    <PenTool className="w-3 h-3" />
+                    <span>作成</span>
+                  </button>
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">

@@ -11,7 +11,7 @@ export const CreateMode: React.FC = () => {
   const [inputValue, setInputValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const tasksEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +22,29 @@ export const CreateMode: React.FC = () => {
       setTimeout(() => {
         setIsSubmitting(false)
         tasksEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        // タスク追加後もフォーカスを維持
+        inputRef.current?.focus()
+        // textareaの高さをリセット
+        if (inputRef.current) {
+          inputRef.current.style.height = 'auto'
+        }
       }, 300)
+    }
+  }
+  
+  // textareaの高さを自動調整
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value)
+    // 高さをリセットしてから、コンテンツに合わせて調整
+    e.target.style.height = 'auto'
+    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px' // 最大200px（約5行）
+  }
+  
+  // Enterキーで送信（Shift+Enterで改行）
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e)
     }
   }
 
@@ -30,6 +52,16 @@ export const CreateMode: React.FC = () => {
   useEffect(() => {
     if (tasks.length === 0) {
       inputRef.current?.focus()
+    }
+  }, [tasks.length])
+  
+  // タスクリストが表示された直後（最初のタスクが追加された時）にフォーカス
+  useEffect(() => {
+    if (tasks.length === 1) {
+      // 少し遅延を入れてDOMの更新を待つ
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
     }
   }, [tasks.length])
 
@@ -66,14 +98,16 @@ export const CreateMode: React.FC = () => {
           
           <form onSubmit={handleSubmit}>
             <div className="relative max-w-2xl mx-auto">
-              <input
+              <textarea
                 ref={inputRef}
-                type="text"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
                 placeholder="今日やりたいことは？"
                 maxLength={100}
-                className={`w-full px-6 py-8 text-xl bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-2xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 shadow-xl ${inputValue ? 'pr-20' : ''}`}
+                rows={1}
+                className={`w-full px-6 py-8 text-xl bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-2xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 shadow-xl resize-none overflow-hidden leading-relaxed ${inputValue ? 'pr-20' : ''}`}
+                style={{ minHeight: '96px' }}
                 autoFocus
               />
               <div className="absolute top-3 right-4 text-sm text-gray-500">
@@ -130,14 +164,16 @@ export const CreateMode: React.FC = () => {
           <div className="border-t border-gray-700 pt-4 pb-8 flex-shrink-0">
             <form onSubmit={handleSubmit}>
               <div className="relative">
-                <input
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={handleTextareaChange}
+                  onKeyDown={handleKeyDown}
                   placeholder="新しいタスクを追加..."
                   maxLength={100}
-                  className="w-full px-5 py-4 pr-16 text-base bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100"
+                  rows={1}
+                  className="w-full px-5 py-4 pr-16 text-base bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 resize-none overflow-hidden leading-normal"
+                  style={{ minHeight: '56px' }}
                 />
                 
                 {/* 文字数カウンター */}

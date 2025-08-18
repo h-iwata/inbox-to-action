@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { Category } from '../../types'
 
 export type AppMode = 'create' | 'classify' | 'list' | 'execute'
 
@@ -7,6 +8,7 @@ interface UIState {
   isLoading: boolean
   error: string | null
   lastUpdated: string | null
+  scrollToCategory: Category | null
 }
 
 const initialState: UIState = {
@@ -14,6 +16,7 @@ const initialState: UIState = {
   isLoading: false,
   error: null,
   lastUpdated: null,
+  scrollToCategory: null,
 }
 
 const uiSlice = createSlice({
@@ -22,6 +25,10 @@ const uiSlice = createSlice({
   reducers: {
     setMode: (state, action: PayloadAction<AppMode>) => {
       state.currentMode = action.payload
+    },
+    setModeWithScroll: (state, action: PayloadAction<{ mode: AppMode; scrollToCategory?: Category }>) => {
+      state.currentMode = action.payload.mode
+      state.scrollToCategory = action.payload.scrollToCategory || null
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload
@@ -32,9 +39,12 @@ const uiSlice = createSlice({
     updateLastUpdated: (state) => {
       state.lastUpdated = new Date().toISOString()
     },
+    clearScrollToCategory: (state) => {
+      state.scrollToCategory = null
+    },
   },
 })
 
-export const { setMode, setLoading, setError, updateLastUpdated } = uiSlice.actions
+export const { setMode, setModeWithScroll, setLoading, setError, updateLastUpdated, clearScrollToCategory } = uiSlice.actions
 
 export default uiSlice.reducer
