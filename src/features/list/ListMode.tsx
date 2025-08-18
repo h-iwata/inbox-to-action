@@ -380,18 +380,16 @@ export const ListMode: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categories.indexOf(category) * 0.1 }}
-            className={`bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 overflow-hidden backdrop-blur-md transition-all ${
-              isExecuting ? 'border-orange-400/60 shadow-orange-500/30' : 'border-gray-700/60'
+            className={`bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${
+              isExecuting ? 'ring-2 ring-orange-400/60 shadow-orange-500/30' : 'border-2 border-gray-700/60'
             } ${isEmpty ? 'opacity-60' : ''}`}
           >
             <div 
               className={`p-5 bg-gradient-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm cursor-pointer hover:brightness-110 transition-all`}
               onClick={() => handleCategoryHeaderClick(category.id)}
             >
-              <div className="flex items-center gap-3">
-                <div className={`p-2 bg-white/20 rounded-lg backdrop-blur-sm`}>
-                  <category.icon className="w-6 h-6 text-white" />
-                </div>
+              <div className="flex items-center gap-4">
+                <category.icon className="w-10 h-10 text-white" />
                 <div>
                   <h3 className="text-xl font-bold text-white">{category.label}</h3>
                   {isExecuting ? (
