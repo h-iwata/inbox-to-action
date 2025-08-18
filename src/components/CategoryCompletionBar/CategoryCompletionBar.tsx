@@ -126,9 +126,9 @@ export const CategoryCompletionBar: React.FC = () => {
     let messageType: keyof typeof messages
     if (total === 0) {
       messageType = 'starting'
-    } else if (total >= 16) {
+    } else if (total >= 12) {
       messageType = 'superProductive'
-    } else if (total >= 8) {
+    } else if (total >= 6) {
       messageType = 'productive'
     } else if (Math.max(...Object.values(percentages)) < 40) {
       messageType = 'balanced'
@@ -139,11 +139,11 @@ export const CategoryCompletionBar: React.FC = () => {
     const messageList = messages[messageType]
     const message = messageList[Math.floor(Math.random() * messageList.length)]
     
-    // レベルを計算（0-20の範囲を0-5にマッピング、各レベル4タスク）
-    const level = Math.min(5, Math.floor(total / 4))
+    // レベルを計算（0-15の範囲を0-5にマッピング、各レベル3タスク）
+    const level = Math.min(5, Math.floor(total / 3))
     
     // 次のレベルまでの必要タスク数を計算
-    const nextLevelThreshold = level < 5 ? (level + 1) * 4 : 20
+    const nextLevelThreshold = level < 5 ? (level + 1) * 3 : 15
     const nextLevelRequirement = level < 5 ? nextLevelThreshold - total : 0
     
     return { total, percentages, maxCategory, message, level, nextLevelRequirement }
@@ -153,12 +153,12 @@ export const CategoryCompletionBar: React.FC = () => {
   const getBarStyles = () => {
     const baseClasses = "relative overflow-hidden rounded-full transition-all duration-500"
     const heightClasses = [
-      "h-2", // level 0: 0-3個
-      "h-2.5", // level 1: 4-7個
-      "h-3", // level 2: 8-11個
-      "h-3.5", // level 3: 12-15個
-      "h-4", // level 4: 16-19個
-      "h-5" // level 5: 20個以上
+      "h-2", // level 0: 0-2個
+      "h-2.5", // level 1: 3-5個
+      "h-3", // level 2: 6-8個
+      "h-3.5", // level 3: 9-11個
+      "h-4", // level 4: 12-14個
+      "h-5" // level 5: 15個以上
     ]
     const shadowClasses = [
       "",
