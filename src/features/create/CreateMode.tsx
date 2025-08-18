@@ -22,6 +22,8 @@ export const CreateMode: React.FC = () => {
       setTimeout(() => {
         setIsSubmitting(false)
         tasksEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        // タスク追加後もフォーカスを維持
+        inputRef.current?.focus()
       }, 300)
     }
   }
@@ -30,6 +32,16 @@ export const CreateMode: React.FC = () => {
   useEffect(() => {
     if (tasks.length === 0) {
       inputRef.current?.focus()
+    }
+  }, [tasks.length])
+  
+  // タスクリストが表示された直後（最初のタスクが追加された時）にフォーカス
+  useEffect(() => {
+    if (tasks.length === 1) {
+      // 少し遅延を入れてDOMの更新を待つ
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
     }
   }, [tasks.length])
 
