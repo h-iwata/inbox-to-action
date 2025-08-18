@@ -12,7 +12,7 @@ import {
 } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target, Play } from 'lucide-react'
+import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target, Play, RefreshCw } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -305,7 +305,7 @@ export const ListMode: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1 opacity-70">
                     <Play className="w-3 h-3 text-orange-400" />
-                    <span className="text-xs text-orange-400">タップで実行</span>
+                    <span className="text-xs text-orange-400">タップで実行開始</span>
                   </div>
                 </div>
               )}
@@ -370,8 +370,8 @@ export const ListMode: React.FC = () => {
                     </div>
                   ) : tasks.some(t => t.order === 1) ? (
                     <div className="flex items-center gap-1.5 mt-1 opacity-60">
-                      <Play className="w-3 h-3 text-white" />
-                      <span className="text-xs text-white">タップで実行</span>
+                      <RefreshCw className="w-3 h-3 text-white" />
+                      <span className="text-xs text-white">タップで切り替え</span>
                     </div>
                   ) : null}
                 </div>

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
+import { setMode } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
-import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles, PenTool, BarChart3 } from 'lucide-react'
 import type { Category } from '../../types'
 
 export const ClassifyMode: React.FC = () => {
@@ -209,7 +210,23 @@ export const ClassifyMode: React.FC = () => {
         <div className="text-center">
           <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
-          <p className="text-gray-400">新しいタスクを追加するか、一覧を確認してください</p>
+          <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
+            <button
+              onClick={() => dispatch(setMode('list'))}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>一覧</span>
+            </button>
+            <span>を確認、または</span>
+            <button
+              onClick={() => dispatch(setMode('create'))}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <PenTool className="w-4 h-4" />
+              <span>作成</span>
+            </button>
+          </p>
         </div>
       </div>
     )

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
+import { setMode } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
-import { FileText, Check, Sparkles, Zap, PlayCircle, Flame } from 'lucide-react'
+import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3 } from 'lucide-react'
 import type { Category } from '../../types'
 
 const categoryInfo = {
@@ -173,7 +174,13 @@ export const ExecuteMode: React.FC = () => {
                 })}
                 <div>
                   <h3 className="text-xl font-bold text-white">{executingInfo.label}</h3>
-                  <p className="text-sm text-white/70">残り {executingTaskCount} 件</p>
+                  <button
+                    onClick={() => dispatch(setMode('list'))}
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded-full text-sm text-white/90 hover:text-white transition-all group"
+                  >
+                    <span>残り {executingTaskCount} 件</span>
+                    <BarChart3 className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                  </button>
                 </div>
               </div>
               <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1 rounded-full">
