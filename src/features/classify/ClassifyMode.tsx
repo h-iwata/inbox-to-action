@@ -60,6 +60,9 @@ export const ClassifyMode: React.FC = () => {
     
     // タッチイベントの場合のみ処理（クリックは別途処理）
     if ('touches' in e) {
+      // プルダウン更新を防ぐ
+      e.preventDefault()
+      
       const clientX = e.touches[0].clientX
       const clientY = e.touches[0].clientY
       
@@ -86,6 +89,11 @@ export const ClassifyMode: React.FC = () => {
   // 操作中（ドラッグ）
   const handleOperationMove = (e: MouseEvent | TouchEvent) => {
     if (!isOperating) return
+    
+    // タッチイベントの場合、プルダウン更新を防ぐ
+    if ('touches' in e) {
+      e.preventDefault()
+    }
     
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
