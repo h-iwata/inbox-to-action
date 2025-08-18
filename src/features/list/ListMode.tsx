@@ -7,10 +7,12 @@ import {
   selectDailyStats,
   selectTopTasksByCategory,
   changeCategory,
-  reorderTasksInCategory
+  reorderTasksInCategory,
+  toggleExecuting
 } from '../../store/slices/tasksSlice'
+import { setMode } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target } from 'lucide-react'
+import { BarChart3, Flame, Trash2, Inbox, CheckCircle2, Trophy, Target, Play } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -135,10 +137,24 @@ export const ListMode: React.FC = () => {
     }
   }
 
-  // タスクをクリックして最上位に移動
+  // タスクをクリックして最上位に移動または実行モードへ遷移
   const handleMoveToTop = (task: Task, category: Category) => {
-    // すでに最上位（order=1）の場合は何もしない
-    if (task.order === 1) return
+    // すでに最上位（order=1）の場合は実行モードへ遷移
+    if (task.order === 1) {
+      // バイブレーション（モバイルのみ）
+      if (navigator.vibrate) {
+        navigator.vibrate(20)
+      }
+      
+      // タスクが実行中でない場合は実行中に設定
+      if (!task.isExecuting) {
+        dispatch(toggleExecuting(task.id))
+      }
+      
+      // 実行モードへ遷移
+      dispatch(setMode('execute'))
+      return
+    }
     
     // バイブレーション（モバイルのみ）
     if (navigator.vibrate) {
@@ -206,12 +222,12 @@ export const ListMode: React.FC = () => {
         
         {/* タスクカード */}
         <div
-          className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors ${
+          className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors cursor-pointer ${
             task.order === 1 
-              ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20' 
+              ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80' 
               : swipeState.taskId === task.id && Math.abs(swipeOffset) > 10
               ? 'bg-gray-800/60 border-gray-700/50'
-              : 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 cursor-pointer hover:shadow-xl'
+              : 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:shadow-xl'
           }`}
           style={{
             transform: `translateX(${swipeOffset}px)`,
@@ -264,17 +280,31 @@ export const ListMode: React.FC = () => {
                 {task.title}
               </p>
               {task.order === 1 && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Trophy className="w-4 h-4 text-orange-400" />
-                  <span className="text-xs text-orange-400 font-semibold">最優先タスク</span>
+                <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-1.5">
+                    <Trophy className="w-4 h-4 text-orange-400" />
+                    <span className="text-xs text-orange-400 font-semibold">最優先タスク</span>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-70">
+                    <Play className="w-3 h-3 text-orange-400" />
+                    <span className="text-xs text-orange-400">タップで実行</span>
+                  </div>
                 </div>
               )}
             </div>
             <div className="flex items-center gap-2">
               {task.order === 1 && (
-                <div className="bg-orange-400/20 p-1.5 rounded-full">
+                <motion.div 
+                  className="bg-orange-400/20 p-1.5 rounded-full"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "loop"
+                  }}
+                >
                   <Target className="w-4 h-4 text-orange-400" />
-                </div>
+                </motion.div>
               )}
               <div className={`text-sm font-semibold ${
                 task.order === 1 ? 'text-orange-400' : 'text-gray-400'
