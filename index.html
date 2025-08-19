@@ -5,6 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>InboxToAction</title>
+    
+    <!-- Google Analytics -->
+    <script>
+      // 本番環境でのみ読み込む
+      if (!window.location.hostname.includes('localhost') && 
+          !window.location.hostname.includes('127.0.0.1')) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-TY1RDJCS1M';
+        document.head.appendChild(script);
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-TY1RDJCS1M');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
