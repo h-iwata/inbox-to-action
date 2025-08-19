@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useResponsive } from '../../hooks/useResponsive'
-import { X, Lightbulb, RotateCw, Smartphone, Monitor, PenTool, FolderOpen, List, Target, BarChart3, Sparkles, Flame, Calendar, CheckCircle } from 'lucide-react'
+import { X, Lightbulb, RotateCw, Smartphone, Monitor, PenTool, FolderOpen, List, Target, BarChart3, Sparkles, Flame, Calendar, Trophy } from 'lucide-react'
 import { categoryIcons } from '../../config/icons'
 
 interface AboutModalProps {
@@ -133,104 +133,34 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               </div>
             </section>
 
-            {/* デバイス別操作方法 */}
+            {/* レベルアップシステム */}
             <section>
               <h3 className="text-lg font-bold text-gray-100 mb-3 flex items-center gap-2">
-                {isMobile ? (
-                  <Smartphone className="w-6 h-6 text-purple-400" />
-                ) : (
-                  <Monitor className="w-6 h-6 text-purple-400" />
-                )}
-                {isMobile ? 'モバイル版の操作' : 'PC版の操作'}
+                <Trophy className="w-6 h-6 text-yellow-400" />
+                レベルアップシステム
               </h3>
-              
-              {isMobile ? (
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">モード切替</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• 左右にスワイプでモード切替</li>
-                      <li>• 下部のナビゲーションバーでダイレクト選択</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">分類モード</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• 4方向のボタンをタップでカテゴリ選択</li>
-                      <li>• 上下左右にフリックでも分類可能</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">一覧モード</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• タスクをタップで最優先に設定</li>
-                      <li>• 最優先タスクをタップで実行モードへ</li>
-                      <li>• 左右スワイプでInbox送り・削除</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">実行モード</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• 完了ボタンをタップでタスク完了</li>
-                      <li>• 一時停止中のタスクをタップで実行開始</li>
-                    </ul>
-                  </div>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="p-3 bg-gray-700/30 rounded-lg">
+                  <h4 className="font-bold text-yellow-400 mb-1">基本ルール</h4>
+                  <ul className="space-y-1">
+                    <li>• タスクを2つ完了するごとに1レベルアップ</li>
+                    <li>• レベル5がMAX（10タスク完了で到達）</li>
+                    <li>• 画面上部のプログレスバーで進捗を確認</li>
+                  </ul>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">キーボードショートカット</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Tab</span>
-                          <span className="text-gray-300">次のモードへ</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Shift+Tab</span>
-                          <span className="text-gray-300">前のモードへ</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Enter</span>
-                          <span className="text-gray-300">タスク追加</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">W/↑</span>
-                          <span className="text-gray-300">学習に分類</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">A/←</span>
-                          <span className="text-gray-300">仕事に分類</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">S/↓</span>
-                          <span className="text-gray-300">趣味に分類</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">D/→</span>
-                          <span className="text-gray-300">生活に分類</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">実行モード</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• スペースキー：実行中タスクを完了</li>
-                      <li>• 1〜4キー：対応するカテゴリに切替</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-cyan-400 mb-2">マウス操作</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                      <li>• クリックで最優先設定・実行切替</li>
-                      <li>• カテゴリヘッダーをクリックで実行カテゴリ切替</li>
-                    </ul>
-                  </div>
+                <div className="p-3 bg-gray-700/30 rounded-lg">
+                  <h4 className="font-bold text-green-400 mb-1">達成メッセージ</h4>
+                  <ul className="space-y-1">
+                    <li>• 特定カテゴリに集中：「仕事の鬼と化しています」</li>
+                    <li>• バランス良く完了：「見事な配分センス！」</li>
+                    <li>• レベルMAX達成：「レジェンドランク到達！」</li>
+                  </ul>
                 </div>
-              )}
+                <div className="p-3 bg-gray-700/30 rounded-lg">
+                  <h4 className="font-bold text-purple-400 mb-1">カテゴリ別記録</h4>
+                  <p>各カテゴリの完了数がアイコン下に表示され、どの分野に注力したかが一目でわかります。</p>
+                </div>
+              </div>
             </section>
 
             {/* カテゴリ説明 */}
@@ -295,8 +225,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                   <span>24時間ルールで全タスクが削除されるので、毎日アプリを開く習慣が大切です</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <span>完了したタスクは次のタスクが自動で繰り上がります</span>
+                  <Trophy className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <span>タスク完了でレベルアップ！レベルMAXで今日を締めくくろう</span>
                 </li>
               </ul>
             </section>
