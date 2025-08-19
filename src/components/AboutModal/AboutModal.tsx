@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useResponsive } from '../../hooks/useResponsive'
-import { X, Lightbulb, RotateCw, PenTool, FolderOpen, List, Target, BarChart3, Sparkles, Flame, Calendar, Trophy } from 'lucide-react'
+import { X, Lightbulb, RotateCw, PenTool, FolderOpen, List, Target, Sparkles, Flame, Calendar, Trophy } from 'lucide-react'
 import { categoryIcons } from '../../config/icons'
 
 interface AboutModalProps {
@@ -143,8 +143,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 <div className="p-3 bg-gray-700/30 rounded-lg">
                   <h4 className="font-bold text-yellow-400 mb-1">基本ルール</h4>
                   <ul className="space-y-1">
-                    <li>• タスクを2つ完了するごとに1レベルアップ</li>
-                    <li>• レベル5がMAX（10タスク完了で到達）</li>
+                    <li>• タスクを3つ完了するごとに1レベルアップ</li>
+                    <li>• レベル5がMAX（15タスク完了で到達）</li>
                     <li>• 画面上部のプログレスバーで進捗を確認</li>
                   </ul>
                 </div>
