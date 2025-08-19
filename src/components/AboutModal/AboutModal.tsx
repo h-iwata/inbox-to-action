@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useResponsive } from '../../hooks/useResponsive'
-import { X, Lightbulb, RotateCw, Smartphone, Monitor, PenTool, FolderOpen, List, Target, BarChart3, Sparkles, Flame, Calendar, Trophy } from 'lucide-react'
+import { X, Lightbulb, RotateCw, PenTool, FolderOpen, List, Target, BarChart3, Sparkles, Flame, Calendar, Trophy } from 'lucide-react'
 import { categoryIcons } from '../../config/icons'
 
 interface AboutModalProps {
@@ -166,7 +166,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             {/* カテゴリ説明 */}
             <section>
               <h3 className="text-lg font-bold text-gray-100 mb-3 flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-green-400" />
+                <FolderOpen className="w-6 h-6 text-green-400" />
                 4つのカテゴリ
               </h3>
               <div className="grid grid-cols-2 gap-3">

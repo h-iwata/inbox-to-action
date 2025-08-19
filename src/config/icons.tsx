@@ -89,9 +89,9 @@ export const categoryIcons: Record<string, IconConfig> = {
 
 export const modeIcons: Record<string, LucideIcon> = {
   create: PenTool,
-  classify: List,
-  list: BarChart3,
-  execute: CheckCircle2
+  classify: FolderOpen,
+  list: List,
+  execute: Target
 }
 
 export const actionIcons = {
