@@ -6,10 +6,8 @@ import {
   Inbox,
   Plus,
   Target,
-  CheckCircle2,
   List,
   PenTool,
-  BarChart3,
   ChevronLeft,
   ChevronRight,
   Hand,
@@ -89,9 +87,9 @@ export const categoryIcons: Record<string, IconConfig> = {
 
 export const modeIcons: Record<string, LucideIcon> = {
   create: PenTool,
-  classify: List,
-  list: BarChart3,
-  execute: CheckCircle2
+  classify: FolderOpen,
+  list: List,
+  execute: Target
 }
 
 export const actionIcons = {

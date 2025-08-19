@@ -112,11 +112,6 @@ export const ListMode: React.FC = () => {
   const handleMove = (e: React.TouchEvent | React.MouseEvent, taskId: string) => {
     if (!swipeState.taskId || swipeState.taskId !== taskId) return
     
-    // タッチイベントのデフォルト動作を防ぐ
-    if ('touches' in e) {
-      e.preventDefault()
-    }
-    
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const deltaX = clientX - swipeState.startX
     
@@ -359,14 +354,9 @@ export const ListMode: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* 統計情報 - グラデーションバー（最上部に配置） */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0 }}
-        className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md"
-      >
+      <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
         <CategoryCompletionBar />
-      </motion.div>
+      </div>
 
       {categories.map((category) => {
         const tasks = tasksSelector[category.id]
@@ -374,12 +364,9 @@ export const ListMode: React.FC = () => {
         const isEmpty = tasks.length === 0
 
         return (
-          <motion.div 
+          <div 
             key={category.id}
             ref={(el) => { categoryRefs.current[category.id] = el }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: categories.indexOf(category) * 0.1 }}
             className={`bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${
               isExecuting ? 'ring-2 ring-orange-400/60 shadow-orange-500/30' : 'border-2 border-gray-700/60'
             } ${isEmpty ? 'opacity-60' : ''}`}
@@ -437,7 +424,7 @@ export const ListMode: React.FC = () => {
                 </AnimatePresence>
               )}
             </div>
-          </motion.div>
+          </div>
         )
       })}
 

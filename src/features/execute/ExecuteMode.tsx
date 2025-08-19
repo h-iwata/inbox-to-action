@@ -146,24 +146,37 @@ export const ExecuteMode: React.FC = () => {
                 key={task.id}
                 onClick={() => handleSwitchExecution(task.id)}
                 className={`
-                  p-6 rounded-2xl border-2 ${info.borderColor} ${info.bgLight}
+                  relative p-5 rounded-2xl border-2 bg-gradient-to-br from-gray-900/90 to-gray-800/90
+                  border-gray-700 hover:border-gray-600 shadow-lg
                   hover:scale-105 transition-all duration-300 text-left
-                  ${switchingToTaskId === task.id ? 'animate-pulse' : ''}
+                  ${switchingToTaskId === task.id ? 'animate-pulse ring-2 ring-blue-500' : ''}
                 `}
               >
-                <div className="flex items-start justify-between mb-3">
+                {/* 残り件数バッジ（右上） */}
+                <div className="absolute top-4 right-4">
+                  <span className="bg-gray-700/50 px-2.5 py-1 rounded-full text-xs font-bold text-gray-300 backdrop-blur-sm">
+                    {taskCount}件
+                  </span>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  {/* カテゴリヘッダー */}
                   <div className="flex items-center gap-3">
                     {React.createElement(info.icon, {
                       className: `w-8 h-8 ${info.color}`
                     })}
-                    <div>
-                      <span className="font-bold text-gray-200">{info.label}</span>
-                      <span className="ml-2 text-xs text-gray-400">残り{taskCount}件</span>
-                    </div>
+                    <span className="font-bold text-lg text-gray-200">{info.label}</span>
                   </div>
-                  <PlayCircle className="w-6 h-6 text-green-400" />
+                  
+                  {/* タスクタイトル */}
+                  <p className="text-gray-100 font-medium pr-12">{task.title}</p>
+                  
+                  {/* アクションヒント */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <PlayCircle className="w-4 h-4 text-green-400" />
+                    <span className="text-xs text-green-400 font-semibold">タップで実行開始</span>
+                  </div>
                 </div>
-                <p className="text-gray-100 font-medium">{task.title}</p>
               </button>
             )
           })}
@@ -325,7 +338,7 @@ export const ExecuteMode: React.FC = () => {
           <p className="text-sm text-gray-400">実行中のカテゴリを切り替え</p>
         </div>
         
-        <div className={`grid gap-2.5 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
+        <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
           {categoryTasks.map(({ category, task }, index) => {
             const info = categoryInfo[category as keyof typeof categoryInfo]
             const taskCount = getTaskCountByCategory(category)
@@ -338,61 +351,85 @@ export const ExecuteMode: React.FC = () => {
                 key={category}
                 onClick={() => task && !isExecuting && handleSwitchExecution(task.id)}
                 className={`
-                  p-2.5 rounded-xl border transition-all duration-300
+                  relative p-4 rounded-2xl border-2 transition-all duration-300
                   ${isExecuting 
-                    ? `border-2 ${info.borderColor} ${info.bgLight} opacity-100 cursor-default`
+                    ? `border-orange-400/60 ${info.bgLight} ring-2 ring-orange-400/60 shadow-orange-500/30 cursor-default`
                     : hasTask
-                      ? 'border border-gray-700 bg-gray-800/50 hover:bg-gray-800 hover:border-gray-600 hover:scale-105 cursor-pointer'
-                      : 'border border-gray-800 bg-gray-900/50 opacity-50'
+                      ? 'border-gray-700 bg-gradient-to-br from-gray-900/90 to-gray-800/90 hover:border-gray-600 hover:scale-105 cursor-pointer shadow-lg'
+                      : 'border-gray-800 bg-gray-900/50 opacity-60 cursor-default'
                   }
-                  ${isSwitching ? 'animate-pulse ring-2 ring-blue-500' : ''}
+                  ${isSwitching ? 'animate-pulse' : ''}
                 `}
               >
-                <div className="flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-1.5">
+                {/* 残り件数バッジ（右上） */}
+                <div className="absolute top-3 right-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold backdrop-blur-sm ${
+                    isExecuting 
+                      ? 'bg-white/25 text-white' 
+                      : hasTask
+                        ? 'bg-gray-700/50 text-gray-300'
+                        : 'bg-gray-800/50 text-gray-500'
+                  }`}>
+                    {taskCount}件
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {/* カテゴリアイコンとラベル */}
+                  <div className="flex items-center gap-2">
                     {React.createElement(info.icon, {
-                      className: `w-4 h-4 ${info.color}`
+                      className: `w-6 h-6 ${isExecuting ? 'text-white' : info.color}`
                     })}
-                    <span className={`font-medium text-xs ${isExecuting ? 'text-white' : 'text-gray-300'}`}>
+                    <span className={`font-bold text-sm ${isExecuting ? 'text-white' : 'text-gray-200'}`}>
                       {info.label}
                     </span>
                     {isExecuting && (
-                      <Flame className="w-3 h-3 text-orange-400 animate-pulse" />
+                      <Flame className="w-4 h-4 text-orange-400 animate-pulse ml-auto" />
                     )}
                   </div>
                   
                   {hasTask ? (
                     <>
-                      <p className={`text-xs truncate w-full ${isExecuting ? 'text-white/80' : 'text-gray-400'}`}>
-                        {task.title.length > 12 ? task.title.substring(0, 12) + '...' : task.title}
+                      {/* タスクタイトル */}
+                      <p className={`text-sm truncate ${isExecuting ? 'text-white/90 font-medium' : 'text-gray-400'}`}>
+                        {task.title.length > 20 ? task.title.substring(0, 20) + '...' : task.title}
                       </p>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-xs ${isExecuting ? 'text-white/60' : 'text-gray-500'}`}>
-                          残り{taskCount}件
-                        </span>
-                        {!isExecuting && <PlayCircle className="w-3 h-3 text-gray-500" />}
+                      
+                      {/* アクションヒント */}
+                      <div className="flex items-center justify-center mt-1">
+                        {!isExecuting && (
+                          <div className="flex items-center gap-1">
+                            <PlayCircle className="w-3 h-3 text-gray-500" />
+                            <span className="text-xs text-gray-500">タップで実行</span>
+                            {/* PC版キーボードヒント */}
+                            {isDesktop && (
+                              <span className="text-xs text-gray-600 ml-2">
+                                ({index + 1}キー)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {isExecuting && (
+                          <div className="flex items-center gap-1">
+                            <Flame className="w-3 h-3 text-orange-300 animate-pulse" />
+                            <span className="text-xs text-orange-300 font-semibold">実行中</span>
+                          </div>
+                        )}
                       </div>
                     </>
                   ) : (
-                    <>
-                      <span className="text-xs text-gray-600 mb-1">残り0件</span>
+                    <div className="flex flex-col items-center gap-2 py-1">
+                      <span className="text-xs text-gray-500">タスクなし</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           dispatch(setMode('create'))
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-xs"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-xs"
                       >
                         <PenTool className="w-3 h-3" />
                         <span>作成</span>
                       </button>
-                    </>
-                  )}
-                  
-                  {/* PC版ヒント */}
-                  {isDesktop && hasTask && !isExecuting && (
-                    <div className="text-xs text-gray-600">
-                      {index + 1}キー
                     </div>
                   )}
                 </div>

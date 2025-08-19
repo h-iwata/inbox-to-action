@@ -103,7 +103,7 @@ function App() {
               ) : currentMode === 'list' ? (
                 <span>クリックで最優先設定 • タスクを左右にスワイプで操作</span>
               ) : currentMode === 'execute' ? (
-                <span>1〜4キー：実行中タスクを完了</span>
+                <span>スペース：タスク完了 • 1〜4キー：カテゴリ切り替え</span>
               ) : (
                 <span>
                   Tab: 次のモード •
