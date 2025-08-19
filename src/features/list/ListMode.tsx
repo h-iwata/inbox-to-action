@@ -112,11 +112,6 @@ export const ListMode: React.FC = () => {
   const handleMove = (e: React.TouchEvent | React.MouseEvent, taskId: string) => {
     if (!swipeState.taskId || swipeState.taskId !== taskId) return
     
-    // タッチイベントのデフォルト動作を防ぐ
-    if ('touches' in e) {
-      e.preventDefault()
-    }
-    
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const deltaX = clientX - swipeState.startX
     
