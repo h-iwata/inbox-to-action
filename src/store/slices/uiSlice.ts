@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { Category } from '../../types'
+import { trackModeChange } from '../../utils/analytics'
 
 export type AppMode = 'create' | 'classify' | 'list' | 'execute'
 
@@ -25,10 +26,12 @@ const uiSlice = createSlice({
   reducers: {
     setMode: (state, action: PayloadAction<AppMode>) => {
       state.currentMode = action.payload
+      trackModeChange(action.payload)
     },
     setModeWithScroll: (state, action: PayloadAction<{ mode: AppMode; scrollToCategory?: Category }>) => {
       state.currentMode = action.payload.mode
       state.scrollToCategory = action.payload.scrollToCategory || null
+      trackModeChange(action.payload.mode)
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload

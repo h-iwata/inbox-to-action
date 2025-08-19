@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { selectTodayCompletedByCategory } from '../../store/slices/tasksSlice'
 import { categoryIcons } from '../../config/icons'
 import { BarChart3, Sparkles, Flame, Zap, Star } from 'lucide-react'
+import { trackLevelUp } from '../../utils/analytics'
 
 const messages = {
   balanced: [
@@ -105,6 +106,7 @@ const messages = {
 
 export const CategoryCompletionBar: React.FC = () => {
   const completedByCategory = useSelector(selectTodayCompletedByCategory)
+  const prevLevelRef = useRef<number | null>(null)
   
   const { total, percentages, maxCategory, message, level, nextLevelRequirement } = useMemo(() => {
     const total = Object.values(completedByCategory).reduce((sum, count) => sum + count, 0)
@@ -148,6 +150,15 @@ export const CategoryCompletionBar: React.FC = () => {
     
     return { total, percentages, maxCategory, message, level, nextLevelRequirement }
   }, [completedByCategory])
+
+  // レベルアップを検知してトラッキング
+  useEffect(() => {
+    if (prevLevelRef.current !== null && level > prevLevelRef.current) {
+      // レベルアップした場合
+      trackLevelUp(level)
+    }
+    prevLevelRef.current = level
+  }, [level])
 
   // レベルに応じたスタイルを取得
   const getBarStyles = () => {

@@ -1,6 +1,7 @@
 import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolkit'
 import type { Task, Category, DailyStats, WeeklyStats } from '../../types'
 import type { RootState } from '../index'
+import { trackTaskEvent } from '../../utils/analytics'
 
 interface TasksState {
   items: Task[]
@@ -58,6 +59,9 @@ const tasksSlice = createSlice({
       }
       state.items.push(newTask)
       state.stats.daily.created++
+      
+      // Analyticsイベントを送信
+      trackTaskEvent('create', 'inbox')
     },
     updateTask: (state, action: PayloadAction<{ id: string; updates: Partial<Task> }>) => {
       const index = state.items.findIndex((task) => task.id === action.payload.id)
@@ -70,6 +74,10 @@ const tasksSlice = createSlice({
       }
     },
     deleteTask: (state, action: PayloadAction<string>) => {
+      const taskToDelete = state.items.find((task) => task.id === action.payload)
+      if (taskToDelete) {
+        trackTaskEvent('delete', taskToDelete.category)
+      }
       state.items = state.items.filter((task) => task.id !== action.payload)
     },
     completeTask: (state, action: PayloadAction<string>) => {
@@ -82,6 +90,9 @@ const tasksSlice = createSlice({
         completedTask.status = 'done'
         completedTask.updated_at = new Date().toISOString()
         state.stats.daily.completed++
+        
+        // Analyticsイベントを送信
+        trackTaskEvent('complete', taskCategory)
         
         // 実行中タスクを完了した場合、同じカテゴリの次のタスクを実行中にする
         if (completedTask.isExecuting === true && taskCategory !== 'inbox') {
@@ -246,6 +257,11 @@ const tasksSlice = createSlice({
         const task = state.items[index]
         const oldCategory = task.category
         const newCategory = action.payload.newCategory
+        
+        // Analyticsイベントを送信（分類時のみ）
+        if (oldCategory === 'inbox' && newCategory !== 'inbox') {
+          trackTaskEvent('classify', newCategory)
+        }
         
         // 元のカテゴリのタスクを再整列
         const oldCategoryTasks = state.items.filter(
