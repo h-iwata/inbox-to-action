@@ -23,6 +23,17 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // TypeScript厳格ルール
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      // コードスタイル
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-console': 'warn',
+      // React関連
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 )
