@@ -1,10 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
+import {
+  classifyTask,
+  selectInboxTasks,
+  selectTasksByCategory,
+} from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
-import { Trophy, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Sparkles, PenTool, BarChart3 } from 'lucide-react'
+import {
+  Trophy,
+  Layers,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  PenTool,
+  BarChart3,
+} from 'lucide-react'
 import type { Category } from '../../types'
 
 export const ClassifyMode: React.FC = () => {
@@ -12,37 +26,44 @@ export const ClassifyMode: React.FC = () => {
   const inboxTasks = useSelector(selectInboxTasks)
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
-  
+
   // カテゴリ別のタスク数を取得
   const workTasks = useSelector(selectTasksByCategory('work'))
   const lifeTasks = useSelector(selectTasksByCategory('life'))
   const studyTasks = useSelector(selectTasksByCategory('study'))
   const hobbyTasks = useSelector(selectTasksByCategory('hobby'))
-  
+
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
-  const [dragDirection, setDragDirection] = useState<'up' | 'down' | 'left' | 'right' | 'center' | null>(null)
+  const [dragDirection, setDragDirection] = useState<
+    'up' | 'down' | 'left' | 'right' | 'center' | null
+  >(null)
   const startPosition = useRef({ x: 0, y: 0 })
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
   // アニメーション用の状態
   const [isClassifying, setIsClassifying] = useState(false)
-  const [classifiedDirection, setClassifiedDirection] = useState<'up' | 'down' | 'left' | 'right' | null>(null)
+  const [classifiedDirection, setClassifiedDirection] = useState<
+    'up' | 'down' | 'left' | 'right' | null
+  >(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const handleClassify = (category: Category, direction: 'up' | 'down' | 'left' | 'right') => {
+  const handleClassify = (
+    category: Category,
+    direction: 'up' | 'down' | 'left' | 'right'
+  ) => {
     if (currentTask && !isClassifying) {
       setIsClassifying(true)
       setClassifiedDirection(direction)
       setShowSuccess(true)
-      
+
       // カードが飛んでいくアニメーション
       setTimeout(() => {
         dispatch(classifyTask({ id: currentTask.id, category }))
         setShowSuccess(false)
-        
+
         // 次のカードが現れるアニメーション
         setTimeout(() => {
           setIsClassifying(false)
@@ -57,29 +78,29 @@ export const ClassifyMode: React.FC = () => {
   // 操作開始（クリック/タップ）
   const handleOperationStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!currentTask) return
-    
+
     // タッチイベントの場合のみ処理（クリックは別途処理）
     if ('touches' in e) {
       // プルダウン更新を防ぐ
       e.preventDefault()
-      
+
       const clientX = e.touches[0].clientX
       const clientY = e.touches[0].clientY
-      
+
       setIsOperating(true)
       startPosition.current = { x: clientX, y: clientY }
       setCurrentPosition({ x: clientX, y: clientY })
       setDragDirection('center')
     }
   }
-  
+
   // マウスダウン（PC版のみ）
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!currentTask || isMobile) return
-    
+
     const clientX = e.clientX
     const clientY = e.clientY
-    
+
     setIsOperating(true)
     startPosition.current = { x: clientX, y: clientY }
     setCurrentPosition({ x: clientX, y: clientY })
@@ -89,27 +110,27 @@ export const ClassifyMode: React.FC = () => {
   // 操作中（ドラッグ）
   const handleOperationMove = (e: MouseEvent | TouchEvent) => {
     if (!isOperating) return
-    
+
     // タッチイベントの場合、プルダウン更新を防ぐ
     if ('touches' in e) {
       e.preventDefault()
     }
-    
+
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    
+
     setCurrentPosition({ x: clientX, y: clientY })
-    
+
     const deltaX = clientX - startPosition.current.x
     const deltaY = clientY - startPosition.current.y
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-    
+
     // 方向判定のしきい値を大きくして、明確な方向のみ判定
     if (distance > 80) {
       // より明確な方向判定（45度の範囲で判定）
       const angle = Math.atan2(deltaY, deltaX)
       const degrees = angle * (180 / Math.PI)
-      
+
       // 各方向の判定範囲（45度ずつ）
       if (degrees >= -135 && degrees < -45) {
         setDragDirection('up')
@@ -129,7 +150,7 @@ export const ClassifyMode: React.FC = () => {
   // 操作終了（ドロップ）
   const handleOperationEnd = () => {
     if (!isOperating || !currentTask) return
-    
+
     // 方向に基づいてアクション（centerやnullの場合はキャンセル）
     if (dragDirection === 'up') {
       handleClassify('study', 'up')
@@ -150,7 +171,7 @@ export const ClassifyMode: React.FC = () => {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!currentTask || isOperating) return
-      
+
       // Tabキーはモード切り替えに使うのでスキップ
       if (e.key === 'Tab') return
 
@@ -212,7 +233,9 @@ export const ClassifyMode: React.FC = () => {
     }
 
     // 分類モードがアクティブな間、プルダウン更新を防ぐ
-    document.addEventListener('touchmove', preventPullToRefresh, { passive: false })
+    document.addEventListener('touchmove', preventPullToRefresh, {
+      passive: false,
+    })
 
     return () => {
       window.removeEventListener('touchmove', handleMove)
@@ -229,7 +252,9 @@ export const ClassifyMode: React.FC = () => {
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
           <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
+          <h2 className="text-2xl font-bold text-gray-100 mb-2">
+            すべて分類完了！
+          </h2>
           <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
             <button
               onClick={() => dispatch(setMode('list'))}
@@ -252,32 +277,36 @@ export const ClassifyMode: React.FC = () => {
     )
   }
 
-
   // アニメーション用のクラスとスタイル
   const getClassifyAnimation = () => {
     if (!classifiedDirection) return ''
     switch (classifiedDirection) {
-      case 'up': return 'animate-fly-up'
-      case 'down': return 'animate-fly-down'
-      case 'left': return 'animate-fly-left'
-      case 'right': return 'animate-fly-right'
-      default: return ''
+      case 'up':
+        return 'animate-fly-up'
+      case 'down':
+        return 'animate-fly-down'
+      case 'left':
+        return 'animate-fly-left'
+      case 'right':
+        return 'animate-fly-right'
+      default:
+        return ''
     }
   }
-  
+
   const getClassifyStyle = () => {
     if (!classifiedDirection) return {}
     return {
       zIndex: 100,
-      position: 'relative' as const
+      position: 'relative' as const,
     }
   }
 
   return (
-    <div 
-      className="max-w-5xl mx-auto flex flex-col" 
+    <div
+      className="max-w-5xl mx-auto flex flex-col"
       ref={containerRef}
-      style={{ 
+      style={{
         height: 'calc(100svh - 220px)', // svhを使用してBraveの問題に対応
         // フォールバック: svh非対応ブラウザは自動的に100vhにフォールバック
       }}
@@ -292,139 +321,174 @@ export const ClassifyMode: React.FC = () => {
               {inboxTasks.length}
             </span>
           </div>
-          
+
           {/* 次のタスクのプレビュー（スタック表現） */}
           {inboxTasks.length > 1 && (
             <div className="text-xs text-gray-500">
-              次: {inboxTasks[1].title.length > 20 
-                ? inboxTasks[1].title.substring(0, 20) + '...' 
+              次:{' '}
+              {inboxTasks[1].title.length > 20
+                ? inboxTasks[1].title.substring(0, 20) + '...'
                 : inboxTasks[1].title}
             </div>
           )}
         </div>
       </div>
-      
+
       <div className="relative flex-1 flex items-center justify-center">
-        
         {/* 操作オーバーレイ */}
         {isOperating && (
           <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in">
             {/* シンプルな方向指示 */}
             <div className="absolute inset-0 flex items-center justify-center">
               {/* 上 - 学習 */}
-              <div className={`
+              <div
+                className={`
                 absolute ${isMobile ? 'top-12' : 'top-20'} left-1/2 -translate-x-1/2
                 transition-all duration-75
                 ${dragDirection === 'up' ? 'scale-125 -translate-y-2' : 'scale-100 opacity-60'}
-              `}>
+              `}
+              >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`
+                  <div
+                    className={`
                     ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${dragDirection === 'up' 
-                      ? 'bg-violet-500/30 backdrop-blur-md ring-2 ring-violet-400 shadow-lg' 
-                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    ${
+                      dragDirection === 'up'
+                        ? 'bg-violet-500/30 backdrop-blur-md ring-2 ring-violet-400 shadow-lg'
+                        : 'bg-gray-800/50 backdrop-blur-sm'
                     }
-                  `}>
+                  `}
+                  >
                     {React.createElement(categoryIcons.study.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`,
                     })}
                   </div>
-                  <span className={`font-medium text-sm ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`}>
+                  <span
+                    className={`font-medium text-sm ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`}
+                  >
                     {categoryIcons.study.label}
                   </span>
                 </div>
               </div>
 
               {/* 左 - 仕事 */}
-              <div className={`
+              <div
+                className={`
                 absolute ${isMobile ? 'left-4' : 'left-20'} top-1/2 -translate-y-1/2
                 transition-all duration-75
                 ${dragDirection === 'left' ? 'scale-125 -translate-x-2' : 'scale-100 opacity-60'}
-              `}>
+              `}
+              >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`
+                  <div
+                    className={`
                     ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${dragDirection === 'left' 
-                      ? 'bg-sky-500/30 backdrop-blur-md ring-2 ring-sky-400 shadow-lg' 
-                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    ${
+                      dragDirection === 'left'
+                        ? 'bg-sky-500/30 backdrop-blur-md ring-2 ring-sky-400 shadow-lg'
+                        : 'bg-gray-800/50 backdrop-blur-sm'
                     }
-                  `}>
+                  `}
+                  >
                     {React.createElement(categoryIcons.work.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`,
                     })}
                   </div>
-                  <span className={`font-medium text-sm ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`}>
+                  <span
+                    className={`font-medium text-sm ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`}
+                  >
                     {categoryIcons.work.label}
                   </span>
                 </div>
               </div>
 
               {/* 中央 - キャンセル */}
-              <div className={`
+              <div
+                className={`
                 transition-all duration-75
                 ${dragDirection === 'center' ? 'scale-110' : 'scale-100 opacity-60'}
-              `}>
+              `}
+              >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`
+                  <div
+                    className={`
                     ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${dragDirection === 'center' 
-                      ? 'bg-red-500/30 backdrop-blur-md ring-2 ring-red-400 shadow-lg' 
-                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    ${
+                      dragDirection === 'center'
+                        ? 'bg-red-500/30 backdrop-blur-md ring-2 ring-red-400 shadow-lg'
+                        : 'bg-gray-800/50 backdrop-blur-sm'
                     }
-                  `}>
+                  `}
+                  >
                     {React.createElement(actionIcons.cancel, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`,
                     })}
                   </div>
-                  <span className={`font-medium text-sm ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`}>
+                  <span
+                    className={`font-medium text-sm ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`}
+                  >
                     キャンセル
                   </span>
                 </div>
               </div>
 
               {/* 右 - 生活 */}
-              <div className={`
+              <div
+                className={`
                 absolute ${isMobile ? 'right-4' : 'right-20'} top-1/2 -translate-y-1/2
                 transition-all duration-75
                 ${dragDirection === 'right' ? 'scale-125 translate-x-2' : 'scale-100 opacity-60'}
-              `}>
+              `}
+              >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`
+                  <div
+                    className={`
                     ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${dragDirection === 'right' 
-                      ? 'bg-teal-500/30 backdrop-blur-md ring-2 ring-teal-400 shadow-lg' 
-                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    ${
+                      dragDirection === 'right'
+                        ? 'bg-teal-500/30 backdrop-blur-md ring-2 ring-teal-400 shadow-lg'
+                        : 'bg-gray-800/50 backdrop-blur-sm'
                     }
-                  `}>
+                  `}
+                  >
                     {React.createElement(categoryIcons.life.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`,
                     })}
                   </div>
-                  <span className={`font-medium text-sm ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`}>
+                  <span
+                    className={`font-medium text-sm ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`}
+                  >
                     {categoryIcons.life.label}
                   </span>
                 </div>
               </div>
 
               {/* 下 - 趣味 */}
-              <div className={`
+              <div
+                className={`
                 absolute ${isMobile ? 'bottom-12' : 'bottom-20'} left-1/2 -translate-x-1/2
                 transition-all duration-75
                 ${dragDirection === 'down' ? 'scale-125 translate-y-2' : 'scale-100 opacity-60'}
-              `}>
+              `}
+              >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`
+                  <div
+                    className={`
                     ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${dragDirection === 'down' 
-                      ? 'bg-pink-500/30 backdrop-blur-md ring-2 ring-pink-400 shadow-lg' 
-                      : 'bg-gray-800/50 backdrop-blur-sm'
+                    ${
+                      dragDirection === 'down'
+                        ? 'bg-pink-500/30 backdrop-blur-md ring-2 ring-pink-400 shadow-lg'
+                        : 'bg-gray-800/50 backdrop-blur-sm'
                     }
-                  `}>
+                  `}
+                  >
                     {React.createElement(categoryIcons.hobby.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`
+                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`,
                     })}
                   </div>
-                  <span className={`font-medium text-sm ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`}>
+                  <span
+                    className={`font-medium text-sm ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`}
+                  >
                     {categoryIcons.hobby.label}
                   </span>
                 </div>
@@ -433,7 +497,7 @@ export const ClassifyMode: React.FC = () => {
 
             {/* ドラッグライン */}
             {dragDirection && dragDirection !== 'center' && (
-              <svg 
+              <svg
                 className="absolute inset-0 pointer-events-none z-40"
                 style={{ width: '100%', height: '100%' }}
               >
@@ -443,11 +507,15 @@ export const ClassifyMode: React.FC = () => {
                   x2={currentPosition.x}
                   y2={currentPosition.y}
                   stroke={
-                    dragDirection === 'up' ? '#a78bfa' :
-                    dragDirection === 'down' ? '#f9a8d4' :
-                    dragDirection === 'left' ? '#7dd3fc' :
-                    dragDirection === 'right' ? '#5eead4' :
-                    '#94a3b8'
+                    dragDirection === 'up'
+                      ? '#a78bfa'
+                      : dragDirection === 'down'
+                        ? '#f9a8d4'
+                        : dragDirection === 'left'
+                          ? '#7dd3fc'
+                          : dragDirection === 'right'
+                            ? '#5eead4'
+                            : '#94a3b8'
                   }
                   strokeWidth="2"
                   strokeDasharray="5,5"
@@ -455,9 +523,9 @@ export const ClassifyMode: React.FC = () => {
                 />
               </svg>
             )}
-            
+
             {/* カーソル/タッチ位置のトラッカー */}
-            <div 
+            <div
               className="fixed w-4 h-4 bg-white rounded-full shadow-lg pointer-events-none z-50 ring-2 ring-white/30"
               style={{
                 left: `${currentPosition.x}px`,
@@ -472,19 +540,27 @@ export const ClassifyMode: React.FC = () => {
         {!isOperating && (
           <>
             {/* 上下左右のカテゴリインジケーター */}
-            <div className={`absolute ${isMobile ? 'top-2' : 'top-4'} left-1/2 -translate-x-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+            <div
+              className={`absolute ${isMobile ? 'top-2' : 'top-4'} left-1/2 -translate-x-1/2 flex items-center gap-1 text-xs text-gray-500`}
+            >
               <ChevronUp className="w-3 h-3 text-violet-400" />
               <span className="text-xs">{categoryIcons.study.label}</span>
             </div>
-            <div className={`absolute ${isMobile ? 'bottom-2' : 'bottom-4'} left-1/2 -translate-x-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+            <div
+              className={`absolute ${isMobile ? 'bottom-2' : 'bottom-4'} left-1/2 -translate-x-1/2 flex items-center gap-1 text-xs text-gray-500`}
+            >
               <ChevronDown className="w-3 h-3 text-pink-400" />
               <span className="text-xs">{categoryIcons.hobby.label}</span>
             </div>
-            <div className={`absolute ${isMobile ? 'left-2' : 'left-4'} top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+            <div
+              className={`absolute ${isMobile ? 'left-2' : 'left-4'} top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500`}
+            >
               <ChevronLeft className="w-3 h-3 text-sky-400" />
               <span className="text-xs">{categoryIcons.work.label}</span>
             </div>
-            <div className={`absolute ${isMobile ? 'right-2' : 'right-4'} top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500`}>
+            <div
+              className={`absolute ${isMobile ? 'right-2' : 'right-4'} top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500`}
+            >
               <span className="text-xs">{categoryIcons.life.label}</span>
               <ChevronRight className="w-3 h-3 text-teal-400" />
             </div>
@@ -492,29 +568,33 @@ export const ClassifyMode: React.FC = () => {
         )}
 
         {/* 中央のタスクカードスタック */}
-        <div className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}>
+        <div
+          className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}
+        >
           {/* 背後のカード（スタック表現） */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {inboxTasks.slice(1, Math.min(4, inboxTasks.length)).map((task, index) => (
-              <div
-                key={task.id}
-                className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
-                style={{
-                  width: isMobile ? '180px' : '320px',
-                  height: isMobile ? '100px' : '180px',
-                  transform: `
+            {inboxTasks
+              .slice(1, Math.min(4, inboxTasks.length))
+              .map((task, index) => (
+                <div
+                  key={task.id}
+                  className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
+                  style={{
+                    width: isMobile ? '180px' : '320px',
+                    height: isMobile ? '100px' : '180px',
+                    transform: `
                     translateY(${(index + 1) * 4}px) 
                     translateX(${(index + 1) * 2}px)
                     rotate(${index % 2 === 0 ? 1 : -1}deg)
                     scale(${1 - (index + 1) * 0.05})
                   `,
-                  zIndex: -index - 1,
-                  opacity: 0.3 - index * 0.1
-                }}
-              />
-            ))}
+                    zIndex: -index - 1,
+                    opacity: 0.3 - index * 0.1,
+                  }}
+                />
+              ))}
           </div>
-          
+
           {/* メインのタスクカード */}
           <div
             ref={cardRef}
@@ -537,50 +617,60 @@ export const ClassifyMode: React.FC = () => {
               <Sparkles className="w-5 h-5 text-yellow-400/50 animate-pulse" />
             </div>
             <div className="absolute bottom-3 left-3">
-              <div className="text-xs text-violet-300/50 font-mono">#{currentTask.id.slice(-4)}</div>
+              <div className="text-xs text-violet-300/50 font-mono">
+                #{currentTask.id.slice(-4)}
+              </div>
             </div>
-            
+
             {/* タスク内容 */}
             <div className="text-center px-2 py-2 max-w-full overflow-hidden">
-              <h3 className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}>
-                <span className="block break-words">
-                  {currentTask.title}
-                </span>
+              <h3
+                className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}
+              >
+                <span className="block break-words">{currentTask.title}</span>
               </h3>
             </div>
-            
+
             {/* ホバーエフェクト */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
           </div>
         </div>
       </div>
-      
+
       {/* フッター: 分類統計 */}
       <div className="mt-2 px-4">
         <div className="flex items-center justify-center gap-3 text-xs">
           <div className="flex items-center gap-1.5">
-            {React.createElement(categoryIcons.work.icon, { className: "w-4 h-4 text-sky-400" })}
+            {React.createElement(categoryIcons.work.icon, {
+              className: 'w-4 h-4 text-sky-400',
+            })}
             <span className="text-gray-400">仕事</span>
             <span className="bg-sky-600/20 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">
               {workTasks.length}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            {React.createElement(categoryIcons.life.icon, { className: "w-4 h-4 text-teal-400" })}
+            {React.createElement(categoryIcons.life.icon, {
+              className: 'w-4 h-4 text-teal-400',
+            })}
             <span className="text-gray-400">生活</span>
             <span className="bg-teal-600/20 text-teal-400 px-1.5 py-0.5 rounded-full font-bold">
               {lifeTasks.length}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            {React.createElement(categoryIcons.study.icon, { className: "w-4 h-4 text-violet-400" })}
+            {React.createElement(categoryIcons.study.icon, {
+              className: 'w-4 h-4 text-violet-400',
+            })}
             <span className="text-gray-400">学習</span>
             <span className="bg-violet-600/20 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
               {studyTasks.length}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            {React.createElement(categoryIcons.hobby.icon, { className: "w-4 h-4 text-pink-400" })}
+            {React.createElement(categoryIcons.hobby.icon, {
+              className: 'w-4 h-4 text-pink-400',
+            })}
             <span className="text-gray-400">趣味</span>
             <span className="bg-pink-600/20 text-pink-400 px-1.5 py-0.5 rounded-full font-bold">
               {hobbyTasks.length}
@@ -588,7 +678,7 @@ export const ClassifyMode: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* 成功エフェクト */}
       {showSuccess && (
         <div className="fixed inset-0 pointer-events-none z-50">
@@ -598,7 +688,7 @@ export const ClassifyMode: React.FC = () => {
               <Sparkles className="w-20 h-20 text-yellow-400 drop-shadow-2xl" />
             </div>
           </div>
-          
+
           {/* パーティクルエフェクト */}
           <div className="absolute inset-0 flex items-center justify-center">
             {[...Array(6)].map((_, i) => (
@@ -607,7 +697,7 @@ export const ClassifyMode: React.FC = () => {
                 className="absolute animate-particle"
                 style={{
                   animationDelay: `${i * 0.02}s`,
-                  transform: `rotate(${i * 60}deg) translateY(-60px)`
+                  transform: `rotate(${i * 60}deg) translateY(-60px)`,
                 }}
               >
                 <div className="w-2 h-2 bg-yellow-400 rounded-full" />

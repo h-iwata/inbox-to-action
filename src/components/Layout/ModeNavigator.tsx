@@ -32,7 +32,7 @@ export const ModeNavigator: React.FC = () => {
     return (
       <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-md border-t border-gray-700 z-50">
         <div className="grid grid-cols-4">
-          {modes.map((mode) => (
+          {modes.map(mode => (
             <button
               key={mode.id}
               onClick={() => handleModeChange(mode.id)}
@@ -44,7 +44,7 @@ export const ModeNavigator: React.FC = () => {
             >
               <div className="mb-1 relative">
                 {React.createElement(modeIcons[mode.id], {
-                  className: "w-6 h-6 mx-auto"
+                  className: 'w-6 h-6 mx-auto',
                 })}
                 {mode.id === 'classify' && inboxTasks.length > 0 && (
                   <div className="absolute -top-1 -right-1 bg-violet-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
@@ -65,7 +65,7 @@ export const ModeNavigator: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <div className="flex">
-            {modes.map((mode) => (
+            {modes.map(mode => (
               <button
                 key={mode.id}
                 onClick={() => handleModeChange(mode.id)}
@@ -77,7 +77,7 @@ export const ModeNavigator: React.FC = () => {
               >
                 <span className="mr-2 relative">
                   {React.createElement(modeIcons[mode.id], {
-                    className: "w-4 h-4 inline-block"
+                    className: 'w-4 h-4 inline-block',
                   })}
                 </span>
                 {mode.label}

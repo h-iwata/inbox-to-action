@@ -1,6 +1,18 @@
 import React, { useEffect } from 'react'
 import { useResponsive } from '../../hooks/useResponsive'
-import { X, Lightbulb, RotateCw, PenTool, FolderOpen, List, Target, Sparkles, Flame, Calendar, Trophy } from 'lucide-react'
+import {
+  X,
+  Lightbulb,
+  RotateCw,
+  PenTool,
+  FolderOpen,
+  List,
+  Target,
+  Sparkles,
+  Flame,
+  Calendar,
+  Trophy,
+} from 'lucide-react'
 import { categoryIcons } from '../../config/icons'
 
 interface AboutModalProps {
@@ -36,22 +48,27 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {/* オーバーレイ */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in"
         onClick={handleBackdropClick}
       >
         {/* モーダル本体 */}
-        <div className={`
+        <div
+          className={`
           fixed bg-gray-800 rounded-2xl shadow-2xl overflow-hidden
-          ${isMobile 
-            ? 'inset-x-4 inset-y-12 animate-slide-up' 
-            : 'top-1/2 left-1/2 w-[90%] max-w-3xl max-h-[85vh] animate-slide-up-center'
+          ${
+            isMobile
+              ? 'inset-x-4 inset-y-12 animate-slide-up'
+              : 'top-1/2 left-1/2 w-[90%] max-w-3xl max-h-[85vh] animate-slide-up-center'
           }
         `}
-        style={!isMobile ? { transform: 'translate(-50%, -50%)' } : undefined}>
+          style={!isMobile ? { transform: 'translate(-50%, -50%)' } : undefined}
+        >
           {/* ヘッダー */}
           <div className="sticky top-0 bg-gradient-to-r from-violet-800 to-cyan-800 px-6 py-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">InboxToAction について</h2>
+            <h2 className="text-xl font-bold text-white">
+              InboxToAction について
+            </h2>
             <button
               onClick={onClose}
               className="text-white/80 hover:text-white transition-colors"
@@ -149,7 +166,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
                 <div className="p-3 bg-gray-700/30 rounded-lg">
-                  <h4 className="font-bold text-green-400 mb-1">達成メッセージ</h4>
+                  <h4 className="font-bold text-green-400 mb-1">
+                    達成メッセージ
+                  </h4>
                   <ul className="space-y-1">
                     <li>• 特定カテゴリに集中：「仕事の鬼と化しています」</li>
                     <li>• バランス良く完了：「見事な配分センス！」</li>
@@ -157,8 +176,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                   </ul>
                 </div>
                 <div className="p-3 bg-gray-700/30 rounded-lg">
-                  <h4 className="font-bold text-purple-400 mb-1">カテゴリ別記録</h4>
-                  <p>各カテゴリの完了数がアイコン下に表示され、どの分野に注力したかが一目でわかります。</p>
+                  <h4 className="font-bold text-purple-400 mb-1">
+                    カテゴリ別記録
+                  </h4>
+                  <p>
+                    各カテゴリの完了数がアイコン下に表示され、どの分野に注力したかが一目でわかります。
+                  </p>
                 </div>
               </div>
             </section>
@@ -172,29 +195,51 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-gradient-to-br from-sky-800/30 to-sky-900/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
-                    {React.createElement(categoryIcons.work.icon, { className: "w-5 h-5 text-sky-400" })}
-                    <span className="font-medium text-gray-100">{categoryIcons.work.label}</span>
+                    {React.createElement(categoryIcons.work.icon, {
+                      className: 'w-5 h-5 text-sky-400',
+                    })}
+                    <span className="font-medium text-gray-100">
+                      {categoryIcons.work.label}
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-300">職場や業務関連のタスク</p>
+                  <p className="text-xs text-gray-300">
+                    職場や業務関連のタスク
+                  </p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-teal-800/30 to-teal-900/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
-                    {React.createElement(categoryIcons.life.icon, { className: "w-5 h-5 text-teal-400" })}
-                    <span className="font-medium text-gray-100">{categoryIcons.life.label}</span>
+                    {React.createElement(categoryIcons.life.icon, {
+                      className: 'w-5 h-5 text-teal-400',
+                    })}
+                    <span className="font-medium text-gray-100">
+                      {categoryIcons.life.label}
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-300">日常生活や家事のタスク</p>
+                  <p className="text-xs text-gray-300">
+                    日常生活や家事のタスク
+                  </p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-violet-800/30 to-violet-900/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
-                    {React.createElement(categoryIcons.study.icon, { className: "w-5 h-5 text-violet-400" })}
-                    <span className="font-medium text-gray-100">{categoryIcons.study.label}</span>
+                    {React.createElement(categoryIcons.study.icon, {
+                      className: 'w-5 h-5 text-violet-400',
+                    })}
+                    <span className="font-medium text-gray-100">
+                      {categoryIcons.study.label}
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-300">勉強や自己成長のタスク</p>
+                  <p className="text-xs text-gray-300">
+                    勉強や自己成長のタスク
+                  </p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-pink-800/30 to-pink-900/30 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
-                    {React.createElement(categoryIcons.hobby.icon, { className: "w-5 h-5 text-pink-400" })}
-                    <span className="font-medium text-gray-100">{categoryIcons.hobby.label}</span>
+                    {React.createElement(categoryIcons.hobby.icon, {
+                      className: 'w-5 h-5 text-pink-400',
+                    })}
+                    <span className="font-medium text-gray-100">
+                      {categoryIcons.hobby.label}
+                    </span>
                   </div>
                   <p className="text-xs text-gray-300">余暇や娯楽のタスク</p>
                 </div>
@@ -210,7 +255,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               <ul className="text-sm text-gray-300 space-y-2">
                 <li className="flex items-start gap-2">
                   <Lightbulb className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                  <span>思いついたらすぐに作成モードで入力する習慣をつけましょう</span>
+                  <span>
+                    思いついたらすぐに作成モードで入力する習慣をつけましょう
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Target className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
@@ -218,15 +265,21 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 </li>
                 <li className="flex items-start gap-2">
                   <Flame className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
-                  <span>実行中タスクは全体で1つだけ。集中して取り組みましょう</span>
+                  <span>
+                    実行中タスクは全体で1つだけ。集中して取り組みましょう
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Calendar className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <span>24時間ルールで全タスクが削除されるので、毎日アプリを開く習慣が大切です</span>
+                  <span>
+                    24時間ルールで全タスクが削除されるので、毎日アプリを開く習慣が大切です
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Trophy className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                  <span>タスク完了でレベルアップ！レベルMAXで今日を締めくくろう</span>
+                  <span>
+                    タスク完了でレベルアップ！レベルMAXで今日を締めくくろう
+                  </span>
                 </li>
               </ul>
             </section>

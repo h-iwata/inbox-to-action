@@ -1,7 +1,11 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from './store'
-import { cleanupExpiredTasks, updateStats, selectInboxTasks } from './store/slices/tasksSlice'
+import {
+  cleanupExpiredTasks,
+  updateStats,
+  selectInboxTasks,
+} from './store/slices/tasksSlice'
 import { setMode, type AppMode } from './store/slices/uiSlice'
 import { Header } from './components/Layout/Header'
 import { ModeNavigator } from './components/Layout/ModeNavigator'
@@ -25,10 +29,13 @@ function App() {
     dispatch(updateStats())
 
     // 5分ごとに実行
-    const interval = setInterval(() => {
-      dispatch(cleanupExpiredTasks())
-      dispatch(updateStats())
-    }, 5 * 60 * 1000)
+    const interval = setInterval(
+      () => {
+        dispatch(cleanupExpiredTasks())
+        dispatch(updateStats())
+      },
+      5 * 60 * 1000
+    )
 
     return () => clearInterval(interval)
   }, [dispatch])
@@ -42,7 +49,7 @@ function App() {
         e.preventDefault()
         const modes: AppMode[] = ['create', 'classify', 'list', 'execute']
         const currentIndex = modes.indexOf(currentMode)
-        const nextIndex = e.shiftKey 
+        const nextIndex = e.shiftKey
           ? (currentIndex - 1 + modes.length) % modes.length
           : (currentIndex + 1) % modes.length
         dispatch(setMode(modes[nextIndex]))
@@ -52,7 +59,6 @@ function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [currentMode, dispatch, isMobile])
-
 
   const renderMode = () => {
     switch (currentMode) {
@@ -73,7 +79,7 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100">
       <Header />
       {!isMobile && <ModeNavigator />}
-      
+
       {/* 操作ヒントエリア */}
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-center">
@@ -86,41 +92,34 @@ function App() {
                   画面をタップして分類
                 </span>
               ) : currentMode === 'list' ? (
-                <span>タップで最優先設定 • 左スワイプでInbox • 右スワイプで削除</span>
+                <span>
+                  タップで最優先設定 • 左スワイプでInbox • 右スワイプで削除
+                </span>
               ) : currentMode === 'execute' ? (
                 <span>実行タスクを完了ボタンで完了</span>
               ) : (
                 <span>下部のナビゲーションでモード切替</span>
               )
+            ) : currentMode === 'classify' && inboxTasks.length > 0 ? (
+              <span>W/↑: 学習 • A/←: 仕事 • D/→: 生活 • S/↓: 趣味</span>
+            ) : currentMode === 'list' ? (
+              <span>クリックで最優先設定 • タスクを左右にスワイプで操作</span>
+            ) : currentMode === 'execute' ? (
+              <span>スペース：タスク完了 • 1〜4キー：カテゴリ切り替え</span>
             ) : (
-              currentMode === 'classify' && inboxTasks.length > 0 ? (
-                <span>
-                  W/↑: 学習 •
-                  A/←: 仕事 •
-                  D/→: 生活 •
-                  S/↓: 趣味
-                </span>
-              ) : currentMode === 'list' ? (
-                <span>クリックで最優先設定 • タスクを左右にスワイプで操作</span>
-              ) : currentMode === 'execute' ? (
-                <span>スペース：タスク完了 • 1〜4キー：カテゴリ切り替え</span>
-              ) : (
-                <span>
-                  Tab: 次のモード •
-                  Shift+Tab: 前のモード
-                </span>
-              )
+              <span>Tab: 次のモード • Shift+Tab: 前のモード</span>
             )}
           </div>
         </div>
       </div>
-      
-      <main className={`container mx-auto px-4 py-4 ${isMobile ? 'pb-24' : 'pb-8'}`}>
+
+      <main
+        className={`container mx-auto px-4 py-4 ${isMobile ? 'pb-24' : 'pb-8'}`}
+      >
         {renderMode()}
       </main>
 
       {isMobile && <ModeNavigator />}
-      
     </div>
   )
 }
