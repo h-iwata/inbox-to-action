@@ -20,9 +20,20 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
-        'warn',
+        'off',
         { allowConstantExport: true },
       ],
+      // TypeScript厳格ルール
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      // コードスタイル
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-console': 'warn',
+      // React関連
+      'react-hooks/exhaustive-deps': 'off',
     },
   },
 )

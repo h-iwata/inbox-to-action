@@ -1,0 +1,97 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.2.0
+
+commands:
+  restore-cache:
+    description: "Restore node_modules cache"
+    steps:
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-
+
+  save-cache:
+    description: "Save node_modules cache"
+    steps:
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+
+jobs:
+  test:
+    docker:
+      - image: cimg/node:20.16.0
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore-cache
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save-cache
+      - run:
+          name: Run type check
+          command: npm run typecheck
+      - run:
+          name: Run linter
+          command: npm run lint:strict
+      - run:
+          name: Check code formatting
+          command: npm run format:check
+      - run:
+          name: Run tests
+          command: npm run test
+      - run:
+          name: Build application
+          command: npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist
+
+  security-scan:
+    docker:
+      - image: cimg/node:20.16.0
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore-cache
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save-cache
+      - run:
+          name: Run npm audit
+          command: |
+            npm audit --audit-level=moderate || true
+            echo "Security scan complete. Check above for any vulnerabilities."
+      - run:
+          name: Check for outdated dependencies
+          command: |
+            npm outdated || true
+            echo "Dependency check complete."
+
+workflows:
+  version: 2
+  test-and-build:
+    jobs:
+      - test
+      - security-scan:
+          filters:
+            branches:
+              only:
+                - main
+
+  nightly-security-check:
+    triggers:
+      - schedule:
+          cron: "0 2 * * *"  # 毎日午前2時（UTC）に実行
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - security-scan

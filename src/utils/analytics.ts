@@ -2,7 +2,7 @@
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
+    gtag?: (...args: unknown[]) => void
   }
 }
 
@@ -11,15 +11,22 @@ const GA_MEASUREMENT_ID = 'G-TY1RDJCS1M'
 
 // 本番環境かどうかを判定
 const isProduction = () => {
-  return !window.location.hostname.includes('localhost') &&
-         !window.location.hostname.includes('127.0.0.1') &&
-         !window.location.hostname.includes('192.168.') &&
-         !window.location.hostname.includes('10.')
+  return (
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1') &&
+    !window.location.hostname.includes('192.168.') &&
+    !window.location.hostname.includes('10.')
+  )
 }
 
 // Google Analytics が利用可能かチェック
 const isGoogleAnalyticsAvailable = () => {
-  return isProduction() && typeof window !== 'undefined' && window.gtag && GA_MEASUREMENT_ID
+  return (
+    isProduction() &&
+    typeof window !== 'undefined' &&
+    window.gtag &&
+    GA_MEASUREMENT_ID
+  )
 }
 
 // ページビューを送信

@@ -37,8 +37,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const isPriority = task.order === 1 && task.category !== 'inbox'
   const isExecuting = task.isExecuting === true
   const baseStyles = getVariantStyles()
-  const priorityStyles = isExecuting ? 'border-amber-600/50 bg-gradient-to-r from-amber-900/10 to-orange-900/10' : 
-                         isPriority && !isExecuting ? 'border-gray-600 bg-gray-750/50' : ''
+  const priorityStyles = isExecuting
+    ? 'border-amber-600/50 bg-gradient-to-r from-amber-900/10 to-orange-900/10'
+    : isPriority && !isExecuting
+      ? 'border-gray-600 bg-gray-750/50'
+      : ''
 
   const handleClick = () => {
     if (variant === 'list') {
@@ -57,28 +60,34 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">{task.title}</p>
+          <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">
+            {task.title}
+          </p>
           {isPriority && variant === 'list' && (
             <div className="flex items-center gap-2 mt-1">
               {isExecuting ? (
                 <>
                   <Flame className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm text-amber-400 font-medium">実行中</span>
+                  <span className="text-sm text-amber-400 font-medium">
+                    実行中
+                  </span>
                 </>
               ) : (
                 <>
                   <Pause className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-400 font-medium">一時停止</span>
+                  <span className="text-sm text-gray-400 font-medium">
+                    一時停止
+                  </span>
                 </>
               )}
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           {variant === 'execute' && onComplete && (
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onComplete(task.id)
               }}
@@ -87,10 +96,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               ✓ 完了
             </button>
           )}
-          
+
           {variant === 'create' && onDelete && (
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onDelete(task.id)
               }}

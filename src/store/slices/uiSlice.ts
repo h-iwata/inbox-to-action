@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { Category } from '../../types'
 import { trackModeChange } from '../../utils/analytics'
 
-export type AppMode = 'create' | 'classify' | 'list' | 'execute'
+export type AppMode = 'create' | 'classify' | 'list' | 'execute' // 作成, 分類, 一覧, 実行
 
 interface UIState {
   currentMode: AppMode
@@ -28,7 +28,10 @@ const uiSlice = createSlice({
       state.currentMode = action.payload
       trackModeChange(action.payload)
     },
-    setModeWithScroll: (state, action: PayloadAction<{ mode: AppMode; scrollToCategory?: Category }>) => {
+    setModeWithScroll: (
+      state,
+      action: PayloadAction<{ mode: AppMode; scrollToCategory?: Category }>
+    ) => {
       state.currentMode = action.payload.mode
       state.scrollToCategory = action.payload.scrollToCategory || null
       trackModeChange(action.payload.mode)
@@ -39,15 +42,22 @@ const uiSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload
     },
-    updateLastUpdated: (state) => {
+    updateLastUpdated: state => {
       state.lastUpdated = new Date().toISOString()
     },
-    clearScrollToCategory: (state) => {
+    clearScrollToCategory: state => {
       state.scrollToCategory = null
     },
   },
 })
 
-export const { setMode, setModeWithScroll, setLoading, setError, updateLastUpdated, clearScrollToCategory } = uiSlice.actions
+export const {
+  setMode,
+  setModeWithScroll,
+  setLoading,
+  setError,
+  updateLastUpdated,
+  clearScrollToCategory,
+} = uiSlice.actions
 
 export default uiSlice.reducer

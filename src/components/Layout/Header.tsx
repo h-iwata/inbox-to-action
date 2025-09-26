@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
                 </p>
               </div>
             </div>
-            
+
             {/* About リンク */}
             <button
               onClick={() => setIsAboutModalOpen(true)}
@@ -51,9 +51,9 @@ export const Header: React.FC = () => {
       </header>
 
       {/* About モーダル */}
-      <AboutModal 
-        isOpen={isAboutModalOpen} 
-        onClose={() => setIsAboutModalOpen(false)} 
+      <AboutModal
+        isOpen={isAboutModalOpen}
+        onClose={() => setIsAboutModalOpen(false)}
       />
     </>
   )

@@ -42,7 +42,7 @@ import {
   PlayCircle,
   FastForward,
   RotateCcw,
-  type LucideIcon
+  type LucideIcon,
 } from 'lucide-react'
 
 export interface IconConfig {
@@ -57,39 +57,39 @@ export const categoryIcons: Record<string, IconConfig> = {
     icon: Briefcase,
     color: 'text-sky-400',
     gradient: 'from-sky-600 to-sky-700',
-    label: '仕事'
+    label: '仕事',
   },
   life: {
     icon: Home,
     color: 'text-teal-400',
     gradient: 'from-teal-600 to-teal-700',
-    label: '生活'
+    label: '生活',
   },
   study: {
     icon: BookOpen,
     color: 'text-violet-400',
     gradient: 'from-violet-600 to-violet-700',
-    label: '学習'
+    label: '学習',
   },
   hobby: {
     icon: Gamepad2,
     color: 'text-pink-400',
     gradient: 'from-pink-600 to-pink-700',
-    label: '趣味'
+    label: '趣味',
   },
   inbox: {
     icon: Inbox,
     color: 'text-gray-400',
     gradient: 'from-gray-600 to-gray-700',
-    label: 'インボックス'
-  }
+    label: 'インボックス',
+  },
 }
 
 export const modeIcons: Record<string, LucideIcon> = {
   create: PenTool,
   classify: FolderOpen,
   list: List,
-  execute: Target
+  execute: Target,
 }
 
 export const actionIcons = {
@@ -124,14 +124,14 @@ export const actionIcons = {
   reset: RotateCcw,
   forward: FastForward,
   folder: FolderOpen,
-  file: FileText
+  file: FileText,
 }
 
 export const navigationIcons = {
   left: ChevronLeft,
   right: ChevronRight,
   up: ChevronUp,
-  down: ChevronDown
+  down: ChevronDown,
 }
 
 // Helper component for rendering icons with consistent styling
@@ -142,14 +142,16 @@ export const CategoryIcon: React.FC<{
 }> = ({ category, size = 'md', className = '' }) => {
   const config = categoryIcons[category]
   if (!config) return null
-  
+
   const Icon = config.icon
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
     lg: 'w-8 h-8',
-    xl: 'w-10 h-10'
+    xl: 'w-10 h-10',
   }
-  
-  return <Icon className={`${sizeClasses[size]} ${config.color} ${className}`} />
+
+  return (
+    <Icon className={`${sizeClasses[size]} ${config.color} ${className}`} />
+  )
 }
