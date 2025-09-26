@@ -78,7 +78,7 @@ workflows:
   version: 2
   test-and-build:
     jobs:
-      - test:
+      - test
       - security-scan:
           filters:
             branches:
