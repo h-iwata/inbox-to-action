@@ -6,15 +6,11 @@ export type AppMode = 'create' | 'classify' | 'list' | 'execute' // 作成, 分�
 
 interface UIState {
   currentMode: AppMode
-  isLoading: boolean
-  error: string | null
   scrollToCategory: Category | null
 }
 
 const initialState: UIState = {
   currentMode: 'create',
-  isLoading: false,
-  error: null,
   scrollToCategory: null,
 }
 
@@ -34,12 +30,6 @@ const uiSlice = createSlice({
       state.scrollToCategory = action.payload.scrollToCategory || null
       trackModeChange(action.payload.mode)
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload
-    },
     clearScrollToCategory: state => {
       state.scrollToCategory = null
     },
@@ -49,8 +39,6 @@ const uiSlice = createSlice({
 export const {
   setMode,
   setModeWithScroll,
-  setLoading,
-  setError,
   clearScrollToCategory,
 } = uiSlice.actions
 
