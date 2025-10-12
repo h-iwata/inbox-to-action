@@ -9,10 +9,6 @@ import { trackTaskEvent } from '../../utils/analytics'
 
 interface TasksState {
   items: Task[]
-  filter: {
-    category: Category | 'all'
-    status: 'active' | 'done' | 'all'
-  }
   stats: {
     daily: DailyStats
   }
@@ -20,10 +16,6 @@ interface TasksState {
 
 const initialState: TasksState = {
   items: [],
-  filter: {
-    category: 'all',
-    status: 'all',
-  },
   stats: {
     daily: {
       created: 0,
@@ -53,19 +45,6 @@ const tasksSlice = createSlice({
 
       // Analyticsイベントを送信
       trackTaskEvent('create', 'inbox')
-    },
-    updateTask: (
-      state,
-      action: PayloadAction<{ id: string; updates: Partial<Task> }>
-    ) => {
-      const index = state.items.findIndex(task => task.id === action.payload.id)
-      if (index !== -1) {
-        state.items[index] = {
-          ...state.items[index],
-          ...action.payload.updates,
-          updated_at: new Date().toISOString(),
-        }
-      }
     },
     deleteTask: (state, action: PayloadAction<string>) => {
       const taskToDelete = state.items.find(task => task.id === action.payload)
@@ -152,37 +131,6 @@ const tasksSlice = createSlice({
         state.stats.daily.classified++
       }
     },
-    moveToTop: (state, action: PayloadAction<string>) => {
-      const index = state.items.findIndex(task => task.id === action.payload)
-      if (index !== -1) {
-        const task = state.items[index]
-        // 同じカテゴリのタスクを取得
-        const sameCategoryTasks = state.items.filter(
-          t =>
-            t.category === task.category &&
-            t.id !== task.id &&
-            t.status === 'active'
-        )
-        // 現在のorder=1のタスクを探す
-        const currentTopTask = sameCategoryTasks.find(t => t.order === 1)
-        if (currentTopTask) {
-          currentTopTask.order = task.order // 元の順序と入れ替え
-        }
-        task.order = 1
-        task.updated_at = new Date().toISOString()
-        // 他のタスクの順序を調整
-        sameCategoryTasks
-          .filter(t => t.id !== currentTopTask?.id)
-          .sort((a, b) => a.order - b.order)
-          .forEach((t, idx) => {
-            if (t.order === 1) return // 新しいトップタスクはスキップ
-            t.order = idx + 2
-          })
-
-        // 実行中フラグは別途toggleExecutingで管理するため、ここでは設定しない
-        task.isExecuting = false
-      }
-    },
     cleanupExpiredTasks: state => {
       const now = new Date()
       const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -191,20 +139,6 @@ const tasksSlice = createSlice({
         const createdAt = new Date(task.created_at)
         return createdAt > twentyFourHoursAgo
       })
-    },
-    setFilter: (
-      state,
-      action: PayloadAction<{
-        category?: Category | 'all'
-        status?: 'active' | 'done' | 'all'
-      }>
-    ) => {
-      if (action.payload.category !== undefined) {
-        state.filter.category = action.payload.category
-      }
-      if (action.payload.status !== undefined) {
-        state.filter.status = action.payload.status
-      }
     },
     updateStats: state => {
       const now = new Date()
@@ -361,13 +295,10 @@ const tasksSlice = createSlice({
 
 export const {
   addTask,
-  updateTask,
   deleteTask,
   completeTask,
   classifyTask,
-  moveToTop,
   cleanupExpiredTasks,
-  setFilter,
   updateStats,
   toggleExecuting,
   changeCategory,
@@ -395,22 +326,6 @@ export const selectTasksByCategory = (category: Category) =>
       .sort((a, b) => a.order - b.order)
   )
 
-export const selectTopTasksForExecution = createSelector(
-  [selectAllTasks],
-  tasks => {
-    // 実行中のタスクを1つだけ取得（全カテゴリから）
-    const executingTask = tasks.find(
-      task =>
-        task.isExecuting === true &&
-        task.status === 'active' &&
-        task.category !== 'inbox'
-    )
-
-    // 実行中タスクがあればそれを返す、なければ空配列
-    return executingTask ? [executingTask] : []
-  }
-)
-
 export const selectTopTasksByCategory = createSelector(
   [selectAllTasks],
   tasks => {
@@ -429,11 +344,6 @@ export const selectTopTasksByCategory = createSelector(
       )
       .filter(Boolean)
   }
-)
-
-export const selectDailyStats = createSelector(
-  [selectTasksState],
-  tasks => tasks.stats.daily
 )
 
 export const selectTodayCompletedByCategory = createSelector(
