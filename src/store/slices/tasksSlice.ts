@@ -60,8 +60,7 @@ const normalizeTask = (raw: unknown): Task => {
   const category = isValidCategory(categoryValue) ? categoryValue : 'inbox'
 
   const statusValue = source.status
-  const status: Task['status'] =
-    statusValue === 'done' ? 'done' : 'active'
+  const status: Task['status'] = statusValue === 'done' ? 'done' : 'active'
 
   const idValue = source.id
   const id =
@@ -166,9 +165,7 @@ const normalizePersistedState = (data: unknown): TasksState => {
 
     const source = isObject(raw) ? raw : {}
     const orderValue =
-      typeof source.order === 'number'
-        ? source.order
-        : Number.MAX_SAFE_INTEGER
+      typeof source.order === 'number' ? source.order : Number.MAX_SAFE_INTEGER
 
     listsWithOrder[task.category].push({ task, order: orderValue })
   })
@@ -210,7 +207,10 @@ const removeActiveTask = (
   return { task, category: location.category }
 }
 
-const removeCompletedTask = (state: TasksState, taskId: string): Task | null => {
+const removeCompletedTask = (
+  state: TasksState,
+  taskId: string
+): Task | null => {
   const index = state.completed.findIndex(task => task.id === taskId)
   if (index === -1) return null
   const [task] = state.completed.splice(index, 1)

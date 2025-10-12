@@ -36,10 +36,7 @@ const uiSlice = createSlice({
   },
 })
 
-export const {
-  setMode,
-  setModeWithScroll,
-  clearScrollToCategory,
-} = uiSlice.actions
+export const { setMode, setModeWithScroll, clearScrollToCategory } =
+  uiSlice.actions
 
 export default uiSlice.reducer
