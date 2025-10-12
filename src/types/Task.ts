@@ -17,10 +17,3 @@ export interface DailyStats {
   classified: number
   completed: number
 }
-
-export interface WeeklyStats {
-  completionRate: number
-  productivity: number
-  categoryBreakdown: Record<Category, number>
-  mostActiveHour: number
-}
