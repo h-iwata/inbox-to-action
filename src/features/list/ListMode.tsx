@@ -213,7 +213,7 @@ export const ListMode: React.FC = () => {
   // カテゴリヘッダーをタップして実行中カテゴリを切り替え
   const handleCategoryHeaderClick = (category: Category) => {
     // 該当カテゴリの最上位タスクを取得
-    const topTask = tasksSelector[category].find(t => t.order === 1)
+    const topTask = tasksSelector[category][0]
 
     if (topTask) {
       // バイブレーション（モバイルのみ）
@@ -229,9 +229,9 @@ export const ListMode: React.FC = () => {
   }
 
   // タスクをクリックして最上位に移動または実行モードへ遷移
-  const handleMoveToTop = (task: Task, category: Category) => {
-    // すでに最上位（order=1）の場合は実行モードへ遷移
-    if (task.order === 1) {
+  const handleMoveToTop = (task: Task, category: Category, index: number) => {
+    // すでに最上位（index=0）の場合は実行モードへ遷移
+    if (index === 0) {
       // バイブレーション（モバイルのみ）
       if (navigator.vibrate) {
         navigator.vibrate(20)
@@ -252,7 +252,7 @@ export const ListMode: React.FC = () => {
       navigator.vibrate(10)
     }
 
-    // order=1の位置に移動
+    // 先頭に移動
     dispatch(
       reorderTasksInCategory({
         taskId: task.id,
@@ -320,7 +320,7 @@ export const ListMode: React.FC = () => {
         {/* タスクカード */}
         <div
           className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors cursor-pointer ${
-            task.order === 1
+            index === 0
               ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80'
               : swipeState.taskId === task.id && Math.abs(swipeOffset) > 10
                 ? 'bg-gray-800/60 border-gray-700/50'
@@ -338,7 +338,7 @@ export const ListMode: React.FC = () => {
           onClick={() => {
             // スワイプ中はクリックを無視
             if (Math.abs(swipeOffset) < 10) {
-              handleMoveToTop(task, category)
+              handleMoveToTop(task, category, index)
             }
           }}
           onTouchStart={e => {
@@ -377,11 +377,11 @@ export const ListMode: React.FC = () => {
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p
-                className={`font-medium break-words whitespace-pre-wrap ${task.order === 1 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}
+                className={`font-medium break-words whitespace-pre-wrap ${index === 0 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}
               >
                 {task.title}
               </p>
-              {task.order === 1 && (
+              {index === 0 && (
                 <div className="flex items-center gap-1 mt-1 opacity-70">
                   <Play className="w-3 h-3 text-orange-400" />
                   <span className="text-xs text-orange-400">
@@ -391,7 +391,7 @@ export const ListMode: React.FC = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              {task.order === 1 && (
+              {index === 0 && (
                 <motion.div
                   className="bg-orange-400/20 p-1.5 rounded-full"
                   animate={{ scale: [1, 1.1, 1] }}
@@ -406,7 +406,7 @@ export const ListMode: React.FC = () => {
               )}
               <div
                 className={`text-sm font-semibold ${
-                  task.order === 1 ? 'text-orange-400' : 'text-gray-400'
+                  index === 0 ? 'text-orange-400' : 'text-gray-400'
                 }`}
               >
                 #{index + 1}
@@ -459,7 +459,7 @@ export const ListMode: React.FC = () => {
                         実行中
                       </span>
                     </div>
-                  ) : tasks.some(t => t.order === 1) ? (
+                  ) : tasks.length > 0 ? (
                     <div className="flex items-center gap-1.5 mt-1 opacity-60">
                       <RefreshCw className="w-3 h-3 text-white" />
                       <span className="text-xs text-white">

@@ -24,10 +24,10 @@ describe('tasksSlice', () => {
       store.dispatch(addTask(taskText))
 
       const state = store.getState().tasks
-      expect(state.items).toHaveLength(1)
-      expect(state.items[0].title).toBe(taskText)
-      expect(state.items[0].category).toBe('inbox')
-      expect(state.items[0].status).toBe('active')
+      expect(state.lists.inbox).toHaveLength(1)
+      expect(state.lists.inbox[0].title).toBe(taskText)
+      expect(state.lists.inbox[0].category).toBe('inbox')
+      expect(state.lists.inbox[0].status).toBe('active')
     })
   })
 
@@ -35,12 +35,12 @@ describe('tasksSlice', () => {
     it('should delete a task by id', () => {
       const store = createStore()
       store.dispatch(addTask('Task to delete'))
-      const taskId = store.getState().tasks.items[0].id
+      const taskId = store.getState().tasks.lists.inbox[0].id
 
       store.dispatch(deleteTask(taskId))
 
       const state = store.getState().tasks
-      expect(state.items).toHaveLength(0)
+      expect(state.lists.inbox).toHaveLength(0)
     })
 
     it('should handle deleting non-existent task', () => {
@@ -50,22 +50,24 @@ describe('tasksSlice', () => {
       store.dispatch(deleteTask('non-existent-id'))
 
       const state = store.getState().tasks
-      expect(state.items).toHaveLength(1)
-      expect(state.items[0].title).toBe('Task 1')
+      expect(state.lists.inbox).toHaveLength(1)
+      expect(state.lists.inbox[0].title).toBe('Task 1')
     })
   })
 
   describe('completeTask', () => {
-    it('should complete a task', () => {
+    it('should complete a task and move it to completed list', () => {
       const store = createStore()
       store.dispatch(addTask('Task to complete'))
-      const taskId = store.getState().tasks.items[0].id
+      const taskId = store.getState().tasks.lists.inbox[0].id
 
       store.dispatch(completeTask(taskId))
 
       const state = store.getState().tasks
-      expect(state.items[0].status).toBe('done')
-      expect(state.stats.daily.completed).toBe(1)
+      expect(state.lists.inbox).toHaveLength(0)
+      expect(state.completed).toHaveLength(1)
+      expect(state.completed[0].status).toBe('done')
+      expect(state.dailyStats.completed).toBe(1)
     })
   })
 
@@ -73,42 +75,31 @@ describe('tasksSlice', () => {
     it('should move task to specified category', () => {
       const store = createStore()
       store.dispatch(addTask('Task to classify'))
-      const taskId = store.getState().tasks.items[0].id
+      const taskId = store.getState().tasks.lists.inbox[0].id
 
       store.dispatch(classifyTask({ id: taskId, category: 'work' }))
 
       const state = store.getState().tasks
-      expect(state.items[0].category).toBe('work')
-      expect(state.items[0].order).toBe(1) // First task in category gets order 1
+      expect(state.lists.inbox).toHaveLength(0)
+      expect(state.lists.work).toHaveLength(1)
+      expect(state.lists.work[0].category).toBe('work')
     })
 
-    it('should set correct order when multiple tasks in category', () => {
+    it('should append tasks to category in insertion order', () => {
       const store = createStore()
 
-      // Add tasks
       store.dispatch(addTask('Task 1'))
       store.dispatch(addTask('Task 2'))
 
-      const tasks = store.getState().tasks.items
+      const [firstTask, secondTask] = store.getState().tasks.lists.inbox
 
-      // Classify first task
-      store.dispatch(classifyTask({ id: tasks[0].id, category: 'work' }))
-
-      // Refresh tasks after first classification
-      const updatedTasks = store.getState().tasks.items
-
-      // Classify second task to same category
-      const task2 = updatedTasks.find(t => t.category === 'inbox')
-      if (task2) {
-        store.dispatch(classifyTask({ id: task2.id, category: 'work' }))
-      }
+      store.dispatch(classifyTask({ id: firstTask.id, category: 'work' }))
+      store.dispatch(classifyTask({ id: secondTask.id, category: 'work' }))
 
       const state = store.getState().tasks
-      const workTasks = state.items.filter(t => t.category === 'work')
-
-      // Since classifyTask may have different behavior, adjust expectation
-      expect(workTasks.length).toBeGreaterThan(0)
-      expect(workTasks.some(t => t.order === 1)).toBe(true)
+      expect(state.lists.work).toHaveLength(2)
+      expect(state.lists.work[0].title).toBe('Task 1')
+      expect(state.lists.work[1].title).toBe('Task 2')
     })
   })
 })

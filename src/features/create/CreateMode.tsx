@@ -169,6 +169,7 @@ export const CreateMode: React.FC = () => {
                 <TaskCard
                   task={task}
                   variant="create"
+                  isTop={index === 0}
                   onDelete={handleDelete}
                 />
               </div>

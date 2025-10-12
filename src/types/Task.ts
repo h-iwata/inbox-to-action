@@ -7,20 +7,12 @@ export interface Task {
   category: Category
   created_at: string
   updated_at: string
-  order: number
   status: TaskStatus
-  isExecuting?: boolean // 実行中フラグ（order=1のタスクのみ有効）
+  isExecuting?: boolean // 実行中フラグ（カテゴリ内の先頭タスクで使用）
 }
 
 export interface DailyStats {
   created: number
   classified: number
   completed: number
-}
-
-export interface WeeklyStats {
-  completionRate: number
-  productivity: number
-  categoryBreakdown: Record<Category, number>
-  mostActiveHour: number
 }

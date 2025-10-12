@@ -3,47 +3,239 @@ import {
   createSelector,
   type PayloadAction,
 } from '@reduxjs/toolkit'
-import type { Task, Category, DailyStats, WeeklyStats } from '../../types'
+import type { Task, Category, DailyStats } from '../../types'
 import type { RootState } from '../index'
 import { trackTaskEvent } from '../../utils/analytics'
+import { REHYDRATE } from 'redux-persist/es/constants'
+import type { RehydrateAction } from 'redux-persist'
+
+const CATEGORY_LIST: Category[] = ['inbox', 'work', 'life', 'study', 'hobby']
+
+const createEmptyLists = (): Record<Category, Task[]> => ({
+  inbox: [],
+  work: [],
+  life: [],
+  study: [],
+  hobby: [],
+})
 
 interface TasksState {
-  items: Task[]
-  filter: {
-    category: Category | 'all'
-    status: 'active' | 'done' | 'all'
-  }
-  stats: {
-    daily: DailyStats
-    weekly: WeeklyStats
-  }
+  lists: Record<Category, Task[]>
+  completed: Task[]
+  dailyStats: DailyStats
 }
 
 const initialState: TasksState = {
-  items: [],
-  filter: {
-    category: 'all',
-    status: 'all',
+  lists: createEmptyLists(),
+  completed: [],
+  dailyStats: {
+    created: 0,
+    classified: 0,
+    completed: 0,
   },
-  stats: {
-    daily: {
-      created: 0,
-      classified: 0,
-      completed: 0,
-    },
-    weekly: {
-      completionRate: 0,
-      productivity: 0,
-      categoryBreakdown: {
-        work: 0,
-        life: 0,
-        study: 0,
-        hobby: 0,
-        inbox: 0,
-      },
-      mostActiveHour: 0,
-    },
-  },
+}
+
+const getAllActiveTasks = (state: TasksState): Task[] =>
+  CATEGORY_LIST.flatMap(category => state.lists[category])
+
+const getAllTasks = (state: TasksState): Task[] => [
+  ...getAllActiveTasks(state),
+  ...state.completed,
+]
+
+const isValidCategory = (value: unknown): value is Category =>
+  typeof value === 'string' &&
+  (CATEGORY_LIST as readonly string[]).includes(value)
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const toNumberOrZero = (value: unknown) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : 0
+
+const normalizeTask = (raw: unknown): Task => {
+  const source = isObject(raw) ? raw : {}
+
+  const categoryValue = source.category
+  const category = isValidCategory(categoryValue) ? categoryValue : 'inbox'
+
+  const statusValue = source.status
+  const status: Task['status'] = statusValue === 'done' ? 'done' : 'active'
+
+  const idValue = source.id
+  const id =
+    typeof idValue === 'string'
+      ? idValue
+      : typeof idValue === 'number'
+        ? idValue.toString()
+        : Date.now().toString()
+
+  const titleValue = source.title
+  const title =
+    typeof titleValue === 'string' && titleValue.trim().length > 0
+      ? titleValue
+      : '(untitled)'
+
+  const createdAtValue = source.created_at
+  const created_at =
+    typeof createdAtValue === 'string'
+      ? createdAtValue
+      : new Date().toISOString()
+
+  const updatedAtValue = source.updated_at
+  const updated_at =
+    typeof updatedAtValue === 'string'
+      ? updatedAtValue
+      : new Date().toISOString()
+
+  return {
+    id,
+    title,
+    category,
+    created_at,
+    updated_at,
+    status,
+    isExecuting: source.isExecuting === true,
+  }
+}
+
+const normalizeDailyStats = (value: unknown): DailyStats => {
+  if (!isObject(value)) {
+    return { ...initialState.dailyStats }
+  }
+
+  return {
+    created: toNumberOrZero(value.created),
+    classified: toNumberOrZero(value.classified),
+    completed: toNumberOrZero(value.completed),
+  }
+}
+
+const normalizePersistedState = (data: unknown): TasksState => {
+  if (!isObject(data)) {
+    return {
+      lists: createEmptyLists(),
+      completed: [],
+      dailyStats: { ...initialState.dailyStats },
+    }
+  }
+
+  const maybeLists = data.lists
+  if (isObject(maybeLists)) {
+    const listsSource = maybeLists as Record<string, unknown>
+    const lists = createEmptyLists()
+    CATEGORY_LIST.forEach(category => {
+      const sourceList = listsSource[category]
+      const normalizedList = Array.isArray(sourceList)
+        ? sourceList.map(normalizeTask)
+        : []
+      lists[category] = normalizedList
+    })
+
+    const completedSource = data.completed
+    const completed = Array.isArray(completedSource)
+      ? completedSource.map(normalizeTask)
+      : []
+
+    return {
+      lists,
+      completed,
+      dailyStats: normalizeDailyStats(data.dailyStats),
+    }
+  }
+
+  const listsWithOrder: Record<Category, { task: Task; order: number }[]> = {
+    inbox: [],
+    work: [],
+    life: [],
+    study: [],
+    hobby: [],
+  }
+
+  const completed: Task[] = []
+  const legacyItems = Array.isArray(data.items) ? data.items : []
+
+  legacyItems.forEach(raw => {
+    const task = normalizeTask(raw)
+
+    if (task.status === 'done') {
+      completed.push(task)
+      return
+    }
+
+    const source = isObject(raw) ? raw : {}
+    const orderValue =
+      typeof source.order === 'number' ? source.order : Number.MAX_SAFE_INTEGER
+
+    listsWithOrder[task.category].push({ task, order: orderValue })
+  })
+
+  const lists = createEmptyLists()
+  CATEGORY_LIST.forEach(category => {
+    lists[category] = listsWithOrder[category]
+      .sort((a, b) => a.order - b.order)
+      .map(entry => entry.task)
+  })
+
+  return {
+    lists,
+    completed,
+    dailyStats: normalizeDailyStats(data.dailyStats),
+  }
+}
+
+const findActiveTaskLocation = (
+  state: TasksState,
+  taskId: string
+): { category: Category; index: number } | null => {
+  for (const category of CATEGORY_LIST) {
+    const index = state.lists[category].findIndex(task => task.id === taskId)
+    if (index !== -1) {
+      return { category, index }
+    }
+  }
+  return null
+}
+
+const removeActiveTask = (
+  state: TasksState,
+  taskId: string
+): { task: Task; category: Category } | null => {
+  const location = findActiveTaskLocation(state, taskId)
+  if (!location) return null
+  const [task] = state.lists[location.category].splice(location.index, 1)
+  return { task, category: location.category }
+}
+
+const removeCompletedTask = (
+  state: TasksState,
+  taskId: string
+): Task | null => {
+  const index = state.completed.findIndex(task => task.id === taskId)
+  if (index === -1) return null
+  const [task] = state.completed.splice(index, 1)
+  return task
+}
+
+const hasExecutingTask = (state: TasksState): boolean =>
+  CATEGORY_LIST.some(category =>
+    state.lists[category].some(task => task.isExecuting === true)
+  )
+
+const clearExecutingFlags = (state: TasksState) => {
+  CATEGORY_LIST.forEach(category => {
+    state.lists[category].forEach(task => {
+      task.isExecuting = false
+    })
+  })
+}
+
+const setFirstTaskAsExecuting = (state: TasksState, category: Category) => {
+  if (category === 'inbox') return
+  const list = state.lists[category]
+  if (list.length === 0) return
+  clearExecutingFlags(state)
+  list[0].isExecuting = true
 }
 
 const tasksSlice = createSlice({
@@ -57,167 +249,93 @@ const tasksSlice = createSlice({
         category: 'inbox',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        order: state.items.filter(t => t.category === 'inbox').length + 1,
         status: 'active',
-        isExecuting: false, // inboxのタスクは常に実行中フラグなし
+        isExecuting: false,
       }
-      state.items.push(newTask)
-      state.stats.daily.created++
+      state.lists.inbox.push(newTask)
+      state.dailyStats.created++
 
-      // Analyticsイベントを送信
       trackTaskEvent('create', 'inbox')
     },
-    updateTask: (
-      state,
-      action: PayloadAction<{ id: string; updates: Partial<Task> }>
-    ) => {
-      const index = state.items.findIndex(task => task.id === action.payload.id)
-      if (index !== -1) {
-        state.items[index] = {
-          ...state.items[index],
-          ...action.payload.updates,
-          updated_at: new Date().toISOString(),
-        }
-      }
-    },
     deleteTask: (state, action: PayloadAction<string>) => {
-      const taskToDelete = state.items.find(task => task.id === action.payload)
-      if (taskToDelete) {
-        trackTaskEvent('delete', taskToDelete.category)
+      const removedActive = removeActiveTask(state, action.payload)
+      if (removedActive) {
+        trackTaskEvent('delete', removedActive.category)
+        if (removedActive.task.isExecuting) {
+          setFirstTaskAsExecuting(state, removedActive.category)
+        }
+        return
       }
-      state.items = state.items.filter(task => task.id !== action.payload)
+
+      const removedCompleted = removeCompletedTask(state, action.payload)
+      if (removedCompleted) {
+        trackTaskEvent('delete', removedCompleted.category)
+      }
     },
     completeTask: (state, action: PayloadAction<string>) => {
-      const index = state.items.findIndex(task => task.id === action.payload)
-      if (index !== -1) {
-        const completedTask = state.items[index]
-        const taskCategory = completedTask.category
+      const removed = removeActiveTask(state, action.payload)
+      if (!removed) return
 
-        // タスクを完了状態にする
-        completedTask.status = 'done'
-        completedTask.updated_at = new Date().toISOString()
-        state.stats.daily.completed++
+      const { task, category } = removed
+      task.status = 'done'
+      task.updated_at = new Date().toISOString()
+      task.isExecuting = false
 
-        // Analyticsイベントを送信
-        trackTaskEvent('complete', taskCategory)
+      state.completed.push(task)
+      state.dailyStats.completed++
 
-        // 実行中タスクを完了した場合、同じカテゴリの次のタスクを実行中にする
-        if (completedTask.isExecuting === true && taskCategory !== 'inbox') {
-          // 同じカテゴリのアクティブなタスクを取得
-          const categoryTasks = state.items
-            .filter(t => t.category === taskCategory && t.status === 'active')
-            .sort((a, b) => a.order - b.order)
+      trackTaskEvent('complete', category)
 
-          // order=2のタスクをorder=1に繰り上げ、実行中にする
-          if (categoryTasks.length > 0) {
-            // 全タスクの順序を1つずつ繰り上げる
-            categoryTasks.forEach(t => {
-              t.order = t.order - 1
-            })
-
-            // 新しくorder=1になったタスクを実行中にする
-            const newTopTask = categoryTasks.find(t => t.order === 1)
-            if (newTopTask) {
-              newTopTask.isExecuting = true
-            }
-          }
-        }
+      if (category !== 'inbox') {
+        setFirstTaskAsExecuting(state, category)
       }
     },
     classifyTask: (
       state,
       action: PayloadAction<{ id: string; category: Category }>
     ) => {
-      const index = state.items.findIndex(task => task.id === action.payload.id)
-      if (index !== -1) {
-        const task = state.items[index]
-        const targetCategory = action.payload.category
-        task.category = targetCategory
-        task.updated_at = new Date().toISOString()
+      const removed = removeActiveTask(state, action.payload.id)
+      if (!removed) return
 
-        // カテゴリ内にタスクがない場合は自動的にorder=1にする
-        const categoryTasks = state.items.filter(
-          t =>
-            t.category === targetCategory &&
-            t.id !== task.id &&
-            t.status === 'active'
-        )
+      const { task, category: oldCategory } = removed
+      const wasExecuting = task.isExecuting === true
+      const newCategory = action.payload.category
 
-        if (categoryTasks.length === 0) {
-          task.order = 1
-          // 全体で実行中のタスクがない場合のみ実行中フラグをオンにする
-          const hasExecutingTask = state.items.some(
-            t =>
-              t.isExecuting === true &&
-              t.status === 'active' &&
-              t.id !== task.id
-          )
-          if (!hasExecutingTask) {
-            task.isExecuting = true
-          } else {
-            task.isExecuting = false
-          }
-        } else {
-          task.order = Math.max(...categoryTasks.map(t => t.order)) + 1
-          task.isExecuting = false
-        }
+      task.category = newCategory
+      task.updated_at = new Date().toISOString()
+      task.isExecuting = false
 
-        state.stats.daily.classified++
+      state.lists[newCategory].push(task)
+      state.dailyStats.classified++
+
+      if (wasExecuting) {
+        setFirstTaskAsExecuting(state, oldCategory)
       }
-    },
-    moveToTop: (state, action: PayloadAction<string>) => {
-      const index = state.items.findIndex(task => task.id === action.payload)
-      if (index !== -1) {
-        const task = state.items[index]
-        // 同じカテゴリのタスクを取得
-        const sameCategoryTasks = state.items.filter(
-          t =>
-            t.category === task.category &&
-            t.id !== task.id &&
-            t.status === 'active'
-        )
-        // 現在のorder=1のタスクを探す
-        const currentTopTask = sameCategoryTasks.find(t => t.order === 1)
-        if (currentTopTask) {
-          currentTopTask.order = task.order // 元の順序と入れ替え
-        }
-        task.order = 1
-        task.updated_at = new Date().toISOString()
-        // 他のタスクの順序を調整
-        sameCategoryTasks
-          .filter(t => t.id !== currentTopTask?.id)
-          .sort((a, b) => a.order - b.order)
-          .forEach((t, idx) => {
-            if (t.order === 1) return // 新しいトップタスクはスキップ
-            t.order = idx + 2
-          })
 
-        // 実行中フラグは別途toggleExecutingで管理するため、ここでは設定しない
-        task.isExecuting = false
+      if (
+        newCategory !== 'inbox' &&
+        state.lists[newCategory].length === 1 &&
+        !hasExecutingTask(state)
+      ) {
+        clearExecutingFlags(state)
+        task.isExecuting = true
       }
     },
     cleanupExpiredTasks: state => {
       const now = new Date()
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-      state.items = state.items.filter(task => {
-        // 24時間ルール: 作成から24時間経過したタスクは例外なく削除
-        const createdAt = new Date(task.created_at)
-        return createdAt > twentyFourHoursAgo
+      const threshold = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+      CATEGORY_LIST.forEach(category => {
+        state.lists[category] = state.lists[category].filter(task => {
+          const createdAt = new Date(task.created_at)
+          return createdAt > threshold
+        })
       })
-    },
-    setFilter: (
-      state,
-      action: PayloadAction<{
-        category?: Category | 'all'
-        status?: 'active' | 'done' | 'all'
-      }>
-    ) => {
-      if (action.payload.category !== undefined) {
-        state.filter.category = action.payload.category
-      }
-      if (action.payload.status !== undefined) {
-        state.filter.status = action.payload.status
-      }
+
+      state.completed = state.completed.filter(task => {
+        const createdAt = new Date(task.created_at)
+        return createdAt > threshold
+      })
     },
     updateStats: state => {
       const now = new Date()
@@ -226,117 +344,74 @@ const tasksSlice = createSlice({
         now.getMonth(),
         now.getDate()
       )
-      const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-      const todayTasks = state.items.filter(
+      const todayTasks = getAllTasks(state).filter(
         task => new Date(task.created_at) >= todayStart
       )
-      const weekTasks = state.items.filter(
-        task => new Date(task.created_at) >= weekStart
-      )
 
-      state.stats.daily = {
+      state.dailyStats = {
         created: todayTasks.length,
         classified: todayTasks.filter(t => t.category !== 'inbox').length,
         completed: todayTasks.filter(t => t.status === 'done').length,
       }
-
-      const completedWeekTasks = weekTasks.filter(t => t.status === 'done')
-      state.stats.weekly.completionRate =
-        weekTasks.length > 0
-          ? (completedWeekTasks.length / weekTasks.length) * 100
-          : 0
-
-      const categoryBreakdown: Record<Category, number> = {
-        work: 0,
-        life: 0,
-        study: 0,
-        hobby: 0,
-        inbox: 0,
-      }
-      completedWeekTasks.forEach(task => {
-        categoryBreakdown[task.category]++
-      })
-      state.stats.weekly.categoryBreakdown = categoryBreakdown
     },
     toggleExecuting: (state, action: PayloadAction<string>) => {
-      const index = state.items.findIndex(task => task.id === action.payload)
-      if (index !== -1) {
-        const task = state.items[index]
-        // order=1のタスクのみ実行中フラグを切り替え可能
-        if (task.order === 1 && task.category !== 'inbox') {
-          if (task.isExecuting) {
-            // 実行中を一時停止にする
-            task.isExecuting = false
-          } else {
-            // 一時停止を実行中にする前に、他の実行中タスクを一時停止にする
-            state.items.forEach(t => {
-              if (t.isExecuting === true && t.id !== task.id) {
-                t.isExecuting = false
-              }
-            })
-            task.isExecuting = true
-          }
-          task.updated_at = new Date().toISOString()
-        }
+      const location = findActiveTaskLocation(state, action.payload)
+      if (!location) return
+
+      const { category, index } = location
+      if (category === 'inbox') return
+
+      const list = state.lists[category]
+      if (list[0]?.id !== action.payload) return
+
+      const task = list[index]
+      if (task.isExecuting) {
+        task.isExecuting = false
+      } else {
+        clearExecutingFlags(state)
+        task.isExecuting = true
       }
+      task.updated_at = new Date().toISOString()
     },
     changeCategory: (
       state,
       action: PayloadAction<{ taskId: string; newCategory: Category }>
     ) => {
-      const index = state.items.findIndex(
-        task => task.id === action.payload.taskId
-      )
-      if (index !== -1) {
-        const task = state.items[index]
-        const oldCategory = task.category
-        const newCategory = action.payload.newCategory
+      const removed = removeActiveTask(state, action.payload.taskId)
+      if (!removed) return
 
-        // Analyticsイベントを送信（分類時のみ）
-        if (oldCategory === 'inbox' && newCategory !== 'inbox') {
-          trackTaskEvent('classify', newCategory)
-        }
+      const { task, category: oldCategory } = removed
+      const newCategory = action.payload.newCategory
+      const wasExecuting = task.isExecuting === true
 
-        // 元のカテゴリのタスクを再整列
-        const oldCategoryTasks = state.items
-          .filter(
-            t =>
-              t.category === oldCategory &&
-              t.id !== task.id &&
-              t.status === 'active'
-          )
-          .sort((a, b) => a.order - b.order)
+      if (oldCategory === newCategory) {
+        state.lists[newCategory].push(task)
+        return
+      }
 
-        oldCategoryTasks.forEach((t, idx) => {
-          t.order = idx + 1
-        })
+      task.category = newCategory
+      task.updated_at = new Date().toISOString()
+      task.isExecuting = false
 
-        // 新しいカテゴリにタスクを追加
-        task.category = newCategory
-        task.updated_at = new Date().toISOString()
+      if (oldCategory === 'inbox' && newCategory !== 'inbox') {
+        trackTaskEvent('classify', newCategory)
+        state.dailyStats.classified++
+      }
 
-        // 新しいカテゴリでの順序を設定
-        const newCategoryTasks = state.items.filter(
-          t =>
-            t.category === newCategory &&
-            t.id !== task.id &&
-            t.status === 'active'
-        )
+      state.lists[newCategory].push(task)
 
-        if (newCategoryTasks.length === 0) {
-          task.order = 1
-        } else {
-          task.order = Math.max(...newCategoryTasks.map(t => t.order)) + 1
-        }
+      if (wasExecuting) {
+        setFirstTaskAsExecuting(state, oldCategory)
+      }
 
-        // カテゴリ変更時、order=1のタスクまたは実行中タスクの場合はフラグをリセット
-        const wasOrderOne =
-          state.items.find(t => t.id === task.id && t.category === oldCategory)
-            ?.order === 1
-        if (task.isExecuting === true || wasOrderOne || task.order === 1) {
-          task.isExecuting = false
-        }
+      if (
+        newCategory !== 'inbox' &&
+        state.lists[newCategory].length === 1 &&
+        !hasExecutingTask(state)
+      ) {
+        clearExecutingFlags(state)
+        state.lists[newCategory][0].isExecuting = true
       }
     },
     reorderTasksInCategory: (
@@ -347,142 +422,88 @@ const tasksSlice = createSlice({
         category: Category
       }>
     ) => {
-      const { taskId, newPosition, category } = action.payload
-      const taskIndex = state.items.findIndex(task => task.id === taskId)
+      const { category, taskId, newPosition } = action.payload
+      const list = state.lists[category]
+      const currentIndex = list.findIndex(task => task.id === taskId)
 
-      if (taskIndex === -1) return
+      if (currentIndex === -1) return
 
-      const task = state.items[taskIndex]
-      const oldPosition = task.order
+      const targetIndex = Math.max(
+        0,
+        Math.min(newPosition - 1, list.length - 1)
+      )
+      if (currentIndex === targetIndex) return
 
-      // 位置が変わらない場合は何もしない
-      if (oldPosition === newPosition) return
-
-      // 順序を再計算 - state.itemsを直接更新
-      if (oldPosition < newPosition) {
-        // 下に移動する場合
-        state.items.forEach(t => {
-          if (t.category === category && t.status === 'active') {
-            if (t.id === taskId) {
-              t.order = newPosition
-            } else if (t.order > oldPosition && t.order <= newPosition) {
-              t.order -= 1
-            }
-          }
-        })
-      } else {
-        // 上に移動する場合
-        state.items.forEach(t => {
-          if (t.category === category && t.status === 'active') {
-            if (t.id === taskId) {
-              t.order = newPosition
-            } else if (t.order >= newPosition && t.order < oldPosition) {
-              t.order += 1
-            }
-          }
-        })
-      }
-
-      // 更新日時を設定
+      const [task] = list.splice(currentIndex, 1)
+      list.splice(targetIndex, 0, task)
       task.updated_at = new Date().toISOString()
 
-      // order=1のタスクを入れ替えた場合（元がorder=1または新しくorder=1になった場合）、フラグをリセット
-      if (oldPosition === 1 || newPosition === 1) {
-        task.isExecuting = false
+      if (category !== 'inbox' && (currentIndex === 0 || targetIndex === 0)) {
+        list.forEach(t => {
+          t.isExecuting = false
+        })
       }
     },
+  },
+  extraReducers: builder => {
+    builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {
+      const payload = action.payload
+      if (!isObject(payload)) return
+
+      const incoming =
+        'tasks' in payload ? (payload as { tasks?: unknown }).tasks : undefined
+
+      if (!incoming) return
+      const normalized = normalizePersistedState(incoming)
+      state.lists = normalized.lists
+      state.completed = normalized.completed
+      state.dailyStats = normalized.dailyStats
+    })
   },
 })
 
 export const {
   addTask,
-  updateTask,
   deleteTask,
   completeTask,
   classifyTask,
-  moveToTop,
   cleanupExpiredTasks,
-  setFilter,
   updateStats,
   toggleExecuting,
   changeCategory,
   reorderTasksInCategory,
 } = tasksSlice.actions
 
-// Selectors
 const selectTasksState = (state: RootState) => state.tasks
 
-export const selectAllTasks = createSelector(
-  [selectTasksState],
-  tasks => tasks.items
-)
+export const selectAllTasks = createSelector([selectTasksState], tasks => [
+  ...getAllActiveTasks(tasks),
+  ...tasks.completed,
+])
 
-export const selectInboxTasks = createSelector([selectAllTasks], tasks =>
-  tasks
-    .filter(task => task.category === 'inbox' && task.status === 'active')
-    .sort((a, b) => a.order - b.order)
+export const selectInboxTasks = createSelector(
+  [selectTasksState],
+  tasks => tasks.lists.inbox
 )
 
 export const selectTasksByCategory = (category: Category) =>
-  createSelector([selectAllTasks], tasks =>
-    tasks
-      .filter(task => task.category === category && task.status === 'active')
-      .sort((a, b) => a.order - b.order)
-  )
-
-export const selectTopTasksForExecution = createSelector(
-  [selectAllTasks],
-  tasks => {
-    // 実行中のタスクを1つだけ取得（全カテゴリから）
-    const executingTask = tasks.find(
-      task =>
-        task.isExecuting === true &&
-        task.status === 'active' &&
-        task.category !== 'inbox'
-    )
-
-    // 実行中タスクがあればそれを返す、なければ空配列
-    return executingTask ? [executingTask] : []
-  }
-)
+  createSelector([selectTasksState], tasks => tasks.lists[category])
 
 export const selectTopTasksByCategory = createSelector(
-  [selectAllTasks],
+  [selectTasksState],
   tasks => {
     const categories: Category[] = ['work', 'study', 'life', 'hobby']
     return categories
-      .map(
-        category =>
-          tasks
-            .filter(
-              task =>
-                task.category === category &&
-                task.status === 'active' &&
-                task.order === 1
-            )
-            .sort((a, b) => a.order - b.order)[0]
-      )
-      .filter(Boolean)
+      .map(category => tasks.lists[category][0])
+      .filter((task): task is Task => Boolean(task))
   }
 )
 
-export const selectDailyStats = createSelector(
-  [selectTasksState],
-  tasks => tasks.stats.daily
-)
-
 export const selectTodayCompletedByCategory = createSelector(
-  [selectAllTasks],
+  [selectTasksState],
   tasks => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-
-    const todayCompleted = tasks.filter(task => {
-      if (task.status !== 'done') return false
-      const completedDate = new Date(task.updated_at)
-      completedDate.setHours(0, 0, 0, 0)
-      return completedDate.getTime() === today.getTime()
-    })
 
     const byCategory = {
       work: 0,
@@ -491,19 +512,20 @@ export const selectTodayCompletedByCategory = createSelector(
       hobby: 0,
     }
 
-    todayCompleted.forEach(task => {
-      if (task.category !== 'inbox' && task.category in byCategory) {
+    tasks.completed.forEach(task => {
+      const completedDate = new Date(task.updated_at)
+      completedDate.setHours(0, 0, 0, 0)
+      if (
+        completedDate.getTime() === today.getTime() &&
+        task.category !== 'inbox' &&
+        task.category in byCategory
+      ) {
         byCategory[task.category as keyof typeof byCategory]++
       }
     })
 
     return byCategory
   }
-)
-
-export const selectWeeklyStats = createSelector(
-  [selectTasksState],
-  tasks => tasks.stats.weekly
 )
 
 export default tasksSlice.reducer
