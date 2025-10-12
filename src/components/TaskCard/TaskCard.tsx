@@ -10,6 +10,7 @@ interface TaskCardProps {
   onMoveToTop?: (id: string) => void
   onToggleExecuting?: (id: string) => void
   className?: string
+  isTop?: boolean
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -20,6 +21,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onMoveToTop,
   onToggleExecuting,
   className = '',
+  isTop = false,
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
@@ -34,7 +36,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   }
 
-  const isPriority = task.order === 1 && task.category !== 'inbox'
+  const isPriority = isTop && task.category !== 'inbox'
   const isExecuting = task.isExecuting === true
   const baseStyles = getVariantStyles()
   const priorityStyles = isExecuting
