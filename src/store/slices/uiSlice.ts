@@ -8,7 +8,6 @@ interface UIState {
   currentMode: AppMode
   isLoading: boolean
   error: string | null
-  lastUpdated: string | null
   scrollToCategory: Category | null
 }
 
@@ -16,7 +15,6 @@ const initialState: UIState = {
   currentMode: 'create',
   isLoading: false,
   error: null,
-  lastUpdated: null,
   scrollToCategory: null,
 }
 
@@ -42,9 +40,6 @@ const uiSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload
     },
-    updateLastUpdated: state => {
-      state.lastUpdated = new Date().toISOString()
-    },
     clearScrollToCategory: state => {
       state.scrollToCategory = null
     },
@@ -56,7 +51,6 @@ export const {
   setModeWithScroll,
   setLoading,
   setError,
-  updateLastUpdated,
   clearScrollToCategory,
 } = uiSlice.actions
 
