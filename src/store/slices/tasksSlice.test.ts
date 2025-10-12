@@ -65,7 +65,7 @@ describe('tasksSlice', () => {
 
       const state = store.getState().tasks
       expect(state.items[0].status).toBe('done')
-      expect(state.stats.daily.completed).toBe(1)
+      expect(state.dailyStats.completed).toBe(1)
     })
   })
 

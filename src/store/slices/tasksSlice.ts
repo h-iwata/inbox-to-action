@@ -9,19 +9,15 @@ import { trackTaskEvent } from '../../utils/analytics'
 
 interface TasksState {
   items: Task[]
-  stats: {
-    daily: DailyStats
-  }
+  dailyStats: DailyStats
 }
 
 const initialState: TasksState = {
   items: [],
-  stats: {
-    daily: {
-      created: 0,
-      classified: 0,
-      completed: 0,
-    },
+  dailyStats: {
+    created: 0,
+    classified: 0,
+    completed: 0,
   },
 }
 
@@ -41,7 +37,7 @@ const tasksSlice = createSlice({
         isExecuting: false, // inboxのタスクは常に実行中フラグなし
       }
       state.items.push(newTask)
-      state.stats.daily.created++
+      state.dailyStats.created++
 
       // Analyticsイベントを送信
       trackTaskEvent('create', 'inbox')
@@ -62,7 +58,7 @@ const tasksSlice = createSlice({
         // タスクを完了状態にする
         completedTask.status = 'done'
         completedTask.updated_at = new Date().toISOString()
-        state.stats.daily.completed++
+        state.dailyStats.completed++
 
         // Analyticsイベントを送信
         trackTaskEvent('complete', taskCategory)
@@ -128,7 +124,7 @@ const tasksSlice = createSlice({
           task.isExecuting = false
         }
 
-        state.stats.daily.classified++
+        state.dailyStats.classified++
       }
     },
     cleanupExpiredTasks: state => {
@@ -152,7 +148,7 @@ const tasksSlice = createSlice({
         task => new Date(task.created_at) >= todayStart
       )
 
-      state.stats.daily = {
+      state.dailyStats = {
         created: todayTasks.length,
         classified: todayTasks.filter(t => t.category !== 'inbox').length,
         completed: todayTasks.filter(t => t.status === 'done').length,
