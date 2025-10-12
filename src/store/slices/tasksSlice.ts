@@ -53,7 +53,6 @@ const tasksSlice = createSlice({
       const index = state.items.findIndex(task => task.id === action.payload)
       if (index !== -1) {
         const completedTask = state.items[index]
-        const taskCategory = completedTask.category
 
         // タスクを完了状態にする
         completedTask.status = 'done'
@@ -61,13 +60,13 @@ const tasksSlice = createSlice({
         state.dailyStats.completed++
 
         // Analyticsイベントを送信
-        trackTaskEvent('complete', taskCategory)
+        trackTaskEvent('complete', completedTask.category)
 
         // 実行中タスクを完了した場合、同じカテゴリの次のタスクを実行中にする
-        if (completedTask.isExecuting === true && taskCategory !== 'inbox') {
+        if (completedTask.isExecuting === true && completedTask.category !== 'inbox') {
           // 同じカテゴリのアクティブなタスクを取得
           const categoryTasks = state.items
-            .filter(t => t.category === taskCategory && t.status === 'active')
+            .filter(t => t.category === completedTask.category && t.status === 'active')
             .sort((a, b) => a.order - b.order)
 
           // order=2のタスクをorder=1に繰り上げ、実行中にする
