@@ -1,5 +1,6 @@
 import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolkit'
-import type { Task, Category, DailyStats } from '../../types'
+import { v4 as uuidv4 } from 'uuid'
+import type { Task, Category, DailyStats, UUID } from '../../types'
 import type { RootState } from '../index'
 import { trackTaskEvent } from '../../utils/analytics'
 import { REHYDRATE } from 'redux-persist/es/constants'
@@ -47,7 +48,7 @@ const normalizeTask = (raw: unknown): Task => {
   const now = new Date().toISOString()
 
   return {
-    id: typeof s.id === 'string' ? s.id : typeof s.id === 'number' ? String(s.id) : String(Date.now()),
+    id: (typeof s.id === 'string' ? s.id : typeof s.id === 'number' ? String(s.id) : uuidv4()) as UUID,
     title: typeof s.title === 'string' && s.title.trim() ? s.title : '(untitled)',
     category: isValidCategory(s.category) ? s.category : 'inbox',
     created_at: typeof s.created_at === 'string' ? s.created_at : now,
@@ -129,7 +130,7 @@ const tasksSlice = createSlice({
   reducers: {
     addTask: (state, action: PayloadAction<string>) => {
       const newTask: Task = {
-        id: Date.now().toString(),
+        id: uuidv4() as UUID,
         title: action.payload,
         category: 'inbox',
         created_at: new Date().toISOString(),
