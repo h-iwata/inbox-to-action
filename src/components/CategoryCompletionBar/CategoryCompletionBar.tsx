@@ -216,7 +216,7 @@ export const CategoryCompletionBar: React.FC = () => {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-1.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
+          <div className="p-1.5 bg-linear-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
             <BarChart3 className="w-4 h-4 text-blue-400" />
           </div>
           <div>
@@ -287,32 +287,32 @@ export const CategoryCompletionBar: React.FC = () => {
             <div className="flex h-full">
               {percentages.work > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.work} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.work} transition-all duration-500`}
                   style={{ width: `${percentages.work}%` }}
                 />
               )}
               {percentages.life > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.life} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.life} transition-all duration-500`}
                   style={{ width: `${percentages.life}%` }}
                 />
               )}
               {percentages.study > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.study} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.study} transition-all duration-500`}
                   style={{ width: `${percentages.study}%` }}
                 />
               )}
               {percentages.hobby > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.hobby} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.hobby} transition-all duration-500`}
                   style={{ width: `${percentages.hobby}%` }}
                 />
               )}
 
               {/* レベル4以上で流れるエフェクト */}
               {level >= 4 && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
               )}
             </div>
           ) : (

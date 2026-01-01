@@ -126,7 +126,7 @@ export const ExecuteMode: React.FC = () => {
       <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
         {/* 統計情報は常に表示 */}
         <div className="px-4 mb-4">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
+          <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
             <CategoryCompletionBar />
           </div>
         </div>
@@ -158,7 +158,7 @@ export const ExecuteMode: React.FC = () => {
       <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
         {/* 統計情報は常に表示 */}
         <div className="px-4 mb-4">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
+          <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
             <CategoryCompletionBar />
           </div>
         </div>
@@ -179,7 +179,7 @@ export const ExecuteMode: React.FC = () => {
                   key={task.id}
                   onClick={() => handleSwitchExecution(task.id)}
                   className={`
-                  relative p-5 rounded-2xl border-2 bg-gradient-to-br from-gray-900/90 to-gray-800/90
+                  relative p-5 rounded-2xl border-2 bg-linear-to-br from-gray-900/90 to-gray-800/90
                   border-gray-700 hover:border-gray-600 shadow-lg
                   hover:scale-105 transition-all duration-300 text-left
                   ${switchingToTaskId === task.id ? 'animate-pulse ring-2 ring-blue-500' : ''}
@@ -229,7 +229,7 @@ export const ExecuteMode: React.FC = () => {
     <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
       {/* 統計情報 - グラデーションバー（最上部に配置） */}
       <div className="px-4 mb-4">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
+        <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
           <CategoryCompletionBar />
         </div>
       </div>
@@ -239,7 +239,7 @@ export const ExecuteMode: React.FC = () => {
         <div
           className={`
           w-full max-w-2xl p-6 rounded-3xl
-          bg-gradient-to-br ${executingInfo.gradient}
+          bg-linear-to-br ${executingInfo.gradient}
           transform transition-all duration-500
           ${isCompleting ? 'scale-110 rotate-2 opacity-0' : 'scale-100 hover:scale-[1.02]'}
           relative overflow-hidden
@@ -248,11 +248,11 @@ export const ExecuteMode: React.FC = () => {
         `}
         >
           {/* 光沢エフェクト */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-50" />
+          <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/10 to-transparent opacity-50" />
 
           {/* 背景アニメーション */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-transparent animate-pulse" />
+            <div className="absolute inset-0 bg-linear-to-t from-transparent via-white/10 to-transparent animate-pulse" />
           </div>
 
           {/* コンテンツ */}
@@ -294,7 +294,7 @@ export const ExecuteMode: React.FC = () => {
 
             {/* タスクタイトル */}
             <div className="mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-white text-center break-words">
+              <h2 className="text-2xl md:text-3xl font-bold text-white text-center overflow-wrap-break-word">
                 {executingTask.title}
               </h2>
             </div>
@@ -327,7 +327,7 @@ export const ExecuteMode: React.FC = () => {
                     <Sparkles className="w-5 h-5 text-yellow-500" />
                   </span>
                   {/* ホバーエフェクト */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 </>
               )}
             </button>
@@ -360,7 +360,7 @@ export const ExecuteMode: React.FC = () => {
                     isExecuting
                       ? `border-orange-400/60 ${info.bgLight} ring-2 ring-orange-400/60 shadow-orange-500/30 cursor-default`
                       : hasTask
-                        ? 'border-gray-700 bg-gradient-to-br from-gray-900/90 to-gray-800/90 hover:border-gray-600 hover:scale-105 cursor-pointer shadow-lg'
+                        ? 'border-gray-700 bg-linear-to-br from-gray-900/90 to-gray-800/90 hover:border-gray-600 hover:scale-105 cursor-pointer shadow-lg'
                         : 'border-gray-800 bg-gray-900/50 opacity-60 cursor-default'
                   }
                   ${switchingToTaskId === task?.id ? 'animate-pulse' : ''}

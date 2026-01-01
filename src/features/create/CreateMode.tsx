@@ -111,7 +111,7 @@ export const CreateMode: React.FC = () => {
               {inputValue && (
                 <button
                   type="submit"
-                  className="absolute bottom-3 right-3 p-3 bg-gradient-to-r from-violet-600 to-blue-600 rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                  className="absolute bottom-3 right-3 p-3 bg-linear-to-r from-violet-600 to-blue-600 rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
                 >
                   <Send className="w-5 h-5 text-white" />
                 </button>
@@ -150,7 +150,7 @@ export const CreateMode: React.FC = () => {
                 <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 p-4 rounded-xl hover:bg-gray-800/70 hover:border-gray-600 transition-all group">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">{task.title}</p>
+                      <p className="text-gray-100 font-medium overflow-wrap-break-word whitespace-pre-wrap">{task.title}</p>
                     </div>
                     <button
                       onClick={() => dispatch(deleteTask(task.id))}
@@ -166,7 +166,7 @@ export const CreateMode: React.FC = () => {
           </div>
 
           {/* 常に下部に固定された入力ボックス */}
-          <div className="border-t border-gray-700 pt-4 pb-8 flex-shrink-0">
+          <div className="border-t border-gray-700 pt-4 pb-8 shrink-0">
             {/* 分類への遷移メッセージ */}
             {showClassifyPrompt && tasks.length > 0 && (
               <div className="mb-3 text-center text-sm text-gray-400">
@@ -204,7 +204,7 @@ export const CreateMode: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="absolute right-2 bottom-2 p-2 bg-gradient-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute right-2 bottom-2 p-2 bg-linear-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-4 h-4 text-white" />
                   </button>

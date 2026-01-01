@@ -14,14 +14,14 @@ export const Header: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-lg blur-lg opacity-50"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-violet-600 to-cyan-600 rounded-lg blur-lg opacity-50"></div>
                 <div className="relative bg-gray-900 rounded-lg p-2">
                   <Inbox className="w-7 h-7 text-violet-400" />
                 </div>
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight">
-                  <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                  <span className="bg-linear-to-r from-violet-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent bg-size-[200%_auto] animate-gradient">
                     InboxToAction
                   </span>
                 </h1>

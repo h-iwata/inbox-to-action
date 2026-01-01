@@ -94,9 +94,9 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
       <div
         className={`absolute inset-0 flex items-center ${
           isSwipingLeft
-            ? 'bg-gradient-to-r from-violet-600 to-violet-500 justify-end pr-4'
+            ? 'bg-linear-to-r from-violet-600 to-violet-500 justify-end pr-4'
             : isSwipingRight
-              ? 'bg-gradient-to-l from-red-600 to-red-500 justify-start pl-4'
+              ? 'bg-linear-to-l from-red-600 to-red-500 justify-start pl-4'
               : 'hidden'
         } rounded-xl`}
         style={{
@@ -121,10 +121,10 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
       <div
         className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors cursor-pointer ${
           index === 0
-            ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80'
+            ? 'bg-linear-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80'
             : isSwiping && Math.abs(swipeOffset) > 10
               ? 'bg-gray-800/60 border-gray-700/50'
-              : 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:shadow-xl'
+              : 'bg-linear-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:shadow-xl'
         }`}
         style={{
           transform: `translateX(${swipeOffset}px)`,
@@ -172,7 +172,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p
-              className={`font-medium break-words whitespace-pre-wrap ${index === 0 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}
+              className={`font-medium overflow-wrap-break-word whitespace-pre-wrap ${index === 0 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}
             >
               {task.title}
             </p>

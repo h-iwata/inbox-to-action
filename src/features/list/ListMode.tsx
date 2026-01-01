@@ -124,7 +124,7 @@ export const ListMode: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* 統計情報 - グラデーションバー（最上部に配置） */}
-      <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
+      <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-5 backdrop-blur-md">
         <CategoryCompletionBar />
       </div>
 
@@ -139,12 +139,12 @@ export const ListMode: React.FC = () => {
             ref={el => {
               categoryRefs.current[category.id] = el
             }}
-            className={`bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${
+            className={`bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${
               isExecuting ? 'ring-2 ring-orange-400/60 shadow-orange-500/30' : 'border-2 border-gray-700/60'
             } ${isEmpty ? 'opacity-60' : ''}`}
           >
             <div
-              className={`p-5 bg-gradient-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm cursor-pointer hover:brightness-110 transition-all`}
+              className={`p-5 bg-linear-to-r ${category.gradient} flex items-center justify-between backdrop-blur-sm cursor-pointer hover:brightness-110 transition-all`}
               onClick={() => handleCategoryHeaderClick(category.id)}
             >
               <div className="flex items-center gap-4">
@@ -171,7 +171,7 @@ export const ListMode: React.FC = () => {
               </div>
             </div>
 
-            <div className={`p-5 min-h-[120px] ${isEmpty ? 'flex items-center justify-center' : ''}`}>
+            <div className={`p-5 min-h-30 ${isEmpty ? 'flex items-center justify-center' : ''}`}>
               {isEmpty ? (
                 <div className="text-center">
                   <div
@@ -221,7 +221,7 @@ export const ListMode: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 max-w-sm w-full border-2 border-gray-700 shadow-2xl"
+              className="bg-linear-to-br from-gray-900 to-gray-800 rounded-2xl p-6 max-w-sm w-full border-2 border-gray-700 shadow-2xl"
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-red-500/20 rounded-lg">
@@ -229,7 +229,7 @@ export const ListMode: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-bold text-gray-100">タスクを削除</h3>
               </div>
-              <p className="text-gray-400 mb-6 text-sm break-words">
+              <p className="text-gray-400 mb-6 text-sm overflow-wrap-break-word">
                 「{taskToDelete.title}
                 」を削除します。この操作は取り消せません。
               </p>
@@ -242,7 +242,7 @@ export const ListMode: React.FC = () => {
                 </button>
                 <button
                   onClick={handleConfirmDelete}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl hover:from-red-500 hover:to-red-400 transition-all font-bold shadow-lg shadow-red-500/30"
+                  className="flex-1 px-4 py-2.5 bg-linear-to-r from-red-600 to-red-500 text-white rounded-xl hover:from-red-500 hover:to-red-400 transition-all font-bold shadow-lg shadow-red-500/30"
                 >
                   削除する
                 </button>

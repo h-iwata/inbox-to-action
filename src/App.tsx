@@ -59,7 +59,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 text-gray-100">
       <Header />
       {!isMobile && <ModeNavigator />}
 
