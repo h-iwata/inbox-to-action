@@ -39,8 +39,9 @@ export const ClassifyMode: React.FC = () => {
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
   const [dragDirection, setDragDirection] = useState<DragDirection>(null)
-  const startPosition = useRef({ x: 0, y: 0 })
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
+  const [centerPosition, setCenterPosition] = useState({ x: 0, y: 0 })
+  const [containerBounds, setContainerBounds] = useState({ top: 0, bottom: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -84,12 +85,8 @@ export const ClassifyMode: React.FC = () => {
       // プルダウン更新を防ぐ
       e.preventDefault()
 
-      const clientX = e.touches[0].clientX
-      const clientY = e.touches[0].clientY
-
       setIsOperating(true)
-      startPosition.current = { x: clientX, y: clientY }
-      setCurrentPosition({ x: clientX, y: clientY })
+      setCurrentPosition({ x: e.touches[0].clientX, y: e.touches[0].clientY })
       setDragDirection('center')
     }
   }
@@ -98,12 +95,8 @@ export const ClassifyMode: React.FC = () => {
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!currentTask || isMobile) return
 
-    const clientX = e.clientX
-    const clientY = e.clientY
-
     setIsOperating(true)
-    startPosition.current = { x: clientX, y: clientY }
-    setCurrentPosition({ x: clientX, y: clientY })
+    setCurrentPosition({ x: e.clientX, y: e.clientY })
     setDragDirection('center')
   }
 
@@ -146,6 +139,24 @@ export const ClassifyMode: React.FC = () => {
     return () => document.removeEventListener('touchmove', preventPullToRefresh)
   }, [isMobile])
 
+  // タスクカードの中心位置とコンテナの境界を取得（リサイズ時に更新）
+  useEffect(() => {
+    const updatePositions = () => {
+      const cardRect = cardRef.current?.getBoundingClientRect()
+      if (cardRect) {
+        setCenterPosition({ x: cardRect.left + cardRect.width / 2, y: cardRect.top + cardRect.height / 2 })
+      }
+      const containerRect = containerRef.current?.getBoundingClientRect()
+      if (containerRect) {
+        setContainerBounds({ top: containerRect.top, bottom: containerRect.bottom })
+      }
+    }
+
+    updatePositions()
+    window.addEventListener('resize', updatePositions)
+    return () => window.removeEventListener('resize', updatePositions)
+  }, [])
+
   // グローバルイベントリスナー
   useEffect(() => {
     if (!isOperating) return
@@ -161,8 +172,9 @@ export const ClassifyMode: React.FC = () => {
 
       setCurrentPosition({ x: clientX, y: clientY })
 
-      const deltaX = clientX - startPosition.current.x
-      const deltaY = clientY - startPosition.current.y
+      // キャンセルボタン中心からの距離で方向を判定
+      const deltaX = clientX - centerPosition.x
+      const deltaY = clientY - centerPosition.y
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
 
       // 方向判定のしきい値を大きくして、明確な方向のみ判定
@@ -295,15 +307,16 @@ export const ClassifyMode: React.FC = () => {
         {/* 操作オーバーレイ */}
         {isOperating && (
           <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in">
-            {/* シンプルな方向指示 */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            {/* シンプルな方向指示 - タスクカードの中心を基準に配置 */}
+            <div className="absolute inset-0">
               {/* 上 - 学習 */}
               <div
                 className={`
-                absolute ${isMobile ? 'top-12' : 'top-20'} left-1/2 -translate-x-1/2
+                absolute left-1/2 -translate-x-1/2
                 transition-all duration-75
                 ${dragDirection === 'up' ? 'scale-125 -translate-y-2' : 'scale-100 opacity-60'}
               `}
+                style={{ top: containerBounds.top + (isMobile ? 20 : 40) }}
               >
                 <div className="flex flex-col items-center gap-2">
                   <div
@@ -331,10 +344,11 @@ export const ClassifyMode: React.FC = () => {
               {/* 左 - 仕事 */}
               <div
                 className={`
-                absolute ${isMobile ? 'left-4' : 'left-20'} top-1/2 -translate-y-1/2
+                absolute -translate-y-1/2 ${isMobile ? 'left-4' : 'left-20'}
                 transition-all duration-75
                 ${dragDirection === 'left' ? 'scale-125 -translate-x-2' : 'scale-100 opacity-60'}
               `}
+                style={{ top: centerPosition.y }}
               >
                 <div className="flex flex-col items-center gap-2">
                   <div
@@ -362,9 +376,11 @@ export const ClassifyMode: React.FC = () => {
               {/* 中央 - キャンセル */}
               <div
                 className={`
+                absolute -translate-x-1/2 -translate-y-1/2
                 transition-all duration-75
                 ${dragDirection === 'center' ? 'scale-110' : 'scale-100 opacity-60'}
               `}
+                style={{ left: centerPosition.x, top: centerPosition.y }}
               >
                 <div className="flex flex-col items-center gap-2">
                   <div
@@ -392,10 +408,11 @@ export const ClassifyMode: React.FC = () => {
               {/* 右 - 生活 */}
               <div
                 className={`
-                absolute ${isMobile ? 'right-4' : 'right-20'} top-1/2 -translate-y-1/2
+                absolute -translate-y-1/2 ${isMobile ? 'right-4' : 'right-20'}
                 transition-all duration-75
                 ${dragDirection === 'right' ? 'scale-125 translate-x-2' : 'scale-100 opacity-60'}
               `}
+                style={{ top: centerPosition.y }}
               >
                 <div className="flex flex-col items-center gap-2">
                   <div
@@ -423,10 +440,11 @@ export const ClassifyMode: React.FC = () => {
               {/* 下 - 趣味 */}
               <div
                 className={`
-                absolute ${isMobile ? 'bottom-12' : 'bottom-20'} left-1/2 -translate-x-1/2
+                absolute left-1/2 -translate-x-1/2
                 transition-all duration-75
                 ${dragDirection === 'down' ? 'scale-125 translate-y-2' : 'scale-100 opacity-60'}
               `}
+                style={{ top: containerBounds.bottom - (isMobile ? 80 : 100) }}
               >
                 <div className="flex flex-col items-center gap-2">
                   <div
@@ -456,8 +474,8 @@ export const ClassifyMode: React.FC = () => {
             {dragDirection && dragDirection !== 'center' && (
               <svg className="absolute inset-0 pointer-events-none z-40" style={{ width: '100%', height: '100%' }}>
                 <line
-                  x1={startPosition.current.x}
-                  y1={startPosition.current.y}
+                  x1={centerPosition.x}
+                  y1={centerPosition.y}
                   x2={currentPosition.x}
                   y2={currentPosition.y}
                   stroke={
