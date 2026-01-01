@@ -95,7 +95,10 @@ export const ExecuteMode: React.FC = () => {
       }
 
       // カテゴリ切り替え
-      const switchActions: { action: 'switchToWork' | 'switchToLife' | 'switchToStudy' | 'switchToHobby'; category: ListCategory }[] = [
+      const switchActions: {
+        action: 'switchToWork' | 'switchToLife' | 'switchToStudy' | 'switchToHobby'
+        category: ListCategory
+      }[] = [
         { action: 'switchToWork', category: 'work' },
         { action: 'switchToLife', category: 'life' },
         { action: 'switchToStudy', category: 'study' },

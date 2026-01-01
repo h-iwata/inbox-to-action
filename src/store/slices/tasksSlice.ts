@@ -361,29 +361,26 @@ export const selectTaskCountByCategory = createSelector(
   })
 )
 
-export const selectTodayCompletedByCategory = createSelector(
-  [selectTasksState],
-  (tasks): CategoryRecord<number> => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+export const selectTodayCompletedByCategory = createSelector([selectTasksState], (tasks): CategoryRecord<number> => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-    const byCategory: CategoryRecord<number> = {
-      work: 0,
-      life: 0,
-      study: 0,
-      hobby: 0,
-    }
-
-    tasks.completed.forEach(task => {
-      const completedDate = new Date(task.updated_at)
-      completedDate.setHours(0, 0, 0, 0)
-      if (completedDate.getTime() === today.getTime() && task.category !== 'inbox' && task.category in byCategory) {
-        byCategory[task.category as ListCategory]++
-      }
-    })
-
-    return byCategory
+  const byCategory: CategoryRecord<number> = {
+    work: 0,
+    life: 0,
+    study: 0,
+    hobby: 0,
   }
-)
+
+  tasks.completed.forEach(task => {
+    const completedDate = new Date(task.updated_at)
+    completedDate.setHours(0, 0, 0, 0)
+    if (completedDate.getTime() === today.getTime() && task.category !== 'inbox' && task.category in byCategory) {
+      byCategory[task.category as ListCategory]++
+    }
+  })
+
+  return byCategory
+})
 
 export default tasksSlice.reducer

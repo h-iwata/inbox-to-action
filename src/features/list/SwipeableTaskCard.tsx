@@ -24,12 +24,7 @@ interface SwipeableTaskCardProps {
   onTap: (task: Task, index: number) => void
 }
 
-export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
-  task,
-  index,
-  onDelete,
-  onTap,
-}) => {
+export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, index, onDelete, onTap }) => {
   const dispatch = useDispatch()
   const [swipeState, setSwipeState] = useState<SwipeState>(initialSwipeState)
   const [isSwiping, setIsSwiping] = useState(false)
