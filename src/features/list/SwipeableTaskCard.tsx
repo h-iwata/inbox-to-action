@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { motion } from 'framer-motion'
 import { Inbox, Trash2, Play, Target } from 'lucide-react'
 import { changeCategory } from '../../store/slices/tasksSlice'
-import type { Category, Task } from '../../types'
+import type { Task } from '../../types'
 
 interface SwipeState {
   startX: number
@@ -20,15 +20,13 @@ const initialSwipeState: SwipeState = {
 interface SwipeableTaskCardProps {
   task: Task
   index: number
-  category: Category
   onDelete: (task: Task) => void
-  onTap: (task: Task, category: Category, index: number) => void
+  onTap: (task: Task, index: number) => void
 }
 
 export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
   task,
   index,
-  category,
   onDelete,
   onTap,
 }) => {
@@ -69,9 +67,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
   const handleEnd = () => {
     if (!isSwiping) return
 
-    const swipeDistance = Math.abs(swipeState.currentX - swipeState.startX)
-
-    if (swipeDistance > 60 && swipeState.direction) {
+    if (Math.abs(rawOffset) > 60 && swipeState.direction) {
       if (swipeState.direction === 'left') {
         // Inboxへ戻す
         dispatch(changeCategory({ taskId: task.id, newCategory: 'inbox' }))
@@ -143,7 +139,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
         }}
         onClick={() => {
           if (Math.abs(swipeOffset) < 10) {
-            onTap(task, category, index)
+            onTap(task, index)
           }
         }}
         onTouchStart={e => {

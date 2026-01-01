@@ -126,7 +126,7 @@ export const ListMode: React.FC = () => {
   }
 
   // タスクをクリックして最上位に移動または実行モードへ遷移
-  const handleMoveToTop = (task: Task, category: Category, index: number) => {
+  const handleMoveToTop = (task: Task, index: number) => {
     // すでに最上位（index=0）の場合は実行モードへ遷移
     if (index === 0) {
       // バイブレーション（モバイルのみ）
@@ -154,7 +154,7 @@ export const ListMode: React.FC = () => {
       reorderTasksInCategory({
         taskId: task.id,
         newPosition: 1,
-        category: category,
+        category: task.category,
       })
     )
   }
@@ -234,7 +234,6 @@ export const ListMode: React.FC = () => {
                         key={task.id}
                         task={task}
                         index={index}
-                        category={category.id}
                         onDelete={setTaskToDelete}
                         onTap={handleMoveToTop}
                       />
