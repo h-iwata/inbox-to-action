@@ -151,7 +151,5 @@ export const CategoryIcon: React.FC<{
     xl: 'w-10 h-10',
   }
 
-  return (
-    <Icon className={`${sizeClasses[size]} ${config.color} ${className}`} />
-  )
+  return <Icon className={`${sizeClasses[size]} ${config.color} ${className}`} />
 }

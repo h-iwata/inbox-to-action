@@ -4,23 +4,15 @@ import {
   completeTask,
   selectTopTasksByCategory,
   toggleExecuting,
-  selectAllTasks,
+  selectTaskCountByCategory,
+  type ListCategory,
 } from '../../store/slices/tasksSlice'
 import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
+import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import {
-  FileText,
-  Check,
-  Sparkles,
-  Zap,
-  PlayCircle,
-  Flame,
-  BarChart3,
-  PenTool,
-} from 'lucide-react'
-import type { Category } from '../../types'
+import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3, PenTool } from 'lucide-react'
 
 const categoryInfo = {
   work: {
@@ -52,29 +44,21 @@ const categoryInfo = {
 export const ExecuteMode: React.FC = () => {
   const dispatch = useDispatch()
   const topTasks = useSelector(selectTopTasksByCategory)
-  const allTasks = useSelector(selectAllTasks)
+  const taskCountByCategory = useSelector(selectTaskCountByCategory)
   const { isMobile, isDesktop } = useResponsive()
+  const keyBindings = useSelector(selectKeyBindings)
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null)
-  const [switchingToTaskId, setSwitchingToTaskId] = useState<string | null>(
-    null
-  )
+  const [switchingToTaskId, setSwitchingToTaskId] = useState<string | null>(null)
 
   // 実行中のタスクを取得
   const executingTask = topTasks.find(task => task.isExecuting === true)
 
   // 全カテゴリのタスクを準備（存在しないカテゴリも含む）
-  const categories: Category[] = ['work', 'life', 'study', 'hobby']
+  const categories: ListCategory[] = ['work', 'life', 'study', 'hobby']
   const categoryTasks = categories.map(cat => {
     const task = topTasks.find(t => t.category === cat)
     return { category: cat, task }
   })
-
-  // カテゴリごとのタスク数を計算
-  const getTaskCountByCategory = (category: Category) => {
-    return allTasks.filter(
-      task => task.category === category && task.status === 'active'
-    ).length
-  }
 
   const handleComplete = (taskId: string) => {
     setCompletingTaskId(taskId)
@@ -101,27 +85,40 @@ export const ExecuteMode: React.FC = () => {
     if (!isDesktop) return
 
     const handleKeyPress = (e: KeyboardEvent) => {
+      const is = isKeyPressed(keyBindings, e.key)
+
       // 実行中タスクの完了（スペースキー）
-      if (e.key === ' ' && executingTask && !completingTaskId) {
+      if (is('completeTask') && executingTask && !completingTaskId) {
         e.preventDefault()
         handleComplete(executingTask.id)
+        return
       }
 
-      // カテゴリ切り替え（1-4キー）
-      const keyNumber = parseInt(e.key)
-      if (keyNumber >= 1 && keyNumber <= 4) {
-        const categories: Category[] = ['work', 'life', 'study', 'hobby']
-        const targetCategory = categories[keyNumber - 1]
-        const targetTask = topTasks.find(t => t.category === targetCategory)
-        if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
-          handleSwitchExecution(targetTask.id)
+      // カテゴリ切り替え
+      const switchActions: {
+        action: 'switchToWork' | 'switchToLife' | 'switchToStudy' | 'switchToHobby'
+        category: ListCategory
+      }[] = [
+        { action: 'switchToWork', category: 'work' },
+        { action: 'switchToLife', category: 'life' },
+        { action: 'switchToStudy', category: 'study' },
+        { action: 'switchToHobby', category: 'hobby' },
+      ]
+
+      for (const { action, category } of switchActions) {
+        if (is(action)) {
+          const targetTask = topTasks.find(t => t.category === category)
+          if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
+            handleSwitchExecution(targetTask.id)
+          }
+          return
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [executingTask, topTasks, isDesktop, completingTaskId, switchingToTaskId])
+  }, [executingTask, topTasks, isDesktop, completingTaskId, switchingToTaskId, keyBindings])
 
   // タスクがない場合
   if (topTasks.length === 0) {
@@ -129,7 +126,7 @@ export const ExecuteMode: React.FC = () => {
       <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
         {/* 統計情報は常に表示 */}
         <div className="px-4 mb-4">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
+          <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
             <CategoryCompletionBar />
           </div>
         </div>
@@ -137,9 +134,7 @@ export const ExecuteMode: React.FC = () => {
         <div className="flex items-center justify-center h-[40vh]">
           <div className="text-center">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-100 mb-2">
-              実行するタスクがありません
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-100 mb-2">実行するタスクがありません</h2>
             <p className="text-gray-400">
               タスクを
               <button
@@ -157,41 +152,34 @@ export const ExecuteMode: React.FC = () => {
     )
   }
 
-  // 実行中タスクがない場合（ただしタスクは存在する）
-  if (!executingTask && topTasks.length > 0) {
+  // 実行中タスクがない場合（タスクは存在するがどれも実行中でない）
+  if (!executingTask) {
     return (
       <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
         {/* 統計情報は常に表示 */}
         <div className="px-4 mb-4">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
+          <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
             <CategoryCompletionBar />
           </div>
         </div>
 
         <div className="px-4">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-gray-300 mb-2">
-              実行するカテゴリを選択してください
-            </h2>
+            <h2 className="text-xl font-bold text-gray-300 mb-2">実行するカテゴリを選択してください</h2>
             <p className="text-sm text-gray-500">タップして実行を開始</p>
           </div>
 
-          <div
-            className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}
-          >
+          <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {topTasks.map(task => {
-              const info =
-                categoryInfo[task.category as keyof typeof categoryInfo]
-              const taskCount = getTaskCountByCategory(
-                task.category as Category
-              )
+              const category = task.category as ListCategory
+              const info = categoryInfo[category]
 
               return (
                 <button
                   key={task.id}
                   onClick={() => handleSwitchExecution(task.id)}
                   className={`
-                  relative p-5 rounded-2xl border-2 bg-gradient-to-br from-gray-900/90 to-gray-800/90
+                  relative p-5 rounded-2xl border-2 bg-linear-to-br from-gray-900/90 to-gray-800/90
                   border-gray-700 hover:border-gray-600 shadow-lg
                   hover:scale-105 transition-all duration-300 text-left
                   ${switchingToTaskId === task.id ? 'animate-pulse ring-2 ring-blue-500' : ''}
@@ -200,7 +188,7 @@ export const ExecuteMode: React.FC = () => {
                   {/* 残り件数バッジ（右上） */}
                   <div className="absolute top-4 right-4">
                     <span className="bg-gray-700/50 px-2.5 py-1 rounded-full text-xs font-bold text-gray-300 backdrop-blur-sm">
-                      {taskCount}件
+                      {taskCountByCategory[category]}件
                     </span>
                   </div>
 
@@ -210,22 +198,16 @@ export const ExecuteMode: React.FC = () => {
                       {React.createElement(info.icon, {
                         className: `w-8 h-8 ${info.color}`,
                       })}
-                      <span className="font-bold text-lg text-gray-200">
-                        {info.label}
-                      </span>
+                      <span className="font-bold text-lg text-gray-200">{info.label}</span>
                     </div>
 
                     {/* タスクタイトル */}
-                    <p className="text-gray-100 font-medium pr-12">
-                      {task.title}
-                    </p>
+                    <p className="text-gray-100 font-medium pr-12">{task.title}</p>
 
                     {/* アクションヒント */}
                     <div className="flex items-center gap-2 mt-2">
                       <PlayCircle className="w-4 h-4 text-green-400" />
-                      <span className="text-xs text-green-400 font-semibold">
-                        タップで実行開始
-                      </span>
+                      <span className="text-xs text-green-400 font-semibold">タップで実行開始</span>
                     </div>
                   </div>
                 </button>
@@ -237,51 +219,17 @@ export const ExecuteMode: React.FC = () => {
     )
   }
 
-  // この時点で executingTask が存在することが保証される
-  if (!executingTask) {
-    // フォールバック（通常はここに到達しないはず）
-    return (
-      <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
-        <div className="px-4 mb-3">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
-            <CategoryCompletionBar />
-          </div>
-        </div>
-        <div className="flex items-center justify-center h-[40vh]">
-          <div className="text-center">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-100 mb-2">
-              実行するタスクがありません
-            </h2>
-            <p className="text-gray-400">
-              タスクを
-              <button
-                onClick={() => dispatch(setMode('create'))}
-                className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
-              >
-                <PenTool className="w-3 h-3" />
-                <span>作成</span>
-              </button>
-              して分類してください
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const executingInfo =
-    categoryInfo[executingTask.category as keyof typeof categoryInfo]
-  const executingTaskCount = getTaskCountByCategory(
-    executingTask.category as Category
-  )
+  // この時点で executingTask が存在することが保証される（上の条件分岐で網羅済み）
+  const executingCategory = executingTask.category as ListCategory
+  const executingInfo = categoryInfo[executingCategory]
+  const executingTaskCount = taskCountByCategory[executingCategory]
   const isCompleting = completingTaskId === executingTask.id
 
   return (
     <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
       {/* 統計情報 - グラデーションバー（最上部に配置） */}
       <div className="px-4 mb-4">
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
+        <div className="bg-linear-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
           <CategoryCompletionBar />
         </div>
       </div>
@@ -291,7 +239,7 @@ export const ExecuteMode: React.FC = () => {
         <div
           className={`
           w-full max-w-2xl p-6 rounded-3xl
-          bg-gradient-to-br ${executingInfo.gradient}
+          bg-linear-to-br ${executingInfo.gradient}
           transform transition-all duration-500
           ${isCompleting ? 'scale-110 rotate-2 opacity-0' : 'scale-100 hover:scale-[1.02]'}
           relative overflow-hidden
@@ -300,11 +248,11 @@ export const ExecuteMode: React.FC = () => {
         `}
         >
           {/* 光沢エフェクト */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-50" />
+          <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/10 to-transparent opacity-50" />
 
           {/* 背景アニメーション */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-transparent animate-pulse" />
+            <div className="absolute inset-0 bg-linear-to-t from-transparent via-white/10 to-transparent animate-pulse" />
           </div>
 
           {/* コンテンツ */}
@@ -316,14 +264,10 @@ export const ExecuteMode: React.FC = () => {
                   className: 'w-12 h-12 text-white',
                 })}
                 <div>
-                  <h3 className="text-xl font-bold text-white">
-                    {executingInfo.label}
-                  </h3>
+                  <h3 className="text-xl font-bold text-white">{executingInfo.label}</h3>
                   <div className="flex items-center gap-1.5 mt-1">
                     <Flame className="w-4 h-4 text-orange-300 animate-pulse" />
-                    <span className="text-xs font-semibold text-orange-200">
-                      実行中
-                    </span>
+                    <span className="text-xs font-semibold text-orange-200">実行中</span>
                   </div>
                 </div>
               </div>
@@ -336,7 +280,7 @@ export const ExecuteMode: React.FC = () => {
                     dispatch(
                       setModeWithScroll({
                         mode: 'list',
-                        scrollToCategory: executingTask.category as Category,
+                        scrollToCategory: executingCategory,
                       })
                     )
                   }
@@ -350,7 +294,7 @@ export const ExecuteMode: React.FC = () => {
 
             {/* タスクタイトル */}
             <div className="mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-white text-center break-words">
+              <h2 className="text-2xl md:text-3xl font-bold text-white text-center overflow-wrap-break-word">
                 {executingTask.title}
               </h2>
             </div>
@@ -362,13 +306,12 @@ export const ExecuteMode: React.FC = () => {
               className={`
                 w-full py-5 rounded-2xl font-bold text-lg
                 transition-all duration-300 transform
+                relative overflow-hidden group
                 ${
                   completingTaskId
                     ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                    : 'bg-white text-gray-900 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] shadow-lg hover:shadow-2xl'
+                    : 'bg-white text-gray-900 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-2xl ring-2 ring-white/30'
                 }
-                relative overflow-hidden group
-                ${!completingTaskId && 'ring-2 ring-white/30'}
               `}
             >
               {isCompleting ? (
@@ -384,17 +327,13 @@ export const ExecuteMode: React.FC = () => {
                     <Sparkles className="w-5 h-5 text-yellow-500" />
                   </span>
                   {/* ホバーエフェクト */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 </>
               )}
             </button>
 
             {/* PC版ヒント */}
-            {isDesktop && (
-              <p className="text-center text-white/60 text-sm mt-3">
-                スペースキーで完了
-              </p>
-            )}
+            {isDesktop && <p className="text-center text-white/60 text-sm mt-3">スペースキーで完了</p>}
           </div>
         </div>
       </div>
@@ -405,32 +344,26 @@ export const ExecuteMode: React.FC = () => {
           <p className="text-sm text-gray-400">実行中のカテゴリを切り替え</p>
         </div>
 
-        <div
-          className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}
-        >
+        <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
           {categoryTasks.map(({ category, task }, index) => {
-            const info = categoryInfo[category as keyof typeof categoryInfo]
-            const taskCount = getTaskCountByCategory(category)
+            const info = categoryInfo[category]
             const isExecuting = task?.isExecuting === true
-            const isSwitching = task && switchingToTaskId === task.id
             const hasTask = !!task
 
             return (
               <div
                 key={category}
-                onClick={() =>
-                  task && !isExecuting && handleSwitchExecution(task.id)
-                }
+                onClick={() => task && !isExecuting && handleSwitchExecution(task.id)}
                 className={`
                   relative p-4 rounded-2xl border-2 transition-all duration-300
                   ${
                     isExecuting
                       ? `border-orange-400/60 ${info.bgLight} ring-2 ring-orange-400/60 shadow-orange-500/30 cursor-default`
                       : hasTask
-                        ? 'border-gray-700 bg-gradient-to-br from-gray-900/90 to-gray-800/90 hover:border-gray-600 hover:scale-105 cursor-pointer shadow-lg'
+                        ? 'border-gray-700 bg-linear-to-br from-gray-900/90 to-gray-800/90 hover:border-gray-600 hover:scale-105 cursor-pointer shadow-lg'
                         : 'border-gray-800 bg-gray-900/50 opacity-60 cursor-default'
                   }
-                  ${isSwitching ? 'animate-pulse' : ''}
+                  ${switchingToTaskId === task?.id ? 'animate-pulse' : ''}
                 `}
               >
                 {/* 残り件数バッジ（右上） */}
@@ -444,7 +377,7 @@ export const ExecuteMode: React.FC = () => {
                           : 'bg-gray-800/50 text-gray-500'
                     }`}
                   >
-                    {taskCount}件
+                    {taskCountByCategory[category]}件
                   </span>
                 </div>
 
@@ -454,25 +387,17 @@ export const ExecuteMode: React.FC = () => {
                     {React.createElement(info.icon, {
                       className: `w-6 h-6 ${isExecuting ? 'text-white' : info.color}`,
                     })}
-                    <span
-                      className={`font-bold text-sm ${isExecuting ? 'text-white' : 'text-gray-200'}`}
-                    >
+                    <span className={`font-bold text-sm ${isExecuting ? 'text-white' : 'text-gray-200'}`}>
                       {info.label}
                     </span>
-                    {isExecuting && (
-                      <Flame className="w-4 h-4 text-orange-400 animate-pulse ml-auto" />
-                    )}
+                    {isExecuting && <Flame className="w-4 h-4 text-orange-400 animate-pulse ml-auto" />}
                   </div>
 
                   {hasTask ? (
                     <>
                       {/* タスクタイトル */}
-                      <p
-                        className={`text-sm truncate ${isExecuting ? 'text-white/90 font-medium' : 'text-gray-400'}`}
-                      >
-                        {task.title.length > 20
-                          ? task.title.substring(0, 20) + '...'
-                          : task.title}
+                      <p className={`text-sm truncate ${isExecuting ? 'text-white/90 font-medium' : 'text-gray-400'}`}>
+                        {task.title.length > 20 ? task.title.substring(0, 20) + '...' : task.title}
                       </p>
 
                       {/* アクションヒント */}
@@ -480,23 +405,15 @@ export const ExecuteMode: React.FC = () => {
                         {!isExecuting && (
                           <div className="flex items-center gap-1">
                             <PlayCircle className="w-3 h-3 text-gray-500" />
-                            <span className="text-xs text-gray-500">
-                              タップで実行
-                            </span>
+                            <span className="text-xs text-gray-500">タップで実行</span>
                             {/* PC版キーボードヒント */}
-                            {isDesktop && (
-                              <span className="text-xs text-gray-600 ml-2">
-                                ({index + 1}キー)
-                              </span>
-                            )}
+                            {isDesktop && <span className="text-xs text-gray-600 ml-2">({index + 1}キー)</span>}
                           </div>
                         )}
                         {isExecuting && (
                           <div className="flex items-center gap-1">
                             <Flame className="w-3 h-3 text-orange-300 animate-pulse" />
-                            <span className="text-xs text-orange-300 font-semibold">
-                              実行中
-                            </span>
+                            <span className="text-xs text-orange-300 font-semibold">実行中</span>
                           </div>
                         )}
                       </div>

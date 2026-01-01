@@ -4,10 +4,13 @@ import storage from 'redux-persist/lib/storage'
 import { combineReducers } from 'redux'
 import tasksReducer from './slices/tasksSlice'
 import uiReducer from './slices/uiSlice'
+import keyBindingsReducer from './slices/keyBindingsSlice'
+import { listenerMiddleware } from './listenerMiddleware'
 
 const rootReducer = combineReducers({
   tasks: tasksReducer,
   ui: uiReducer,
+  keyBindings: keyBindingsReducer,
 })
 
 const persistConfig = {
@@ -25,7 +28,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
-    }),
+    }).prepend(listenerMiddleware.middleware),
   devTools: import.meta.env.DEV,
 })
 

@@ -40,8 +40,7 @@ describe('Date Helpers', () => {
     it('should return false for dates within 24 hours', () => {
       const now = new Date('2024-01-15T12:00:00')
       const recentDate = new Date('2024-01-15T10:00:00')
-      const diffHours =
-        (now.getTime() - recentDate.getTime()) / (1000 * 60 * 60)
+      const diffHours = (now.getTime() - recentDate.getTime()) / (1000 * 60 * 60)
       expect(diffHours).toBeLessThanOrEqual(24)
     })
   })

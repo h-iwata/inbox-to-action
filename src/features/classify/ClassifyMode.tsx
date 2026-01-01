@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  classifyTask,
-  selectInboxTasks,
-  selectTasksByCategory,
-} from '../../store/slices/tasksSlice'
+import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
+import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
-import { categoryIcons, actionIcons } from '../../config/icons'
+import { categoryIcons } from '../../config/icons'
+import { ClassifyOverlay } from './ClassifyOverlay'
 import {
   Trophy,
   Layers,
@@ -20,12 +18,18 @@ import {
   BarChart3,
 } from 'lucide-react'
 import type { Category } from '../../types'
+import './ClassifyMode.css'
+
+type Direction = 'up' | 'down' | 'left' | 'right'
+type DragDirection = Direction | 'center' | null
+type ClassifyCategory = Exclude<Category, 'inbox'>
 
 export const ClassifyMode: React.FC = () => {
   const dispatch = useDispatch()
   const inboxTasks = useSelector(selectInboxTasks)
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
+  const keyBindings = useSelector(selectKeyBindings)
 
   // カテゴリ別のタスク数を取得
   const workTasks = useSelector(selectTasksByCategory('work'))
@@ -35,136 +39,55 @@ export const ClassifyMode: React.FC = () => {
 
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
-  const [dragDirection, setDragDirection] = useState<
-    'up' | 'down' | 'left' | 'right' | 'center' | null
-  >(null)
-  const startPosition = useRef({ x: 0, y: 0 })
+  const [dragDirection, setDragDirection] = useState<DragDirection>(null)
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
+  const [centerPosition, setCenterPosition] = useState({ x: 0, y: 0 })
+  const [containerBounds, setContainerBounds] = useState({ top: 0, bottom: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // アニメーション用の状態
   const [isClassifying, setIsClassifying] = useState(false)
-  const [classifiedDirection, setClassifiedDirection] = useState<
-    'up' | 'down' | 'left' | 'right' | null
-  >(null)
+  const [classifiedDirection, setClassifiedDirection] = useState<Direction | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const handleClassify = (
-    category: Category,
-    direction: 'up' | 'down' | 'left' | 'right'
-  ) => {
-    if (currentTask && !isClassifying) {
-      setIsClassifying(true)
-      setClassifiedDirection(direction)
-      setShowSuccess(true)
+  const resetOperation = () => {
+    setIsOperating(false)
+    setDragDirection(null)
+  }
 
-      // カードが飛んでいくアニメーション
+  const handleClassify = (category: ClassifyCategory) => {
+    if (!currentTask || isClassifying) return
+
+    setIsClassifying(true)
+    setClassifiedDirection(({ study: 'up', hobby: 'down', work: 'left', life: 'right' } as const)[category])
+    setShowSuccess(true)
+
+    // カードが飛んでいくアニメーション
+    setTimeout(() => {
+      dispatch(classifyTask({ id: currentTask.id, category }))
+      setShowSuccess(false)
+
+      // 次のカードが現れるアニメーション
       setTimeout(() => {
-        dispatch(classifyTask({ id: currentTask.id, category }))
-        setShowSuccess(false)
-
-        // 次のカードが現れるアニメーション
-        setTimeout(() => {
-          setIsClassifying(false)
-          setClassifiedDirection(null)
-          setIsOperating(false)
-          setDragDirection(null)
-        }, 100)
-      }, 150)
-    }
+        setIsClassifying(false)
+        setClassifiedDirection(null)
+        resetOperation()
+      }, 100)
+    }, 150)
   }
 
   // 操作開始（クリック/タップ）
   const handleOperationStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!currentTask) return
+    if (!currentTask || isOperating) return
 
-    // タッチイベントの場合のみ処理（クリックは別途処理）
-    if ('touches' in e) {
-      // プルダウン更新を防ぐ
-      e.preventDefault()
-
-      const clientX = e.touches[0].clientX
-      const clientY = e.touches[0].clientY
-
-      setIsOperating(true)
-      startPosition.current = { x: clientX, y: clientY }
-      setCurrentPosition({ x: clientX, y: clientY })
-      setDragDirection('center')
-    }
-  }
-
-  // マウスダウン（PC版のみ）
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!currentTask || isMobile) return
-
-    const clientX = e.clientX
-    const clientY = e.clientY
+    const isTouchEvent = 'touches' in e
+    const clientX = isTouchEvent ? e.touches[0].clientX : e.clientX
+    const clientY = isTouchEvent ? e.touches[0].clientY : e.clientY
 
     setIsOperating(true)
-    startPosition.current = { x: clientX, y: clientY }
     setCurrentPosition({ x: clientX, y: clientY })
     setDragDirection('center')
-  }
-
-  // 操作中（ドラッグ）
-  const handleOperationMove = (e: MouseEvent | TouchEvent) => {
-    if (!isOperating) return
-
-    // タッチイベントの場合、プルダウン更新を防ぐ
-    if ('touches' in e) {
-      e.preventDefault()
-    }
-
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-
-    setCurrentPosition({ x: clientX, y: clientY })
-
-    const deltaX = clientX - startPosition.current.x
-    const deltaY = clientY - startPosition.current.y
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-    // 方向判定のしきい値を大きくして、明確な方向のみ判定
-    if (distance > 80) {
-      // より明確な方向判定（45度の範囲で判定）
-      const angle = Math.atan2(deltaY, deltaX)
-      const degrees = angle * (180 / Math.PI)
-
-      // 各方向の判定範囲（45度ずつ）
-      if (degrees >= -135 && degrees < -45) {
-        setDragDirection('up')
-      } else if (degrees >= -45 && degrees < 45) {
-        setDragDirection('right')
-      } else if (degrees >= 45 && degrees < 135) {
-        setDragDirection('down')
-      } else {
-        setDragDirection('left')
-      }
-    } else {
-      // しきい値未満はすべてキャンセル扱い
-      setDragDirection('center')
-    }
-  }
-
-  // 操作終了（ドロップ）
-  const handleOperationEnd = () => {
-    if (!isOperating || !currentTask) return
-
-    // 方向に基づいてアクション（centerやnullの場合はキャンセル）
-    if (dragDirection === 'up') {
-      handleClassify('study', 'up')
-    } else if (dragDirection === 'down') {
-      handleClassify('hobby', 'down')
-    } else if (dragDirection === 'left') {
-      handleClassify('work', 'left')
-    } else if (dragDirection === 'right') {
-      handleClassify('life', 'right')
-    } else {
-      // center または null の場合はすべてキャンセル
-      setIsOperating(false)
-      setDragDirection(null)
-    }
   }
 
   // キーボードショートカット
@@ -175,86 +98,130 @@ export const ClassifyMode: React.FC = () => {
       // Tabキーはモード切り替えに使うのでスキップ
       if (e.key === 'Tab') return
 
-      switch (e.key.toLowerCase()) {
-        case 'w':
-        case 'arrowup':
-          e.preventDefault()
-          handleClassify('study', 'up')
-          break
-        case 'a':
-        case 'arrowleft':
-          e.preventDefault()
-          handleClassify('work', 'left')
-          break
-        case 's':
-        case 'arrowdown':
-          e.preventDefault()
-          handleClassify('hobby', 'down')
-          break
-        case 'd':
-        case 'arrowright':
-          e.preventDefault()
-          handleClassify('life', 'right')
-          break
+      const is = isKeyPressed(keyBindings, e.key)
+
+      if (is('classifyStudy')) {
+        e.preventDefault()
+        handleClassify('study')
+      } else if (is('classifyWork')) {
+        e.preventDefault()
+        handleClassify('work')
+      } else if (is('classifyHobby')) {
+        e.preventDefault()
+        handleClassify('hobby')
+      } else if (is('classifyLife')) {
+        e.preventDefault()
+        handleClassify('life')
       }
     }
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [currentTask, isOperating])
+  }, [currentTask, isOperating, keyBindings])
+
+  // モバイルでのプルダウン更新を防ぐ
+  useEffect(() => {
+    if (!isMobile) return
+
+    const preventPullToRefresh = (e: TouchEvent) => e.preventDefault()
+    document.addEventListener('touchmove', preventPullToRefresh, { passive: false })
+
+    return () => document.removeEventListener('touchmove', preventPullToRefresh)
+  }, [isMobile])
+
+  // タスクカードの中心位置とコンテナの境界を取得（リサイズ時に更新）
+  useEffect(() => {
+    const updatePositions = () => {
+      const cardRect = cardRef.current?.getBoundingClientRect()
+      if (cardRect) {
+        setCenterPosition({ x: cardRect.left + cardRect.width / 2, y: cardRect.top + cardRect.height / 2 })
+      }
+      const containerRect = containerRef.current?.getBoundingClientRect()
+      if (containerRect) {
+        setContainerBounds({ top: containerRect.top, bottom: containerRect.bottom })
+      }
+    }
+
+    updatePositions()
+    window.addEventListener('resize', updatePositions)
+    return () => window.removeEventListener('resize', updatePositions)
+  }, [])
 
   // グローバルイベントリスナー
   useEffect(() => {
-    const handleMove = (e: MouseEvent | TouchEvent) => handleOperationMove(e)
-    const handleEnd = () => handleOperationEnd()
-    const handleTouchCancel = () => {
-      // タッチがキャンセルされた場合もリセット
-      setIsOperating(false)
-      setDragDirection(null)
-    }
+    if (!isOperating) return
 
-    // ジェスチャー操作中のみプルダウン更新を防ぐ
-    const preventPullToRefresh = (e: TouchEvent) => {
-      // 操作中のみプルダウンを防ぐ
-      if (isOperating) {
+    const handleOperationMove = (e: MouseEvent | TouchEvent) => {
+      // タッチイベントの場合、プルダウン更新を防ぐ
+      if ('touches' in e) {
         e.preventDefault()
       }
-    }
 
-    if (isOperating) {
-      if (isMobile) {
-        window.addEventListener('touchmove', handleMove, { passive: false })
-        window.addEventListener('touchend', handleEnd)
-        window.addEventListener('touchcancel', handleTouchCancel)
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+      setCurrentPosition({ x: clientX, y: clientY })
+
+      // キャンセルボタン中心からの距離で方向を判定
+      const deltaX = clientX - centerPosition.x
+      const deltaY = clientY - centerPosition.y
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+      // 方向判定のしきい値を大きくして、明確な方向のみ判定
+      if (distance > 80) {
+        // より明確な方向判定（45度の範囲で判定）
+        const angle = Math.atan2(deltaY, deltaX)
+        const degrees = angle * (180 / Math.PI)
+
+        // 各方向の判定範囲（45度ずつ）
+        if (degrees >= -135 && degrees < -45) {
+          setDragDirection('up')
+        } else if (degrees >= -45 && degrees < 45) {
+          setDragDirection('right')
+        } else if (degrees >= 45 && degrees < 135) {
+          setDragDirection('down')
+        } else {
+          setDragDirection('left')
+        }
       } else {
-        window.addEventListener('mousemove', handleMove)
-        window.addEventListener('mouseup', handleEnd)
+        // しきい値未満はすべてキャンセル扱い
+        setDragDirection('center')
       }
     }
 
-    // 分類モードがアクティブな間、プルダウン更新を防ぐ
-    document.addEventListener('touchmove', preventPullToRefresh, {
-      passive: false,
-    })
+    const handleOperationEnd = (e: MouseEvent | TouchEvent) => {
+      e.stopPropagation()
+      if (!dragDirection || dragDirection === 'center') {
+        resetOperation()
+        return
+      }
+      handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
+    }
+
+    const handleTouchCancel = () => resetOperation()
+
+    // マウスとタッチの両方のイベントを登録（タッチスクリーン対応PCなどのため）
+    window.addEventListener('mousemove', handleOperationMove)
+    window.addEventListener('mouseup', handleOperationEnd)
+    window.addEventListener('touchmove', handleOperationMove, { passive: false })
+    window.addEventListener('touchend', handleOperationEnd)
+    window.addEventListener('touchcancel', handleTouchCancel)
 
     return () => {
-      window.removeEventListener('touchmove', handleMove)
-      window.removeEventListener('touchend', handleEnd)
+      window.removeEventListener('mousemove', handleOperationMove)
+      window.removeEventListener('mouseup', handleOperationEnd)
+      window.removeEventListener('touchmove', handleOperationMove)
+      window.removeEventListener('touchend', handleOperationEnd)
       window.removeEventListener('touchcancel', handleTouchCancel)
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleEnd)
-      document.removeEventListener('touchmove', preventPullToRefresh)
     }
-  }, [isOperating, dragDirection, currentTask, isMobile])
+  }, [isOperating, dragDirection])
 
   if (!currentTask) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
           <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">
-            すべて分類完了！
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
           <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
             <button
               onClick={() => dispatch(setMode('list'))}
@@ -278,21 +245,14 @@ export const ClassifyMode: React.FC = () => {
   }
 
   // アニメーション用のクラスとスタイル
-  const getClassifyAnimation = () => {
-    if (!classifiedDirection) return ''
-    switch (classifiedDirection) {
-      case 'up':
-        return 'animate-fly-up'
-      case 'down':
-        return 'animate-fly-down'
-      case 'left':
-        return 'animate-fly-left'
-      case 'right':
-        return 'animate-fly-right'
-      default:
-        return ''
-    }
-  }
+  const animationMap = {
+    up: 'animate-fly-up',
+    down: 'animate-fly-down',
+    left: 'animate-fly-left',
+    right: 'animate-fly-right',
+  } as const
+
+  const getClassifyAnimation = () => (classifiedDirection ? animationMap[classifiedDirection] : '')
 
   const getClassifyStyle = () => {
     if (!classifiedDirection) return {}
@@ -325,10 +285,7 @@ export const ClassifyMode: React.FC = () => {
           {/* 次のタスクのプレビュー（スタック表現） */}
           {inboxTasks.length > 1 && (
             <div className="text-xs text-gray-500">
-              次:{' '}
-              {inboxTasks[1].title.length > 20
-                ? inboxTasks[1].title.substring(0, 20) + '...'
-                : inboxTasks[1].title}
+              次: {inboxTasks[1].title.length > 20 ? inboxTasks[1].title.substring(0, 20) + '...' : inboxTasks[1].title}
             </div>
           )}
         </div>
@@ -337,203 +294,13 @@ export const ClassifyMode: React.FC = () => {
       <div className="relative flex-1 flex items-center justify-center">
         {/* 操作オーバーレイ */}
         {isOperating && (
-          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in">
-            {/* シンプルな方向指示 */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {/* 上 - 学習 */}
-              <div
-                className={`
-                absolute ${isMobile ? 'top-12' : 'top-20'} left-1/2 -translate-x-1/2
-                transition-all duration-75
-                ${dragDirection === 'up' ? 'scale-125 -translate-y-2' : 'scale-100 opacity-60'}
-              `}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'up'
-                        ? 'bg-violet-500/30 backdrop-blur-md ring-2 ring-violet-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.study.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.study.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* 左 - 仕事 */}
-              <div
-                className={`
-                absolute ${isMobile ? 'left-4' : 'left-20'} top-1/2 -translate-y-1/2
-                transition-all duration-75
-                ${dragDirection === 'left' ? 'scale-125 -translate-x-2' : 'scale-100 opacity-60'}
-              `}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'left'
-                        ? 'bg-sky-500/30 backdrop-blur-md ring-2 ring-sky-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.work.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.work.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* 中央 - キャンセル */}
-              <div
-                className={`
-                transition-all duration-75
-                ${dragDirection === 'center' ? 'scale-110' : 'scale-100 opacity-60'}
-              `}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'center'
-                        ? 'bg-red-500/30 backdrop-blur-md ring-2 ring-red-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(actionIcons.cancel, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`}
-                  >
-                    キャンセル
-                  </span>
-                </div>
-              </div>
-
-              {/* 右 - 生活 */}
-              <div
-                className={`
-                absolute ${isMobile ? 'right-4' : 'right-20'} top-1/2 -translate-y-1/2
-                transition-all duration-75
-                ${dragDirection === 'right' ? 'scale-125 translate-x-2' : 'scale-100 opacity-60'}
-              `}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'right'
-                        ? 'bg-teal-500/30 backdrop-blur-md ring-2 ring-teal-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.life.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.life.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* 下 - 趣味 */}
-              <div
-                className={`
-                absolute ${isMobile ? 'bottom-12' : 'bottom-20'} left-1/2 -translate-x-1/2
-                transition-all duration-75
-                ${dragDirection === 'down' ? 'scale-125 translate-y-2' : 'scale-100 opacity-60'}
-              `}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'down'
-                        ? 'bg-pink-500/30 backdrop-blur-md ring-2 ring-pink-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.hobby.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.hobby.label}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* ドラッグライン */}
-            {dragDirection && dragDirection !== 'center' && (
-              <svg
-                className="absolute inset-0 pointer-events-none z-40"
-                style={{ width: '100%', height: '100%' }}
-              >
-                <line
-                  x1={startPosition.current.x}
-                  y1={startPosition.current.y}
-                  x2={currentPosition.x}
-                  y2={currentPosition.y}
-                  stroke={
-                    dragDirection === 'up'
-                      ? '#a78bfa'
-                      : dragDirection === 'down'
-                        ? '#f9a8d4'
-                        : dragDirection === 'left'
-                          ? '#7dd3fc'
-                          : dragDirection === 'right'
-                            ? '#5eead4'
-                            : '#94a3b8'
-                  }
-                  strokeWidth="2"
-                  strokeDasharray="5,5"
-                  opacity="0.5"
-                />
-              </svg>
-            )}
-
-            {/* カーソル/タッチ位置のトラッカー */}
-            <div
-              className="fixed w-4 h-4 bg-white rounded-full shadow-lg pointer-events-none z-50 ring-2 ring-white/30"
-              style={{
-                left: `${currentPosition.x}px`,
-                top: `${currentPosition.y}px`,
-                transform: 'translate(-50%, -50%)',
-              }}
-            />
-          </div>
+          <ClassifyOverlay
+            dragDirection={dragDirection}
+            centerPosition={centerPosition}
+            currentPosition={currentPosition}
+            containerBounds={containerBounds}
+            isMobile={isMobile}
+          />
         )}
 
         {/* カテゴリヒント（小さく表示） */}
@@ -568,40 +335,36 @@ export const ClassifyMode: React.FC = () => {
         )}
 
         {/* 中央のタスクカードスタック */}
-        <div
-          className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}
-        >
+        <div className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}>
           {/* 背後のカード（スタック表現） */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {inboxTasks
-              .slice(1, Math.min(4, inboxTasks.length))
-              .map((task, index) => (
-                <div
-                  key={task.id}
-                  className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
-                  style={{
-                    width: isMobile ? '180px' : '320px',
-                    height: isMobile ? '100px' : '180px',
-                    transform: `
+            {inboxTasks.slice(1, Math.min(4, inboxTasks.length)).map((task, index) => (
+              <div
+                key={task.id}
+                className="absolute bg-linear-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
+                style={{
+                  width: isMobile ? '180px' : '320px',
+                  height: isMobile ? '100px' : '180px',
+                  transform: `
                     translateY(${(index + 1) * 4}px) 
                     translateX(${(index + 1) * 2}px)
                     rotate(${index % 2 === 0 ? 1 : -1}deg)
                     scale(${1 - (index + 1) * 0.05})
                   `,
-                    zIndex: -index - 1,
-                    opacity: 0.3 - index * 0.1,
-                  }}
-                />
-              ))}
+                  zIndex: -index - 1,
+                  opacity: 0.3 - index * 0.1,
+                }}
+              />
+            ))}
           </div>
 
           {/* メインのタスクカード */}
           <div
             ref={cardRef}
             className={`
-              relative bg-gradient-to-br from-violet-900/90 via-purple-800/90 to-indigo-900/90 
+              relative bg-linear-to-br from-violet-900/90 via-purple-800/90 to-indigo-900/90 
               backdrop-blur-sm rounded-2xl shadow-2xl
-              ${isMobile ? 'p-5 w-[220px] min-h-[120px]' : 'p-8 w-[340px] min-h-[200px]'}
+              ${isMobile ? 'p-5 w-55 min-h-30' : 'p-8 w-85 min-h-50'}
               border-2 border-violet-500/30
               ${isOperating ? 'scale-95 opacity-90' : 'hover:scale-105 hover:border-violet-400/50'}
               transition-all duration-75 cursor-pointer select-none
@@ -609,7 +372,7 @@ export const ClassifyMode: React.FC = () => {
               ${isClassifying ? getClassifyAnimation() : ''}
             `}
             style={isClassifying ? getClassifyStyle() : {}}
-            onMouseDown={handleMouseDown}
+            onMouseDown={handleOperationStart}
             onTouchStart={handleOperationStart}
           >
             {/* カードデザイン */}
@@ -617,22 +380,18 @@ export const ClassifyMode: React.FC = () => {
               <Sparkles className="w-5 h-5 text-yellow-400/50 animate-pulse" />
             </div>
             <div className="absolute bottom-3 left-3">
-              <div className="text-xs text-violet-300/50 font-mono">
-                #{currentTask.id.slice(-4)}
-              </div>
+              <div className="text-xs text-violet-300/50 font-mono">#{currentTask.id.slice(-4)}</div>
             </div>
 
             {/* タスク内容 */}
             <div className="text-center px-2 py-2 max-w-full overflow-hidden">
-              <h3
-                className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}
-              >
-                <span className="block break-words">{currentTask.title}</span>
+              <h3 className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}>
+                <span className="block overflow-wrap-break-word">{currentTask.title}</span>
               </h3>
             </div>
 
             {/* ホバーエフェクト */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl bg-linear-to-t from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
           </div>
         </div>
       </div>
@@ -645,9 +404,7 @@ export const ClassifyMode: React.FC = () => {
               className: 'w-4 h-4 text-sky-400',
             })}
             <span className="text-gray-400">仕事</span>
-            <span className="bg-sky-600/20 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">
-              {workTasks.length}
-            </span>
+            <span className="bg-sky-600/20 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">{workTasks.length}</span>
           </div>
           <div className="flex items-center gap-1.5">
             {React.createElement(categoryIcons.life.icon, {
@@ -706,62 +463,6 @@ export const ClassifyMode: React.FC = () => {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.1s ease-out;
-        }
-        
-        @keyframes fly-up {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-60vh) scale(0.7); opacity: 0; }
-        }
-        @keyframes fly-down {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(60vh) scale(0.7); opacity: 0; }
-        }
-        @keyframes fly-left {
-          0% { transform: translateX(0) scale(1); opacity: 1; }
-          100% { transform: translateX(-60vw) scale(0.7); opacity: 0; }
-        }
-        @keyframes fly-right {
-          0% { transform: translateX(0) scale(1); opacity: 1; }
-          100% { transform: translateX(60vw) scale(0.7); opacity: 0; }
-        }
-        
-        @keyframes slide-up-fade-in {
-          0% { transform: translateY(20px) scale(0.95); opacity: 0; }
-          100% { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        
-        @keyframes success-bounce {
-          0%, 100% { transform: scale(0); opacity: 0; }
-          50% { transform: scale(1.2); opacity: 1; }
-        }
-        
-        @keyframes particle {
-          0% { 
-            transform: translateY(0) scale(1); 
-            opacity: 1; 
-          }
-          100% { 
-            transform: translateY(-100px) scale(0); 
-            opacity: 0; 
-          }
-        }
-        
-        .animate-fly-up { animation: fly-up 0.15s ease-out forwards; }
-        .animate-fly-down { animation: fly-down 0.15s ease-out forwards; }
-        .animate-fly-left { animation: fly-left 0.15s ease-out forwards; }
-        .animate-fly-right { animation: fly-right 0.15s ease-out forwards; }
-        .animate-slide-up-fade-in { animation: slide-up-fade-in 0.2s ease-out; }
-        .animate-success-bounce { animation: success-bounce 0.2s ease-out; }
-        .animate-particle { animation: particle 0.3s ease-out forwards; }
-      `}</style>
     </div>
   )
 }

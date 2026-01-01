@@ -4,6 +4,10 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
+// NOTE: eslint-plugin-tailwindcss@4.0.0-beta.0 does not support Tailwind CSS v4's CSS-based config yet.
+// The VSCode Tailwind CSS IntelliSense extension provides suggestCanonicalClasses warnings instead.
+// import tailwindcss from 'eslint-plugin-tailwindcss'
+
 export default tseslint.config(
   { ignores: ['dist'] },
   {

@@ -1,14 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  addTask,
-  deleteTask,
-  selectInboxTasks,
-} from '../../store/slices/tasksSlice'
+import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
-import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
-import { Send, Inbox, Layers } from 'lucide-react'
+import { Send, Inbox, Layers, X } from 'lucide-react'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -54,28 +49,16 @@ export const CreateMode: React.FC = () => {
     }
   }
 
-  // Auto-focus input when component mounts or when all tasks are deleted
-  useEffect(() => {
-    if (tasks.length === 0) {
-      inputRef.current?.focus()
-    }
-  }, [tasks.length])
-
-  // タスクリストが表示された直後（最初のタスクが追加された時）にフォーカス
-  useEffect(() => {
-    if (tasks.length === 1) {
-      // 少し遅延を入れてDOMの更新を待つ
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 100)
-    }
-  }, [tasks.length])
-
-  const handleDelete = (id: string) => {
-    dispatch(deleteTask(id))
-  }
-
   const isEmpty = tasks.length === 0
+
+  // タスクが0件または1件の時にinputにフォーカス（1件の時はDOM更新を待つ）
+  useEffect(() => {
+    if (isEmpty) {
+      inputRef.current?.focus()
+    } else if (tasks.length === 1) {
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [isEmpty, tasks.length])
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-240px)]">
@@ -124,13 +107,11 @@ export const CreateMode: React.FC = () => {
                 style={{ minHeight: '96px' }}
                 autoFocus
               />
-              <div className="absolute top-3 right-4 text-sm text-gray-500">
-                {inputValue.length}/100
-              </div>
+              <div className="absolute top-3 right-4 text-sm text-gray-500">{inputValue.length}/100</div>
               {inputValue && (
                 <button
                   type="submit"
-                  className="absolute bottom-3 right-3 p-3 bg-gradient-to-r from-violet-600 to-blue-600 rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                  className="absolute bottom-3 right-3 p-3 bg-linear-to-r from-violet-600 to-blue-600 rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
                 >
                   <Send className="w-5 h-5 text-white" />
                 </button>
@@ -166,19 +147,28 @@ export const CreateMode: React.FC = () => {
                   animationDelay: `${index * 50}ms`,
                 }}
               >
-                <TaskCard
-                  task={task}
-                  variant="create"
-                  isTop={index === 0}
-                  onDelete={handleDelete}
-                />
+                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 p-4 rounded-xl hover:bg-gray-800/70 hover:border-gray-600 transition-all group">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-100 font-medium overflow-wrap-break-word whitespace-pre-wrap">
+                        {task.title}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => dispatch(deleteTask(task.id))}
+                      className="text-gray-400 hover:text-red-400 transition-all p-1.5 rounded-lg bg-gray-700/50 hover:bg-red-900/30"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
             <div ref={tasksEndRef} />
           </div>
 
           {/* 常に下部に固定された入力ボックス */}
-          <div className="border-t border-gray-700 pt-4 pb-8 flex-shrink-0">
+          <div className="border-t border-gray-700 pt-4 pb-8 shrink-0">
             {/* 分類への遷移メッセージ */}
             {showClassifyPrompt && tasks.length > 0 && (
               <div className="mb-3 text-center text-sm text-gray-400">
@@ -209,16 +199,14 @@ export const CreateMode: React.FC = () => {
                 />
 
                 {/* 文字数カウンター */}
-                <div className="absolute top-1 right-2 text-xs text-gray-500">
-                  {inputValue.length}/100
-                </div>
+                <div className="absolute top-1 right-2 text-xs text-gray-500">{inputValue.length}/100</div>
 
                 {/* 送信ボタン */}
                 {inputValue && (
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="absolute right-2 bottom-2 p-2 bg-gradient-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute right-2 bottom-2 p-2 bg-linear-to-r from-violet-600 to-blue-600 rounded-lg hover:from-violet-500 hover:to-blue-500 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-4 h-4 text-white" />
                   </button>
@@ -228,36 +216,6 @@ export const CreateMode: React.FC = () => {
           </div>
         </>
       )}
-
-      <style>{`
-        @keyframes slide-in {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out forwards;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #374151;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #4b5563;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #6b7280;
-        }
-      `}</style>
     </div>
   )
 }

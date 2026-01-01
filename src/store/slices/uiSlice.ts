@@ -22,10 +22,7 @@ const uiSlice = createSlice({
       state.currentMode = action.payload
       trackModeChange(action.payload)
     },
-    setModeWithScroll: (
-      state,
-      action: PayloadAction<{ mode: AppMode; scrollToCategory?: Category }>
-    ) => {
+    setModeWithScroll: (state, action: PayloadAction<{ mode: AppMode; scrollToCategory?: Category }>) => {
       state.currentMode = action.payload.mode
       state.scrollToCategory = action.payload.scrollToCategory || null
       trackModeChange(action.payload.mode)
@@ -36,7 +33,6 @@ const uiSlice = createSlice({
   },
 })
 
-export const { setMode, setModeWithScroll, clearScrollToCategory } =
-  uiSlice.actions
+export const { setMode, setModeWithScroll, clearScrollToCategory } = uiSlice.actions
 
 export default uiSlice.reducer

@@ -21,12 +21,7 @@ const isProduction = () => {
 
 // Google Analytics が利用可能かチェック
 const isGoogleAnalyticsAvailable = () => {
-  return (
-    isProduction() &&
-    typeof window !== 'undefined' &&
-    window.gtag &&
-    GA_MEASUREMENT_ID
-  )
+  return isProduction() && typeof window !== 'undefined' && window.gtag && GA_MEASUREMENT_ID
 }
 
 // ページビューを送信
@@ -39,12 +34,7 @@ export const sendPageView = (path: string) => {
 }
 
 // イベントを送信
-export const sendEvent = (
-  action: string,
-  category: string,
-  label?: string,
-  value?: number
-) => {
+export const sendEvent = (action: string, category: string, label?: string, value?: number) => {
   if (!isGoogleAnalyticsAvailable()) return
 
   window.gtag!('event', action, {

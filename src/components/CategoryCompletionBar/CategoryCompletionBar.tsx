@@ -4,6 +4,7 @@ import { selectTodayCompletedByCategory } from '../../store/slices/tasksSlice'
 import { categoryIcons } from '../../config/icons'
 import { BarChart3, Sparkles, Flame, Zap, Star } from 'lucide-react'
 import { trackLevelUp } from '../../utils/analytics'
+import './CategoryCompletionBar.css'
 
 const messages = {
   balanced: [
@@ -108,18 +109,8 @@ export const CategoryCompletionBar: React.FC = () => {
   const completedByCategory = useSelector(selectTodayCompletedByCategory)
   const prevLevelRef = useRef<number | null>(null)
 
-  const {
-    total,
-    percentages,
-    maxCategory,
-    message,
-    level,
-    nextLevelRequirement,
-  } = useMemo(() => {
-    const total = Object.values(completedByCategory).reduce(
-      (sum, count) => sum + count,
-      0
-    )
+  const { total, percentages, maxCategory, message, level, nextLevelRequirement } = useMemo(() => {
+    const total = Object.values(completedByCategory).reduce((sum, count) => sum + count, 0)
 
     // カテゴリごとの割合を計算
     const percentages = {
@@ -131,10 +122,7 @@ export const CategoryCompletionBar: React.FC = () => {
 
     // 最も多いカテゴリを特定
     const maxCategory = Object.entries(completedByCategory).reduce(
-      (max, [cat, count]) =>
-        count > completedByCategory[max as keyof typeof completedByCategory]
-          ? cat
-          : max,
+      (max, [cat, count]) => (count > completedByCategory[max as keyof typeof completedByCategory] ? cat : max),
       'work'
     )
 
@@ -153,7 +141,9 @@ export const CategoryCompletionBar: React.FC = () => {
     }
 
     const messageList = messages[messageType]
-    const message = messageList[Math.floor(Math.random() * messageList.length)]
+    // messageTypeとtotalに基づいて決定的にメッセージを選択
+    const messageIndex = total % messageList.length
+    const message = messageList[messageIndex]
 
     // レベルを計算（0-15の範囲を0-5にマッピング、各レベル3タスク）
     const level = Math.min(5, Math.floor(total / 3))
@@ -183,8 +173,7 @@ export const CategoryCompletionBar: React.FC = () => {
 
   // レベルに応じたスタイルを取得
   const getBarStyles = () => {
-    const baseClasses =
-      'relative overflow-hidden rounded-full transition-all duration-500'
+    const baseClasses = 'relative overflow-hidden rounded-full transition-all duration-500'
     const heightClasses = [
       'h-2', // level 0: 0-2個
       'h-2.5', // level 1: 3-5個
@@ -201,14 +190,7 @@ export const CategoryCompletionBar: React.FC = () => {
       'shadow-xl shadow-orange-500/40',
       'shadow-2xl shadow-red-500/50',
     ]
-    const animationClasses = [
-      '',
-      '',
-      'animate-pulse-slow',
-      'animate-pulse',
-      'animate-pulse-fast',
-      'animate-glow',
-    ]
+    const animationClasses = ['', '', 'animate-pulse-slow', 'animate-pulse', 'animate-pulse-fast', 'animate-glow']
 
     return `${baseClasses} ${heightClasses[level]} ${shadowClasses[level]} ${animationClasses[level]}`
   }
@@ -234,23 +216,17 @@ export const CategoryCompletionBar: React.FC = () => {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-1.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
+          <div className="p-1.5 bg-linear-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
             <BarChart3 className="w-4 h-4 text-blue-400" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-gray-100">
               レベル {level}
-              {level === 5 && (
-                <span className="ml-1 text-xs text-yellow-400">MAX!</span>
-              )}
+              {level === 5 && <span className="ml-1 text-xs text-yellow-400">MAX!</span>}
             </h3>
             <p className="text-xs text-gray-500">
               {total}タスク完了
-              {level < 5 && (
-                <span className="ml-1">
-                  （次まであと{nextLevelRequirement}）
-                </span>
-              )}
+              {level < 5 && <span className="ml-1">（次まであと{nextLevelRequirement}）</span>}
             </p>
           </div>
         </div>
@@ -311,32 +287,32 @@ export const CategoryCompletionBar: React.FC = () => {
             <div className="flex h-full">
               {percentages.work > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.work} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.work} transition-all duration-500`}
                   style={{ width: `${percentages.work}%` }}
                 />
               )}
               {percentages.life > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.life} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.life} transition-all duration-500`}
                   style={{ width: `${percentages.life}%` }}
                 />
               )}
               {percentages.study > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.study} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.study} transition-all duration-500`}
                   style={{ width: `${percentages.study}%` }}
                 />
               )}
               {percentages.hobby > 0 && (
                 <div
-                  className={`bg-gradient-to-r ${categoryColors.hobby} transition-all duration-500`}
+                  className={`bg-linear-to-r ${categoryColors.hobby} transition-all duration-500`}
                   style={{ width: `${percentages.hobby}%` }}
                 />
               )}
 
               {/* レベル4以上で流れるエフェクト */}
               {level >= 4 && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
               )}
             </div>
           ) : (
@@ -358,15 +334,9 @@ export const CategoryCompletionBar: React.FC = () => {
                   isMax ? 'text-white font-bold scale-110' : 'text-gray-500'
                 }`}
               >
-                <Icon
-                  className={`w-3 h-3 ${isMax ? categoryIconColors[category] : ''}`}
-                />
+                <Icon className={`w-3 h-3 ${isMax ? categoryIconColors[category] : ''}`} />
                 <span>{categoryIcons[category].label}</span>
-                {count > 0 && (
-                  <span className={`${isMax ? 'text-white' : 'text-gray-600'}`}>
-                    ({count})
-                  </span>
-                )}
+                {count > 0 && <span className={`${isMax ? 'text-white' : 'text-gray-600'}`}>({count})</span>}
               </div>
             )
           })}
@@ -387,95 +357,6 @@ export const CategoryCompletionBar: React.FC = () => {
         {message}
         {level >= 5 && ' 🔥'}
       </div>
-
-      {/* カスタムアニメーション */}
-      <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-        @keyframes twinkle-delay {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-        @keyframes flicker {
-          0%, 100% { opacity: 0.8; transform: translateY(0); }
-          25% { opacity: 1; transform: translateY(-2px); }
-          75% { opacity: 0.6; transform: translateY(1px); }
-        }
-        @keyframes flicker-delay {
-          0%, 100% { opacity: 0.6; transform: translateY(0); }
-          25% { opacity: 0.8; transform: translateY(1px); }
-          75% { opacity: 1; transform: translateY(-2px); }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes spin-slow-delay {
-          from { transform: rotate(180deg); }
-          to { transform: rotate(540deg); }
-        }
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-        @keyframes pulse-fast {
-          0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(1.1); }
-        }
-        @keyframes glow {
-          0%, 100% { 
-            transform: scaleY(1);
-            filter: brightness(1);
-          }
-          50% { 
-            transform: scaleY(1.15);
-            filter: brightness(1.2);
-          }
-        }
-        @keyframes bounce-delay {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
-        }
-        .animate-twinkle {
-          animation: twinkle 2s ease-in-out infinite;
-        }
-        .animate-twinkle-delay {
-          animation: twinkle-delay 2s ease-in-out infinite 0.5s;
-        }
-        .animate-flicker {
-          animation: flicker 1.5s ease-in-out infinite;
-        }
-        .animate-flicker-delay {
-          animation: flicker-delay 1.5s ease-in-out infinite 0.3s;
-        }
-        .animate-shimmer {
-          animation: shimmer 3s linear infinite;
-        }
-        .animate-spin-slow {
-          animation: spin-slow 4s linear infinite;
-        }
-        .animate-spin-slow-delay {
-          animation: spin-slow-delay 4s linear infinite;
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-        .animate-pulse-fast {
-          animation: pulse-fast 1s ease-in-out infinite;
-        }
-        .animate-glow {
-          animation: glow 1.5s ease-in-out infinite;
-        }
-        .animate-bounce-delay {
-          animation: bounce-delay 1s ease-in-out infinite 0.2s;
-        }
-      `}</style>
     </div>
   )
 }

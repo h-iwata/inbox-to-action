@@ -1,8 +1,9 @@
 export type Category = 'work' | 'life' | 'study' | 'hobby' | 'inbox'
 export type TaskStatus = 'active' | 'done'
+export type UUID = `${string}-${string}-${string}-${string}-${string}`
 
 export interface Task {
-  id: string
+  id: UUID
   title: string
   category: Category
   created_at: string
