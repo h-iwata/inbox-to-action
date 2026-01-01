@@ -6,7 +6,6 @@ import {
   deleteTask,
   selectTasksByCategory,
   selectTopTasksByCategory,
-  changeCategory,
   reorderTasksInCategory,
   toggleExecuting,
 } from '../../store/slices/tasksSlice'
@@ -239,7 +238,6 @@ export const ListMode: React.FC = () => {
                         task={task}
                         index={index}
                         category={category.id}
-                        onSwipeLeft={taskId => dispatch(changeCategory({ taskId, newCategory: 'inbox' }))}
                         onSwipeRight={t => setDeleteConfirm({ taskId: t.id, title: t.title })}
                         onTap={handleMoveToTop}
                       />

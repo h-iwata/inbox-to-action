@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { motion } from 'framer-motion'
 import { Inbox, Trash2, Play, Target } from 'lucide-react'
+import { changeCategory } from '../../store/slices/tasksSlice'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -19,7 +21,6 @@ interface SwipeableTaskCardProps {
   task: Task
   index: number
   category: Category
-  onSwipeLeft: (taskId: string) => void
   onSwipeRight: (task: Task) => void
   onTap: (task: Task, category: Category, index: number) => void
 }
@@ -28,10 +29,10 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
   task,
   index,
   category,
-  onSwipeLeft,
   onSwipeRight,
   onTap,
 }) => {
+  const dispatch = useDispatch()
   const [swipeState, setSwipeState] = useState<SwipeState>(initialSwipeState)
   const [isSwiping, setIsSwiping] = useState(false)
 
@@ -72,7 +73,8 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
 
     if (swipeDistance > 60 && swipeState.direction) {
       if (swipeState.direction === 'left') {
-        onSwipeLeft(task.id)
+        // Inboxへ戻す
+        dispatch(changeCategory({ taskId: task.id, newCategory: 'inbox' }))
       } else if (swipeState.direction === 'right') {
         onSwipeRight(task)
       }
