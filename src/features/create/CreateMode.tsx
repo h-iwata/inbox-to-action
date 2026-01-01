@@ -71,10 +71,6 @@ export const CreateMode: React.FC = () => {
     }
   }, [tasks.length])
 
-  const handleDelete = (id: string) => {
-    dispatch(deleteTask(id))
-  }
-
   const isEmpty = tasks.length === 0
 
   return (
@@ -170,7 +166,7 @@ export const CreateMode: React.FC = () => {
                   task={task}
                   variant="create"
                   isTop={index === 0}
-                  onDelete={handleDelete}
+                  onDelete={id => dispatch(deleteTask(id))}
                 />
               </div>
             ))}
@@ -229,35 +225,6 @@ export const CreateMode: React.FC = () => {
         </>
       )}
 
-      <style>{`
-        @keyframes slide-in {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out forwards;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #374151;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #4b5563;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #6b7280;
-        }
-      `}</style>
     </div>
   )
 }

@@ -24,6 +24,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import type { Category } from '../../types'
+import './ClassifyMode.css'
 
 export const ClassifyMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -705,61 +706,6 @@ export const ClassifyMode: React.FC = () => {
         </div>
       )}
 
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.1s ease-out;
-        }
-        
-        @keyframes fly-up {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-60vh) scale(0.7); opacity: 0; }
-        }
-        @keyframes fly-down {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(60vh) scale(0.7); opacity: 0; }
-        }
-        @keyframes fly-left {
-          0% { transform: translateX(0) scale(1); opacity: 1; }
-          100% { transform: translateX(-60vw) scale(0.7); opacity: 0; }
-        }
-        @keyframes fly-right {
-          0% { transform: translateX(0) scale(1); opacity: 1; }
-          100% { transform: translateX(60vw) scale(0.7); opacity: 0; }
-        }
-        
-        @keyframes slide-up-fade-in {
-          0% { transform: translateY(20px) scale(0.95); opacity: 0; }
-          100% { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        
-        @keyframes success-bounce {
-          0%, 100% { transform: scale(0); opacity: 0; }
-          50% { transform: scale(1.2); opacity: 1; }
-        }
-        
-        @keyframes particle {
-          0% { 
-            transform: translateY(0) scale(1); 
-            opacity: 1; 
-          }
-          100% { 
-            transform: translateY(-100px) scale(0); 
-            opacity: 0; 
-          }
-        }
-        
-        .animate-fly-up { animation: fly-up 0.15s ease-out forwards; }
-        .animate-fly-down { animation: fly-down 0.15s ease-out forwards; }
-        .animate-fly-left { animation: fly-left 0.15s ease-out forwards; }
-        .animate-fly-right { animation: fly-right 0.15s ease-out forwards; }
-        .animate-slide-up-fade-in { animation: slide-up-fade-in 0.2s ease-out; }
-        .animate-success-bounce { animation: success-bounce 0.2s ease-out; }
-        .animate-particle { animation: particle 0.3s ease-out forwards; }
-      `}</style>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { selectTodayCompletedByCategory } from '../../store/slices/tasksSlice'
 import { categoryIcons } from '../../config/icons'
 import { BarChart3, Sparkles, Flame, Zap, Star } from 'lucide-react'
 import { trackLevelUp } from '../../utils/analytics'
+import './CategoryCompletionBar.css'
 
 const messages = {
   balanced: [
@@ -388,94 +389,6 @@ export const CategoryCompletionBar: React.FC = () => {
         {level >= 5 && ' 🔥'}
       </div>
 
-      {/* カスタムアニメーション */}
-      <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-        @keyframes twinkle-delay {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-        @keyframes flicker {
-          0%, 100% { opacity: 0.8; transform: translateY(0); }
-          25% { opacity: 1; transform: translateY(-2px); }
-          75% { opacity: 0.6; transform: translateY(1px); }
-        }
-        @keyframes flicker-delay {
-          0%, 100% { opacity: 0.6; transform: translateY(0); }
-          25% { opacity: 0.8; transform: translateY(1px); }
-          75% { opacity: 1; transform: translateY(-2px); }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes spin-slow-delay {
-          from { transform: rotate(180deg); }
-          to { transform: rotate(540deg); }
-        }
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-        @keyframes pulse-fast {
-          0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(1.1); }
-        }
-        @keyframes glow {
-          0%, 100% { 
-            transform: scaleY(1);
-            filter: brightness(1);
-          }
-          50% { 
-            transform: scaleY(1.15);
-            filter: brightness(1.2);
-          }
-        }
-        @keyframes bounce-delay {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
-        }
-        .animate-twinkle {
-          animation: twinkle 2s ease-in-out infinite;
-        }
-        .animate-twinkle-delay {
-          animation: twinkle-delay 2s ease-in-out infinite 0.5s;
-        }
-        .animate-flicker {
-          animation: flicker 1.5s ease-in-out infinite;
-        }
-        .animate-flicker-delay {
-          animation: flicker-delay 1.5s ease-in-out infinite 0.3s;
-        }
-        .animate-shimmer {
-          animation: shimmer 3s linear infinite;
-        }
-        .animate-spin-slow {
-          animation: spin-slow 4s linear infinite;
-        }
-        .animate-spin-slow-delay {
-          animation: spin-slow-delay 4s linear infinite;
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-        .animate-pulse-fast {
-          animation: pulse-fast 1s ease-in-out infinite;
-        }
-        .animate-glow {
-          animation: glow 1.5s ease-in-out infinite;
-        }
-        .animate-bounce-delay {
-          animation: bounce-delay 1s ease-in-out infinite 0.2s;
-        }
-      `}</style>
     </div>
   )
 }
