@@ -332,6 +332,13 @@ export const selectInboxTasks = createSelector([selectTasksState], tasks => task
 export const selectTasksByCategory = (category: Category) =>
   createSelector([selectTasksState], tasks => tasks.lists[category])
 
+export const selectTasksGroupedByCategory = createSelector([selectTasksState], tasks => ({
+  work: tasks.lists.work,
+  life: tasks.lists.life,
+  study: tasks.lists.study,
+  hobby: tasks.lists.hobby,
+}))
+
 export const selectTopTasksByCategory = createSelector([selectTasksState], tasks => {
   const categories: Category[] = ['work', 'study', 'life', 'hobby']
   return categories.map(category => tasks.lists[category][0]).filter((task): task is Task => Boolean(task))

@@ -4,7 +4,7 @@ import type { RootState } from '../../store'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   deleteTask,
-  selectTasksByCategory,
+  selectTasksGroupedByCategory,
   selectTopTasksByCategory,
   moveTaskToTop,
   toggleExecuting,
@@ -27,8 +27,10 @@ export const ListMode: React.FC = () => {
   // 削除対象のタスク
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
 
+  type ListCategory = Exclude<Category, 'inbox'>
+
   const categories: {
-    id: Category
+    id: ListCategory
     label: string
     icon: React.ComponentType<{ className?: string }>
     gradient: string
@@ -65,63 +67,35 @@ export const ListMode: React.FC = () => {
 
   // スクロール処理
   useEffect(() => {
-    if (scrollToCategory && categoryRefs.current[scrollToCategory]) {
-      // 少し遅延を入れてDOMの描画完了を待つ
-      setTimeout(() => {
-        const element = categoryRefs.current[scrollToCategory]
-        if (element) {
-          // カテゴリヘッダーが画面上部から少し余裕を持って表示されるように調整
-          const yOffset = -80 // ヘッダーの上に80pxの余白を確保
-          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
+    const element = scrollToCategory ? categoryRefs.current[scrollToCategory] : null
+    if (!element) return
 
-          window.scrollTo({
-            top: y,
-            behavior: 'smooth',
-          })
-        }
-        // スクロール後にクリア
-        dispatch(clearScrollToCategory())
-      }, 100)
-    }
+    // 少し遅延を入れてDOMの描画完了を待つ
+    setTimeout(() => {
+      const y = element.getBoundingClientRect().top + window.pageYOffset - 80
+      window.scrollTo({ top: y, behavior: 'smooth' })
+      dispatch(clearScrollToCategory())
+    }, 100)
   }, [scrollToCategory, dispatch])
 
-  // カテゴリごとのタスクセレクター
-  const workTasks = useSelector(selectTasksByCategory('work'))
-  const lifeTasks = useSelector(selectTasksByCategory('life'))
-  const studyTasks = useSelector(selectTasksByCategory('study'))
-  const hobbyTasks = useSelector(selectTasksByCategory('hobby'))
-
-  const tasksSelector = {
-    work: workTasks,
-    life: lifeTasks,
-    study: studyTasks,
-    hobby: hobbyTasks,
-    inbox: [] as Task[],
-  }
+  // カテゴリごとのタスク
+  const tasksByCategory = useSelector(selectTasksGroupedByCategory)
 
   // 削除確認後の処理
   const handleConfirmDelete = () => {
-    if (taskToDelete) {
-      dispatch(deleteTask(taskToDelete.id))
-      setTaskToDelete(null)
-    }
+    dispatch(deleteTask(taskToDelete!.id))
+    setTaskToDelete(null)
   }
 
   // カテゴリヘッダーをタップして実行中カテゴリを切り替え
-  const handleCategoryHeaderClick = (category: Category) => {
-    // 該当カテゴリの最上位タスクを取得
-    const topTask = tasksSelector[category][0]
+  const handleCategoryHeaderClick = (category: ListCategory) => {
+    const topTask = tasksByCategory[category][0]
+    if (!topTask) return
 
-    if (topTask) {
-      // バイブレーション（モバイルのみ）
-      if (navigator.vibrate) {
-        navigator.vibrate(15)
-      }
+    navigator.vibrate?.(15)
 
-      // 現在実行中でない場合は実行中に設定
-      if (!topTask.isExecuting) {
-        dispatch(toggleExecuting(topTask.id))
-      }
+    if (!topTask.isExecuting) {
+      dispatch(toggleExecuting(topTask.id))
     }
   }
 
@@ -129,27 +103,16 @@ export const ListMode: React.FC = () => {
   const handleMoveToTop = (task: Task, index: number) => {
     // すでに最上位（index=0）の場合は実行モードへ遷移
     if (index === 0) {
-      // バイブレーション（モバイルのみ）
-      if (navigator.vibrate) {
-        navigator.vibrate(20)
-      }
-
-      // タスクが実行中でない場合は実行中に設定
+      navigator.vibrate?.(20)
       if (!task.isExecuting) {
         dispatch(toggleExecuting(task.id))
       }
-
-      // 実行モードへ遷移
       dispatch(setMode('execute'))
       return
     }
 
-    // バイブレーション（モバイルのみ）
-    if (navigator.vibrate) {
-      navigator.vibrate(10)
-    }
-
     // 先頭に移動
+    navigator.vibrate?.(10)
     dispatch(
       moveTaskToTop({
         taskId: task.id,
@@ -166,7 +129,7 @@ export const ListMode: React.FC = () => {
       </div>
 
       {categories.map(category => {
-        const tasks = tasksSelector[category.id]
+        const tasks = tasksByCategory[category.id]
         const isExecuting = executingCategory === category.id
         const isEmpty = tasks.length === 0
 
