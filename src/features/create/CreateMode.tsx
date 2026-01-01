@@ -1,10 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  addTask,
-  deleteTask,
-  selectInboxTasks,
-} from '../../store/slices/tasksSlice'
+import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
 import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
@@ -54,24 +50,16 @@ export const CreateMode: React.FC = () => {
     }
   }
 
-  // Auto-focus input when component mounts or when all tasks are deleted
-  useEffect(() => {
-    if (tasks.length === 0) {
-      inputRef.current?.focus()
-    }
-  }, [tasks.length])
-
-  // タスクリストが表示された直後（最初のタスクが追加された時）にフォーカス
-  useEffect(() => {
-    if (tasks.length === 1) {
-      // 少し遅延を入れてDOMの更新を待つ
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 100)
-    }
-  }, [tasks.length])
-
   const isEmpty = tasks.length === 0
+
+  // タスクが0件または1件の時にinputにフォーカス（1件の時はDOM更新を待つ）
+  useEffect(() => {
+    if (isEmpty) {
+      inputRef.current?.focus()
+    } else if (tasks.length === 1) {
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [isEmpty, tasks.length])
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-240px)]">
@@ -120,9 +108,7 @@ export const CreateMode: React.FC = () => {
                 style={{ minHeight: '96px' }}
                 autoFocus
               />
-              <div className="absolute top-3 right-4 text-sm text-gray-500">
-                {inputValue.length}/100
-              </div>
+              <div className="absolute top-3 right-4 text-sm text-gray-500">{inputValue.length}/100</div>
               {inputValue && (
                 <button
                   type="submit"
@@ -162,12 +148,7 @@ export const CreateMode: React.FC = () => {
                   animationDelay: `${index * 50}ms`,
                 }}
               >
-                <TaskCard
-                  task={task}
-                  variant="create"
-                  isTop={index === 0}
-                  onDelete={id => dispatch(deleteTask(id))}
-                />
+                <TaskCard task={task} variant="create" isTop={index === 0} onDelete={id => dispatch(deleteTask(id))} />
               </div>
             ))}
             <div ref={tasksEndRef} />
@@ -205,9 +186,7 @@ export const CreateMode: React.FC = () => {
                 />
 
                 {/* 文字数カウンター */}
-                <div className="absolute top-1 right-2 text-xs text-gray-500">
-                  {inputValue.length}/100
-                </div>
+                <div className="absolute top-1 right-2 text-xs text-gray-500">{inputValue.length}/100</div>
 
                 {/* 送信ボタン */}
                 {inputValue && (
@@ -224,7 +203,6 @@ export const CreateMode: React.FC = () => {
           </div>
         </>
       )}
-
     </div>
   )
 }
