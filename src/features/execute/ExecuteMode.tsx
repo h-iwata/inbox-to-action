@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { completeTask, selectTopTasksByCategory, toggleExecuting, selectAllTasks } from '../../store/slices/tasksSlice'
+import {
+  completeTask,
+  selectTopTasksByCategory,
+  toggleExecuting,
+  selectTaskCountByCategory,
+  type ListCategory,
+} from '../../store/slices/tasksSlice'
 import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
 import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
 import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3, PenTool } from 'lucide-react'
-import type { Category } from '../../types'
 
 const categoryInfo = {
   work: {
@@ -39,7 +44,7 @@ const categoryInfo = {
 export const ExecuteMode: React.FC = () => {
   const dispatch = useDispatch()
   const topTasks = useSelector(selectTopTasksByCategory)
-  const allTasks = useSelector(selectAllTasks)
+  const taskCountByCategory = useSelector(selectTaskCountByCategory)
   const { isMobile, isDesktop } = useResponsive()
   const keyBindings = useSelector(selectKeyBindings)
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null)
@@ -49,16 +54,11 @@ export const ExecuteMode: React.FC = () => {
   const executingTask = topTasks.find(task => task.isExecuting === true)
 
   // 全カテゴリのタスクを準備（存在しないカテゴリも含む）
-  const categories: Category[] = ['work', 'life', 'study', 'hobby']
+  const categories: ListCategory[] = ['work', 'life', 'study', 'hobby']
   const categoryTasks = categories.map(cat => {
     const task = topTasks.find(t => t.category === cat)
     return { category: cat, task }
   })
-
-  // カテゴリごとのタスク数を計算
-  const getTaskCountByCategory = (category: Category) => {
-    return allTasks.filter(task => task.category === category && task.status === 'active').length
-  }
 
   const handleComplete = (taskId: string) => {
     setCompletingTaskId(taskId)
@@ -95,11 +95,11 @@ export const ExecuteMode: React.FC = () => {
       }
 
       // カテゴリ切り替え
-      const switchActions = [
-        { action: 'switchToWork' as const, category: 'work' as Category },
-        { action: 'switchToLife' as const, category: 'life' as Category },
-        { action: 'switchToStudy' as const, category: 'study' as Category },
-        { action: 'switchToHobby' as const, category: 'hobby' as Category },
+      const switchActions: { action: 'switchToWork' | 'switchToLife' | 'switchToStudy' | 'switchToHobby'; category: ListCategory }[] = [
+        { action: 'switchToWork', category: 'work' },
+        { action: 'switchToLife', category: 'life' },
+        { action: 'switchToStudy', category: 'study' },
+        { action: 'switchToHobby', category: 'hobby' },
       ]
 
       for (const { action, category } of switchActions) {
@@ -168,8 +168,9 @@ export const ExecuteMode: React.FC = () => {
 
           <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {topTasks.map(task => {
-              const info = categoryInfo[task.category as keyof typeof categoryInfo]
-              const taskCount = getTaskCountByCategory(task.category as Category)
+              const category = task.category as ListCategory
+              const info = categoryInfo[category]
+              const taskCount = taskCountByCategory[category]
 
               return (
                 <button
@@ -247,8 +248,9 @@ export const ExecuteMode: React.FC = () => {
     )
   }
 
-  const executingInfo = categoryInfo[executingTask.category as keyof typeof categoryInfo]
-  const executingTaskCount = getTaskCountByCategory(executingTask.category as Category)
+  const executingCategory = executingTask.category as ListCategory
+  const executingInfo = categoryInfo[executingCategory]
+  const executingTaskCount = taskCountByCategory[executingCategory]
   const isCompleting = completingTaskId === executingTask.id
 
   return (
@@ -306,7 +308,7 @@ export const ExecuteMode: React.FC = () => {
                     dispatch(
                       setModeWithScroll({
                         mode: 'list',
-                        scrollToCategory: executingTask.category as Category,
+                        scrollToCategory: executingCategory,
                       })
                     )
                   }
@@ -372,8 +374,8 @@ export const ExecuteMode: React.FC = () => {
 
         <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
           {categoryTasks.map(({ category, task }, index) => {
-            const info = categoryInfo[category as keyof typeof categoryInfo]
-            const taskCount = getTaskCountByCategory(category)
+            const info = categoryInfo[category]
+            const taskCount = taskCountByCategory[category]
             const isExecuting = task?.isExecuting === true
             const isSwitching = task && switchingToTaskId === task.id
             const hasTask = !!task

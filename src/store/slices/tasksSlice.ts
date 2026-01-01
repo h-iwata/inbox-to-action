@@ -8,6 +8,10 @@ import type { RehydrateAction } from 'redux-persist'
 
 const CATEGORY_LIST: Category[] = ['inbox', 'work', 'life', 'study', 'hobby']
 
+// inbox以外のカテゴリ用の型
+export type ListCategory = Exclude<Category, 'inbox'>
+export type CategoryRecord<T> = Record<ListCategory, T>
+
 const createEmptyLists = (): Record<Category, Task[]> => ({
   inbox: [],
   work: [],
@@ -332,38 +336,54 @@ export const selectInboxTasks = createSelector([selectTasksState], tasks => task
 export const selectTasksByCategory = (category: Category) =>
   createSelector([selectTasksState], tasks => tasks.lists[category])
 
-export const selectTasksGroupedByCategory = createSelector([selectTasksState], tasks => ({
-  work: tasks.lists.work,
-  life: tasks.lists.life,
-  study: tasks.lists.study,
-  hobby: tasks.lists.hobby,
-}))
+export const selectTasksGroupedByCategory = createSelector(
+  [selectTasksState],
+  (tasks): CategoryRecord<Task[]> => ({
+    work: tasks.lists.work,
+    life: tasks.lists.life,
+    study: tasks.lists.study,
+    hobby: tasks.lists.hobby,
+  })
+)
 
 export const selectTopTasksByCategory = createSelector([selectTasksState], tasks => {
-  const categories: Category[] = ['work', 'study', 'life', 'hobby']
+  const categories: ListCategory[] = ['work', 'study', 'life', 'hobby']
   return categories.map(category => tasks.lists[category][0]).filter((task): task is Task => Boolean(task))
 })
 
-export const selectTodayCompletedByCategory = createSelector([selectTasksState], tasks => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const byCategory = {
-    work: 0,
-    life: 0,
-    study: 0,
-    hobby: 0,
-  }
-
-  tasks.completed.forEach(task => {
-    const completedDate = new Date(task.updated_at)
-    completedDate.setHours(0, 0, 0, 0)
-    if (completedDate.getTime() === today.getTime() && task.category !== 'inbox' && task.category in byCategory) {
-      byCategory[task.category as keyof typeof byCategory]++
-    }
+export const selectTaskCountByCategory = createSelector(
+  [selectTasksState],
+  (tasks): CategoryRecord<number> => ({
+    work: tasks.lists.work.length,
+    life: tasks.lists.life.length,
+    study: tasks.lists.study.length,
+    hobby: tasks.lists.hobby.length,
   })
+)
 
-  return byCategory
-})
+export const selectTodayCompletedByCategory = createSelector(
+  [selectTasksState],
+  (tasks): CategoryRecord<number> => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const byCategory: CategoryRecord<number> = {
+      work: 0,
+      life: 0,
+      study: 0,
+      hobby: 0,
+    }
+
+    tasks.completed.forEach(task => {
+      const completedDate = new Date(task.updated_at)
+      completedDate.setHours(0, 0, 0, 0)
+      if (completedDate.getTime() === today.getTime() && task.category !== 'inbox' && task.category in byCategory) {
+        byCategory[task.category as ListCategory]++
+      }
+    })
+
+    return byCategory
+  }
+)
 
 export default tasksSlice.reducer
