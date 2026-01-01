@@ -107,59 +107,6 @@ export const ClassifyMode: React.FC = () => {
     setDragDirection('center')
   }
 
-  // 操作中（ドラッグ）
-  const handleOperationMove = (e: MouseEvent | TouchEvent) => {
-    if (!isOperating) return
-
-    // タッチイベントの場合、プルダウン更新を防ぐ
-    if ('touches' in e) {
-      e.preventDefault()
-    }
-
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-
-    setCurrentPosition({ x: clientX, y: clientY })
-
-    const deltaX = clientX - startPosition.current.x
-    const deltaY = clientY - startPosition.current.y
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-    // 方向判定のしきい値を大きくして、明確な方向のみ判定
-    if (distance > 80) {
-      // より明確な方向判定（45度の範囲で判定）
-      const angle = Math.atan2(deltaY, deltaX)
-      const degrees = angle * (180 / Math.PI)
-
-      // 各方向の判定範囲（45度ずつ）
-      if (degrees >= -135 && degrees < -45) {
-        setDragDirection('up')
-      } else if (degrees >= -45 && degrees < 45) {
-        setDragDirection('right')
-      } else if (degrees >= 45 && degrees < 135) {
-        setDragDirection('down')
-      } else {
-        setDragDirection('left')
-      }
-    } else {
-      // しきい値未満はすべてキャンセル扱い
-      setDragDirection('center')
-    }
-  }
-
-  // 操作終了（ドロップ）
-  const handleOperationEnd = () => {
-    if (!isOperating || !currentTask) return
-
-    // 方向に基づいてアクション（centerやnullの場合はキャンセル）
-    if (dragDirection && dragDirection !== 'center') {
-      handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
-    } else {
-      // center または null の場合はすべてキャンセル
-      resetOperation()
-    }
-  }
-
   // キーボードショートカット
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -203,6 +150,51 @@ export const ClassifyMode: React.FC = () => {
   useEffect(() => {
     if (!isOperating) return
 
+    const handleOperationMove = (e: MouseEvent | TouchEvent) => {
+      // タッチイベントの場合、プルダウン更新を防ぐ
+      if ('touches' in e) {
+        e.preventDefault()
+      }
+
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+      setCurrentPosition({ x: clientX, y: clientY })
+
+      const deltaX = clientX - startPosition.current.x
+      const deltaY = clientY - startPosition.current.y
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+      // 方向判定のしきい値を大きくして、明確な方向のみ判定
+      if (distance > 80) {
+        // より明確な方向判定（45度の範囲で判定）
+        const angle = Math.atan2(deltaY, deltaX)
+        const degrees = angle * (180 / Math.PI)
+
+        // 各方向の判定範囲（45度ずつ）
+        if (degrees >= -135 && degrees < -45) {
+          setDragDirection('up')
+        } else if (degrees >= -45 && degrees < 45) {
+          setDragDirection('right')
+        } else if (degrees >= 45 && degrees < 135) {
+          setDragDirection('down')
+        } else {
+          setDragDirection('left')
+        }
+      } else {
+        // しきい値未満はすべてキャンセル扱い
+        setDragDirection('center')
+      }
+    }
+
+    const handleOperationEnd = () => {
+      if (!dragDirection || dragDirection === 'center') {
+        resetOperation()
+        return
+      }
+      handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
+    }
+
     const handleTouchCancel = () => resetOperation()
 
     if (isMobile) {
@@ -222,7 +214,7 @@ export const ClassifyMode: React.FC = () => {
       window.removeEventListener('mousemove', handleOperationMove)
       window.removeEventListener('mouseup', handleOperationEnd)
     }
-  }, [isOperating, dragDirection, currentTask, isMobile])
+  }, [isOperating, dragDirection, isMobile])
 
   if (!currentTask) {
     return (
