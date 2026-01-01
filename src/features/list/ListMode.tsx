@@ -13,15 +13,9 @@ import {
 import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
 import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import { Flame, Trash2, Inbox, Target, Play, RefreshCw, PenTool } from 'lucide-react'
+import { SwipeableTaskCard } from './SwipeableTaskCard'
+import { Flame, Trash2, RefreshCw, PenTool } from 'lucide-react'
 import type { Category, Task } from '../../types'
-
-interface SwipeState {
-  taskId: string | null
-  startX: number
-  currentX: number
-  direction: 'left' | 'right' | null
-}
 
 export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -30,14 +24,6 @@ export const ListMode: React.FC = () => {
 
   // 実行中のカテゴリを特定
   const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
-
-  // スワイプ用の状態
-  const [swipeState, setSwipeState] = useState<SwipeState>({
-    taskId: null,
-    startX: 0,
-    currentX: 0,
-    direction: null,
-  })
 
   // 削除確認モーダルの状態
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -117,73 +103,6 @@ export const ListMode: React.FC = () => {
     inbox: [] as Task[],
   }
 
-  // タッチ/マウス開始（スワイプ用）
-  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent, task: Task) => {
-    if ('touches' in e) {
-      const touch = e.touches[0]
-      setSwipeState({
-        taskId: task.id,
-        startX: touch.clientX,
-        currentX: touch.clientX,
-        direction: null,
-      })
-    } else {
-      setSwipeState({
-        taskId: task.id,
-        startX: e.clientX,
-        currentX: e.clientX,
-        direction: null,
-      })
-    }
-  }
-
-  // タッチ/マウス移動
-  const handleMove = (e: React.TouchEvent | React.MouseEvent, taskId: string) => {
-    if (!swipeState.taskId || swipeState.taskId !== taskId) return
-
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const deltaX = clientX - swipeState.startX
-
-    // より小さい閾値でスワイプを検出
-    if (Math.abs(deltaX) > 5) {
-      setSwipeState(prev => ({
-        ...prev,
-        currentX: clientX,
-        direction: deltaX > 0 ? 'right' : 'left',
-      }))
-    }
-  }
-
-  // タッチ/マウス終了
-  const handleEnd = (task: Task) => {
-    if (swipeState.taskId && swipeState.direction) {
-      const swipeDistance = Math.abs(swipeState.currentX - swipeState.startX)
-
-      if (swipeDistance > 60) {
-        if (swipeState.direction === 'left') {
-          // Inboxへ戻す
-          dispatch(
-            changeCategory({
-              taskId: swipeState.taskId,
-              newCategory: 'inbox' as Category,
-            })
-          )
-        } else if (swipeState.direction === 'right') {
-          // 削除確認モーダルを表示
-          setDeleteConfirm({ taskId: swipeState.taskId, title: task.title })
-        }
-      }
-    }
-
-    // リセット
-    setSwipeState({
-      taskId: null,
-      startX: 0,
-      currentX: 0,
-      direction: null,
-    })
-  }
-
   // 削除確認後の処理
   const handleConfirmDelete = () => {
     if (deleteConfirm) {
@@ -241,151 +160,6 @@ export const ListMode: React.FC = () => {
         newPosition: 1,
         category: category,
       })
-    )
-  }
-
-  const renderTask = (task: Task, index: number, category: Category) => {
-    const isSwipingLeft = swipeState.taskId === task.id && swipeState.direction === 'left'
-    const isSwipingRight = swipeState.taskId === task.id && swipeState.direction === 'right'
-
-    // スワイプ距離を計算（最大80px）
-    let swipeOffset = 0
-    if (swipeState.taskId === task.id && swipeState.currentX !== 0) {
-      const rawOffset = swipeState.currentX - swipeState.startX
-      swipeOffset = Math.max(-80, Math.min(80, rawOffset))
-    }
-
-    return (
-      <motion.div
-        key={task.id}
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{
-          layout: { duration: 0.2, ease: 'easeInOut' },
-          opacity: { duration: 0.15 },
-          y: { duration: 0.15 },
-        }}
-        className="relative"
-        style={{ overflow: 'hidden' }}
-      >
-        {/* スワイプ背景 */}
-        <div
-          className={`absolute inset-0 flex items-center ${
-            isSwipingLeft
-              ? 'bg-gradient-to-r from-violet-600 to-violet-500 justify-end pr-4'
-              : isSwipingRight
-                ? 'bg-gradient-to-l from-red-600 to-red-500 justify-start pl-4'
-                : 'hidden'
-          } rounded-xl`}
-          style={{
-            opacity: Math.abs(swipeOffset) / 80,
-            zIndex: 0,
-          }}
-        >
-          {isSwipingLeft ? (
-            <div className="flex items-center gap-2 text-white">
-              <span className="font-semibold text-sm">Inbox</span>
-              <Inbox className="w-5 h-5" />
-            </div>
-          ) : isSwipingRight ? (
-            <div className="flex items-center gap-2 text-white">
-              <Trash2 className="w-5 h-5" />
-              <span className="font-semibold text-sm">削除</span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* タスクカード */}
-        <div
-          className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors cursor-pointer ${
-            index === 0
-              ? 'bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80'
-              : swipeState.taskId === task.id && Math.abs(swipeOffset) > 10
-                ? 'bg-gray-800/60 border-gray-700/50'
-                : 'bg-gradient-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:shadow-xl'
-          }`}
-          style={{
-            transform: `translateX(${swipeOffset}px)`,
-            transition: swipeState.taskId === task.id ? 'none' : 'transform 0.2s ease-out',
-            position: 'relative',
-            zIndex: swipeState.taskId === task.id ? 10 : 1,
-          }}
-          onClick={() => {
-            // スワイプ中はクリックを無視
-            if (Math.abs(swipeOffset) < 10) {
-              handleMoveToTop(task, category, index)
-            }
-          }}
-          onTouchStart={e => {
-            e.stopPropagation()
-            handleTouchStart(e, task)
-          }}
-          onMouseDown={e => {
-            e.stopPropagation()
-            handleTouchStart(e, task)
-          }}
-          onTouchMove={e => {
-            e.stopPropagation()
-            handleMove(e, task.id)
-          }}
-          onMouseMove={e => {
-            if (swipeState.taskId === task.id) {
-              e.stopPropagation()
-              handleMove(e, task.id)
-            }
-          }}
-          onTouchEnd={e => {
-            e.stopPropagation()
-            handleEnd(task)
-          }}
-          onMouseUp={e => {
-            e.stopPropagation()
-            handleEnd(task)
-          }}
-          onMouseLeave={() => {
-            // マウスが離れた場合もリセット
-            if (swipeState.taskId === task.id) {
-              handleEnd(task)
-            }
-          }}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <p
-                className={`font-medium break-words whitespace-pre-wrap ${index === 0 ? 'text-orange-100 text-lg' : 'text-gray-100'}`}
-              >
-                {task.title}
-              </p>
-              {index === 0 && (
-                <div className="flex items-center gap-1 mt-1 opacity-70">
-                  <Play className="w-3 h-3 text-orange-400" />
-                  <span className="text-xs text-orange-400">タップで実行開始</span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {index === 0 && (
-                <motion.div
-                  className="bg-orange-400/20 p-1.5 rounded-full"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatType: 'loop',
-                  }}
-                >
-                  <Target className="w-4 h-4 text-orange-400" />
-                </motion.div>
-              )}
-              <div className={`text-sm font-semibold ${index === 0 ? 'text-orange-400' : 'text-gray-400'}`}>
-                #{index + 1}
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
     )
   }
 
@@ -458,7 +232,19 @@ export const ListMode: React.FC = () => {
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
-                  <div className="space-y-3">{tasks.map((task, index) => renderTask(task, index, category.id))}</div>
+                  <div className="space-y-3">
+                    {tasks.map((task, index) => (
+                      <SwipeableTaskCard
+                        key={task.id}
+                        task={task}
+                        index={index}
+                        category={category.id}
+                        onSwipeLeft={taskId => dispatch(changeCategory({ taskId, newCategory: 'inbox' }))}
+                        onSwipeRight={t => setDeleteConfirm({ taskId: t.id, title: t.title })}
+                        onTap={handleMoveToTop}
+                      />
+                    ))}
+                  </div>
                 </AnimatePresence>
               )}
             </div>
