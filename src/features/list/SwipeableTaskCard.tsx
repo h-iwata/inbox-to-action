@@ -21,7 +21,7 @@ interface SwipeableTaskCardProps {
   task: Task
   index: number
   category: Category
-  onSwipeRight: (task: Task) => void
+  onDelete: (task: Task) => void
   onTap: (task: Task, category: Category, index: number) => void
 }
 
@@ -29,7 +29,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
   task,
   index,
   category,
-  onSwipeRight,
+  onDelete,
   onTap,
 }) => {
   const dispatch = useDispatch()
@@ -76,7 +76,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
         // Inboxへ戻す
         dispatch(changeCategory({ taskId: task.id, newCategory: 'inbox' }))
       } else if (swipeState.direction === 'right') {
-        onSwipeRight(task)
+        onDelete(task)
       }
     }
 

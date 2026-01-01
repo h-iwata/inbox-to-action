@@ -24,11 +24,8 @@ export const ListMode: React.FC = () => {
   // 実行中のカテゴリを特定
   const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
 
-  // 削除確認モーダルの状態
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    taskId: string
-    title: string
-  } | null>(null)
+  // 削除対象のタスク
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
 
   const categories: {
     id: Category
@@ -104,9 +101,9 @@ export const ListMode: React.FC = () => {
 
   // 削除確認後の処理
   const handleConfirmDelete = () => {
-    if (deleteConfirm) {
-      dispatch(deleteTask(deleteConfirm.taskId))
-      setDeleteConfirm(null)
+    if (taskToDelete) {
+      dispatch(deleteTask(taskToDelete.id))
+      setTaskToDelete(null)
     }
   }
 
@@ -238,7 +235,7 @@ export const ListMode: React.FC = () => {
                         task={task}
                         index={index}
                         category={category.id}
-                        onSwipeRight={t => setDeleteConfirm({ taskId: t.id, title: t.title })}
+                        onDelete={setTaskToDelete}
                         onTap={handleMoveToTop}
                       />
                     ))}
@@ -252,7 +249,7 @@ export const ListMode: React.FC = () => {
 
       {/* 削除確認モーダル */}
       <AnimatePresence>
-        {deleteConfirm && (
+        {taskToDelete && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -272,12 +269,12 @@ export const ListMode: React.FC = () => {
                 <h3 className="text-lg font-bold text-gray-100">タスクを削除</h3>
               </div>
               <p className="text-gray-400 mb-6 text-sm break-words">
-                「{deleteConfirm.title}
+                「{taskToDelete.title}
                 」を削除します。この操作は取り消せません。
               </p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => setDeleteConfirm(null)}
+                  onClick={() => setTaskToDelete(null)}
                   className="flex-1 px-4 py-2.5 bg-gray-700 text-gray-300 rounded-xl hover:bg-gray-600 transition-all font-medium"
                 >
                   キャンセル
