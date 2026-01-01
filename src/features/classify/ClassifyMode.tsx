@@ -49,6 +49,11 @@ export const ClassifyMode: React.FC = () => {
   const [classifiedDirection, setClassifiedDirection] = useState<Direction | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
+  const resetOperation = () => {
+    setIsOperating(false)
+    setDragDirection(null)
+  }
+
   const handleClassify = (category: ClassifyCategory) => {
     if (!currentTask || isClassifying) return
 
@@ -65,8 +70,7 @@ export const ClassifyMode: React.FC = () => {
       setTimeout(() => {
         setIsClassifying(false)
         setClassifiedDirection(null)
-        setIsOperating(false)
-        setDragDirection(null)
+        resetOperation()
       }, 100)
     }, 150)
   }
@@ -152,8 +156,7 @@ export const ClassifyMode: React.FC = () => {
       handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
     } else {
       // center または null の場合はすべてキャンセル
-      setIsOperating(false)
-      setDragDirection(null)
+      resetOperation()
     }
   }
 
@@ -186,47 +189,38 @@ export const ClassifyMode: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [currentTask, isOperating, keyBindings])
 
+  // モバイルでのプルダウン更新を防ぐ
+  useEffect(() => {
+    if (!isMobile) return
+
+    const preventPullToRefresh = (e: TouchEvent) => e.preventDefault()
+    document.addEventListener('touchmove', preventPullToRefresh, { passive: false })
+
+    return () => document.removeEventListener('touchmove', preventPullToRefresh)
+  }, [isMobile])
+
   // グローバルイベントリスナー
   useEffect(() => {
-    const handleMove = (e: MouseEvent | TouchEvent) => handleOperationMove(e)
-    const handleEnd = () => handleOperationEnd()
-    const handleTouchCancel = () => {
-      // タッチがキャンセルされた場合もリセット
-      setIsOperating(false)
-      setDragDirection(null)
-    }
+    if (!isOperating) return
 
-    // ジェスチャー操作中のみプルダウン更新を防ぐ
-    const preventPullToRefresh = (e: TouchEvent) => {
-      // 操作中のみプルダウンを防ぐ
-      if (isOperating) {
-        e.preventDefault()
+    const handleTouchCancel = () => resetOperation()
+
+    if (isMobile) {
+      window.addEventListener('touchmove', handleOperationMove, { passive: false })
+      window.addEventListener('touchend', handleOperationEnd)
+      window.addEventListener('touchcancel', handleTouchCancel)
+      return () => {
+        window.removeEventListener('touchmove', handleOperationMove)
+        window.removeEventListener('touchend', handleOperationEnd)
+        window.removeEventListener('touchcancel', handleTouchCancel)
       }
     }
 
-    if (isOperating) {
-      if (isMobile) {
-        window.addEventListener('touchmove', handleMove, { passive: false })
-        window.addEventListener('touchend', handleEnd)
-        window.addEventListener('touchcancel', handleTouchCancel)
-      } else {
-        window.addEventListener('mousemove', handleMove)
-        window.addEventListener('mouseup', handleEnd)
-      }
-    }
-
-    // 分類モードがアクティブな間、プルダウン更新を防ぐ
-    document.addEventListener('touchmove', preventPullToRefresh, {
-      passive: false,
-    })
-
+    window.addEventListener('mousemove', handleOperationMove)
+    window.addEventListener('mouseup', handleOperationEnd)
     return () => {
-      window.removeEventListener('touchmove', handleMove)
-      window.removeEventListener('touchend', handleEnd)
-      window.removeEventListener('touchcancel', handleTouchCancel)
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleEnd)
-      document.removeEventListener('touchmove', preventPullToRefresh)
+      window.removeEventListener('mousemove', handleOperationMove)
+      window.removeEventListener('mouseup', handleOperationEnd)
     }
   }, [isOperating, dragDirection, currentTask, isMobile])
 
