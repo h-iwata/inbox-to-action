@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
-import { TaskCard } from '../../components/TaskCard/TaskCard'
 import { categoryIcons } from '../../config/icons'
-import { Send, Inbox, Layers } from 'lucide-react'
+import { Send, Inbox, Layers, X } from 'lucide-react'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -148,7 +147,19 @@ export const CreateMode: React.FC = () => {
                   animationDelay: `${index * 50}ms`,
                 }}
               >
-                <TaskCard task={task} variant="create" isTop={index === 0} onDelete={id => dispatch(deleteTask(id))} />
+                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 p-4 rounded-xl hover:bg-gray-800/70 hover:border-gray-600 transition-all group">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">{task.title}</p>
+                    </div>
+                    <button
+                      onClick={() => dispatch(deleteTask(task.id))}
+                      className="text-gray-400 hover:text-red-400 transition-all p-1.5 rounded-lg bg-gray-700/50 hover:bg-red-900/30"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
             <div ref={tasksEndRef} />
