@@ -1,15 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  classifyTask,
-  selectInboxTasks,
-  selectTasksByCategory,
-} from '../../store/slices/tasksSlice'
+import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
-import {
-  selectKeyBindings,
-  matchesKey,
-} from '../../store/slices/keyBindingsSlice'
+import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
 import {
@@ -41,9 +34,7 @@ export const ClassifyMode: React.FC = () => {
 
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
-  const [dragDirection, setDragDirection] = useState<
-    'up' | 'down' | 'left' | 'right' | 'center' | null
-  >(null)
+  const [dragDirection, setDragDirection] = useState<'up' | 'down' | 'left' | 'right' | 'center' | null>(null)
   const startPosition = useRef({ x: 0, y: 0 })
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
@@ -51,15 +42,10 @@ export const ClassifyMode: React.FC = () => {
 
   // アニメーション用の状態
   const [isClassifying, setIsClassifying] = useState(false)
-  const [classifiedDirection, setClassifiedDirection] = useState<
-    'up' | 'down' | 'left' | 'right' | null
-  >(null)
+  const [classifiedDirection, setClassifiedDirection] = useState<'up' | 'down' | 'left' | 'right' | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const handleClassify = (
-    category: Category,
-    direction: 'up' | 'down' | 'left' | 'right'
-  ) => {
+  const handleClassify = (category: Category, direction: 'up' | 'down' | 'left' | 'right') => {
     if (currentTask && !isClassifying) {
       setIsClassifying(true)
       setClassifiedDirection(direction)
@@ -181,18 +167,18 @@ export const ClassifyMode: React.FC = () => {
       // Tabキーはモード切り替えに使うのでスキップ
       if (e.key === 'Tab') return
 
-      const key = e.key
+      const is = isKeyPressed(keyBindings, e.key)
 
-      if (matchesKey(keyBindings, 'classifyStudy', key)) {
+      if (is('classifyStudy')) {
         e.preventDefault()
         handleClassify('study', 'up')
-      } else if (matchesKey(keyBindings, 'classifyWork', key)) {
+      } else if (is('classifyWork')) {
         e.preventDefault()
         handleClassify('work', 'left')
-      } else if (matchesKey(keyBindings, 'classifyHobby', key)) {
+      } else if (is('classifyHobby')) {
         e.preventDefault()
         handleClassify('hobby', 'down')
-      } else if (matchesKey(keyBindings, 'classifyLife', key)) {
+      } else if (is('classifyLife')) {
         e.preventDefault()
         handleClassify('life', 'right')
       }
@@ -251,9 +237,7 @@ export const ClassifyMode: React.FC = () => {
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
           <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">
-            すべて分類完了！
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
           <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
             <button
               onClick={() => dispatch(setMode('list'))}
@@ -277,21 +261,14 @@ export const ClassifyMode: React.FC = () => {
   }
 
   // アニメーション用のクラスとスタイル
-  const getClassifyAnimation = () => {
-    if (!classifiedDirection) return ''
-    switch (classifiedDirection) {
-      case 'up':
-        return 'animate-fly-up'
-      case 'down':
-        return 'animate-fly-down'
-      case 'left':
-        return 'animate-fly-left'
-      case 'right':
-        return 'animate-fly-right'
-      default:
-        return ''
-    }
-  }
+  const animationMap = {
+    up: 'animate-fly-up',
+    down: 'animate-fly-down',
+    left: 'animate-fly-left',
+    right: 'animate-fly-right',
+  } as const
+
+  const getClassifyAnimation = () => (classifiedDirection ? animationMap[classifiedDirection] : '')
 
   const getClassifyStyle = () => {
     if (!classifiedDirection) return {}
@@ -324,10 +301,7 @@ export const ClassifyMode: React.FC = () => {
           {/* 次のタスクのプレビュー（スタック表現） */}
           {inboxTasks.length > 1 && (
             <div className="text-xs text-gray-500">
-              次:{' '}
-              {inboxTasks[1].title.length > 20
-                ? inboxTasks[1].title.substring(0, 20) + '...'
-                : inboxTasks[1].title}
+              次: {inboxTasks[1].title.length > 20 ? inboxTasks[1].title.substring(0, 20) + '...' : inboxTasks[1].title}
             </div>
           )}
         </div>
@@ -496,10 +470,7 @@ export const ClassifyMode: React.FC = () => {
 
             {/* ドラッグライン */}
             {dragDirection && dragDirection !== 'center' && (
-              <svg
-                className="absolute inset-0 pointer-events-none z-40"
-                style={{ width: '100%', height: '100%' }}
-              >
+              <svg className="absolute inset-0 pointer-events-none z-40" style={{ width: '100%', height: '100%' }}>
                 <line
                   x1={startPosition.current.x}
                   y1={startPosition.current.y}
@@ -567,31 +538,27 @@ export const ClassifyMode: React.FC = () => {
         )}
 
         {/* 中央のタスクカードスタック */}
-        <div
-          className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}
-        >
+        <div className={`relative ${!isClassifying && currentTask ? 'animate-slide-up-fade-in' : ''}`}>
           {/* 背後のカード（スタック表現） */}
           <div className="absolute inset-0 flex items-center justify-center">
-            {inboxTasks
-              .slice(1, Math.min(4, inboxTasks.length))
-              .map((task, index) => (
-                <div
-                  key={task.id}
-                  className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
-                  style={{
-                    width: isMobile ? '180px' : '320px',
-                    height: isMobile ? '100px' : '180px',
-                    transform: `
+            {inboxTasks.slice(1, Math.min(4, inboxTasks.length)).map((task, index) => (
+              <div
+                key={task.id}
+                className="absolute bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl border border-gray-600/30 shadow-lg"
+                style={{
+                  width: isMobile ? '180px' : '320px',
+                  height: isMobile ? '100px' : '180px',
+                  transform: `
                     translateY(${(index + 1) * 4}px) 
                     translateX(${(index + 1) * 2}px)
                     rotate(${index % 2 === 0 ? 1 : -1}deg)
                     scale(${1 - (index + 1) * 0.05})
                   `,
-                    zIndex: -index - 1,
-                    opacity: 0.3 - index * 0.1,
-                  }}
-                />
-              ))}
+                  zIndex: -index - 1,
+                  opacity: 0.3 - index * 0.1,
+                }}
+              />
+            ))}
           </div>
 
           {/* メインのタスクカード */}
@@ -616,16 +583,12 @@ export const ClassifyMode: React.FC = () => {
               <Sparkles className="w-5 h-5 text-yellow-400/50 animate-pulse" />
             </div>
             <div className="absolute bottom-3 left-3">
-              <div className="text-xs text-violet-300/50 font-mono">
-                #{currentTask.id.slice(-4)}
-              </div>
+              <div className="text-xs text-violet-300/50 font-mono">#{currentTask.id.slice(-4)}</div>
             </div>
 
             {/* タスク内容 */}
             <div className="text-center px-2 py-2 max-w-full overflow-hidden">
-              <h3
-                className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}
-              >
+              <h3 className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'} leading-relaxed`}>
                 <span className="block break-words">{currentTask.title}</span>
               </h3>
             </div>
@@ -644,9 +607,7 @@ export const ClassifyMode: React.FC = () => {
               className: 'w-4 h-4 text-sky-400',
             })}
             <span className="text-gray-400">仕事</span>
-            <span className="bg-sky-600/20 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">
-              {workTasks.length}
-            </span>
+            <span className="bg-sky-600/20 text-sky-400 px-1.5 py-0.5 rounded-full font-bold">{workTasks.length}</span>
           </div>
           <div className="flex items-center gap-1.5">
             {React.createElement(categoryIcons.life.icon, {
@@ -705,7 +666,6 @@ export const ClassifyMode: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   )
 }

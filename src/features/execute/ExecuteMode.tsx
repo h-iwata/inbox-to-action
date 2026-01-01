@@ -7,10 +7,7 @@ import {
   selectAllTasks,
 } from '../../store/slices/tasksSlice'
 import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
-import {
-  selectKeyBindings,
-  matchesKey,
-} from '../../store/slices/keyBindingsSlice'
+import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
@@ -106,14 +103,10 @@ export const ExecuteMode: React.FC = () => {
     if (!isDesktop) return
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      const key = e.key
+      const is = isKeyPressed(keyBindings, e.key)
 
       // 実行中タスクの完了（スペースキー）
-      if (
-        matchesKey(keyBindings, 'completeTask', key) &&
-        executingTask &&
-        !completingTaskId
-      ) {
+      if (is('completeTask') && executingTask && !completingTaskId) {
         e.preventDefault()
         handleComplete(executingTask.id)
         return
@@ -128,7 +121,7 @@ export const ExecuteMode: React.FC = () => {
       ]
 
       for (const { action, category } of switchActions) {
-        if (matchesKey(keyBindings, action, key)) {
+        if (is(action)) {
           const targetTask = topTasks.find(t => t.category === category)
           if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
             handleSwitchExecution(targetTask.id)

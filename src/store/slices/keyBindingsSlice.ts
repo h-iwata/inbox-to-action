@@ -62,11 +62,6 @@ export default keyBindingsSlice.reducer
 export const selectKeyBindings = (state: { keyBindings: KeyBindingsState }) =>
   state.keyBindings.bindings
 
-// キーがアクションにマッチするかチェック
-export const matchesKey = (
-  bindings: Record<KeyAction, string[]>,
-  action: KeyAction,
-  key: string
-): boolean => {
-  return bindings[action].includes(key)
-}
+// 押されたキーに対応するアクションか判定する関数を返す
+export const isKeyPressed = (bindings: Record<KeyAction, string[]>, key: string) => (action: KeyAction) =>
+  bindings[action].includes(key)
