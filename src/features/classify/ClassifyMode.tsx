@@ -80,23 +80,14 @@ export const ClassifyMode: React.FC = () => {
   const handleOperationStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!currentTask) return
 
-    // タッチイベントの場合のみ処理（クリックは別途処理）
-    if ('touches' in e) {
-      // プルダウン更新を防ぐ
-      e.preventDefault()
+    const isTouchEvent = 'touches' in e
+    if (isTouchEvent) e.preventDefault()
 
-      setIsOperating(true)
-      setCurrentPosition({ x: e.touches[0].clientX, y: e.touches[0].clientY })
-      setDragDirection('center')
-    }
-  }
-
-  // マウスダウン（PC版のみ）
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!currentTask || isMobile) return
+    const clientX = isTouchEvent ? e.touches[0].clientX : e.clientX
+    const clientY = isTouchEvent ? e.touches[0].clientY : e.clientY
 
     setIsOperating(true)
-    setCurrentPosition({ x: e.clientX, y: e.clientY })
+    setCurrentPosition({ x: clientX, y: clientY })
     setDragDirection('center')
   }
 
@@ -577,7 +568,7 @@ export const ClassifyMode: React.FC = () => {
               ${isClassifying ? getClassifyAnimation() : ''}
             `}
             style={isClassifying ? getClassifyStyle() : {}}
-            onMouseDown={handleMouseDown}
+            onMouseDown={handleOperationStart}
             onTouchStart={handleOperationStart}
           >
             {/* カードデザイン */}
