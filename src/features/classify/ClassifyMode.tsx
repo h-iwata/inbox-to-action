@@ -6,6 +6,10 @@ import {
   selectTasksByCategory,
 } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
+import {
+  selectKeyBindings,
+  matchesKey,
+} from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons, actionIcons } from '../../config/icons'
 import {
@@ -26,6 +30,7 @@ export const ClassifyMode: React.FC = () => {
   const inboxTasks = useSelector(selectInboxTasks)
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
+  const keyBindings = useSelector(selectKeyBindings)
 
   // カテゴリ別のタスク数を取得
   const workTasks = useSelector(selectTasksByCategory('work'))
@@ -175,33 +180,26 @@ export const ClassifyMode: React.FC = () => {
       // Tabキーはモード切り替えに使うのでスキップ
       if (e.key === 'Tab') return
 
-      switch (e.key.toLowerCase()) {
-        case 'w':
-        case 'arrowup':
-          e.preventDefault()
-          handleClassify('study', 'up')
-          break
-        case 'a':
-        case 'arrowleft':
-          e.preventDefault()
-          handleClassify('work', 'left')
-          break
-        case 's':
-        case 'arrowdown':
-          e.preventDefault()
-          handleClassify('hobby', 'down')
-          break
-        case 'd':
-        case 'arrowright':
-          e.preventDefault()
-          handleClassify('life', 'right')
-          break
+      const key = e.key
+
+      if (matchesKey(keyBindings, 'classifyStudy', key)) {
+        e.preventDefault()
+        handleClassify('study', 'up')
+      } else if (matchesKey(keyBindings, 'classifyWork', key)) {
+        e.preventDefault()
+        handleClassify('work', 'left')
+      } else if (matchesKey(keyBindings, 'classifyHobby', key)) {
+        e.preventDefault()
+        handleClassify('hobby', 'down')
+      } else if (matchesKey(keyBindings, 'classifyLife', key)) {
+        e.preventDefault()
+        handleClassify('life', 'right')
       }
     }
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [currentTask, isOperating])
+  }, [currentTask, isOperating, keyBindings])
 
   // グローバルイベントリスナー
   useEffect(() => {

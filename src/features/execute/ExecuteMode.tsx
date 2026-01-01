@@ -7,6 +7,10 @@ import {
   selectAllTasks,
 } from '../../store/slices/tasksSlice'
 import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
+import {
+  selectKeyBindings,
+  matchesKey,
+} from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
 import { categoryIcons } from '../../config/icons'
 import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
@@ -54,6 +58,7 @@ export const ExecuteMode: React.FC = () => {
   const topTasks = useSelector(selectTopTasksByCategory)
   const allTasks = useSelector(selectAllTasks)
   const { isMobile, isDesktop } = useResponsive()
+  const keyBindings = useSelector(selectKeyBindings)
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null)
   const [switchingToTaskId, setSwitchingToTaskId] = useState<string | null>(
     null
@@ -101,27 +106,48 @@ export const ExecuteMode: React.FC = () => {
     if (!isDesktop) return
 
     const handleKeyPress = (e: KeyboardEvent) => {
+      const key = e.key
+
       // 実行中タスクの完了（スペースキー）
-      if (e.key === ' ' && executingTask && !completingTaskId) {
+      if (
+        matchesKey(keyBindings, 'completeTask', key) &&
+        executingTask &&
+        !completingTaskId
+      ) {
         e.preventDefault()
         handleComplete(executingTask.id)
+        return
       }
 
-      // カテゴリ切り替え（1-4キー）
-      const keyNumber = parseInt(e.key)
-      if (keyNumber >= 1 && keyNumber <= 4) {
-        const categories: Category[] = ['work', 'life', 'study', 'hobby']
-        const targetCategory = categories[keyNumber - 1]
-        const targetTask = topTasks.find(t => t.category === targetCategory)
-        if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
-          handleSwitchExecution(targetTask.id)
+      // カテゴリ切り替え
+      const switchActions = [
+        { action: 'switchToWork' as const, category: 'work' as Category },
+        { action: 'switchToLife' as const, category: 'life' as Category },
+        { action: 'switchToStudy' as const, category: 'study' as Category },
+        { action: 'switchToHobby' as const, category: 'hobby' as Category },
+      ]
+
+      for (const { action, category } of switchActions) {
+        if (matchesKey(keyBindings, action, key)) {
+          const targetTask = topTasks.find(t => t.category === category)
+          if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
+            handleSwitchExecution(targetTask.id)
+          }
+          return
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [executingTask, topTasks, isDesktop, completingTaskId, switchingToTaskId])
+  }, [
+    executingTask,
+    topTasks,
+    isDesktop,
+    completingTaskId,
+    switchingToTaskId,
+    keyBindings,
+  ])
 
   // タスクがない場合
   if (topTasks.length === 0) {

@@ -6,7 +6,6 @@ import {
   updateStats,
   selectInboxTasks,
 } from './store/slices/tasksSlice'
-import { setMode, type AppMode } from './store/slices/uiSlice'
 import { Header } from './components/Layout/Header'
 import { ModeNavigator } from './components/Layout/ModeNavigator'
 import { CreateMode } from './features/create/CreateMode'
@@ -14,7 +13,7 @@ import { ClassifyMode } from './features/classify/ClassifyMode'
 import { ListMode } from './features/list/ListMode'
 import { ExecuteMode } from './features/execute/ExecuteMode'
 import { useResponsive } from './hooks/useResponsive'
-import { Hand, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 
 function App() {
   const dispatch = useDispatch()
@@ -40,39 +39,23 @@ function App() {
     return () => clearInterval(interval)
   }, [dispatch])
 
-  // Tabキーでモード切り替え（PC版のみ）
-  useEffect(() => {
-    if (isMobile) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Tab') {
-        e.preventDefault()
-        const modes: AppMode[] = ['create', 'classify', 'list', 'execute']
-        const currentIndex = modes.indexOf(currentMode)
-        const nextIndex = e.shiftKey
-          ? (currentIndex - 1 + modes.length) % modes.length
-          : (currentIndex + 1) % modes.length
-        dispatch(setMode(modes[nextIndex]))
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentMode, dispatch, isMobile])
-
   const getOperationHint = (): string => {
     const hasInboxTasks = inboxTasks.length > 0
 
     const hints = {
       mobile: {
         create: '下部のナビゲーションでモード切替',
-        classify: hasInboxTasks ? '画面をタップして分類' : '下部のナビゲーションでモード切替',
+        classify: hasInboxTasks
+          ? '画面をタップして分類'
+          : '下部のナビゲーションでモード切替',
         list: 'タップで最優先設定 • 左スワイプでInbox • 右スワイプで削除',
         execute: '実行タスクを完了ボタンで完了',
       },
       desktop: {
         create: 'Tab: 次のモード • Shift+Tab: 前のモード',
-        classify: hasInboxTasks ? 'W/↑: 学習 • A/←: 仕事 • D/→: 生活 • S/↓: 趣味' : 'Tab: 次のモード • Shift+Tab: 前のモード',
+        classify: hasInboxTasks
+          ? 'W/↑: 学習 • A/←: 仕事 • D/→: 生活 • S/↓: 趣味'
+          : 'Tab: 次のモード • Shift+Tab: 前のモード',
         list: 'クリックで最優先設定 • タスクを左右にスワイプで操作',
         execute: 'スペース：タスク完了 • 1〜4キー：カテゴリ切り替え',
       },
