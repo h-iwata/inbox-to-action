@@ -18,10 +18,7 @@ const normalizeKey = (e: KeyboardEvent): string => {
 }
 
 // キーに対応するアクションを検索
-const findActionForKey = (
-  key: string,
-  bindings: Record<KeyAction, string[]>
-): KeyAction | null => {
+const findActionForKey = (key: string, bindings: Record<KeyAction, string[]>): KeyAction | null => {
   for (const [action, keys] of Object.entries(bindings)) {
     if (keys.includes(key)) {
       return action as KeyAction
@@ -56,11 +53,7 @@ listenerMiddleware.startListening({
 
       // 入力フィールドにフォーカス中は無効
       const target = e.target as HTMLElement
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return
       }
 

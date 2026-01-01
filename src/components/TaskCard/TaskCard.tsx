@@ -56,30 +56,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   }
 
   return (
-    <div
-      className={`${baseStyles} ${priorityStyles} ${className}`}
-      onClick={handleClick}
-    >
+    <div className={`${baseStyles} ${priorityStyles} ${className}`} onClick={handleClick}>
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">
-            {task.title}
-          </p>
+          <p className="text-gray-100 font-medium break-words whitespace-pre-wrap">{task.title}</p>
           {isPriority && variant === 'list' && (
             <div className="flex items-center gap-2 mt-1">
               {isExecuting ? (
                 <>
                   <Flame className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm text-amber-400 font-medium">
-                    実行中
-                  </span>
+                  <span className="text-sm text-amber-400 font-medium">実行中</span>
                 </>
               ) : (
                 <>
                   <Pause className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-400 font-medium">
-                    一時停止
-                  </span>
+                  <span className="text-sm text-gray-400 font-medium">一時停止</span>
                 </>
               )}
             </div>

@@ -37,9 +37,7 @@ export const ModeNavigator: React.FC = () => {
               key={mode.id}
               onClick={() => handleModeChange(mode.id)}
               className={`py-3 text-center transition-all ${
-                currentMode === mode.id
-                  ? 'text-blue-400 bg-blue-900/30'
-                  : 'text-gray-400 hover:bg-gray-800'
+                currentMode === mode.id ? 'text-blue-400 bg-blue-900/30' : 'text-gray-400 hover:bg-gray-800'
               }`}
             >
               <div className="mb-1 relative">
@@ -89,9 +87,7 @@ export const ModeNavigator: React.FC = () => {
               </button>
             ))}
           </div>
-          <div className="text-xs text-gray-500 px-4">
-            Tab: 次へ | Shift+Tab: 前へ
-          </div>
+          <div className="text-xs text-gray-500 px-4">Tab: 次へ | Shift+Tab: 前へ</div>
         </div>
       </div>
     </nav>

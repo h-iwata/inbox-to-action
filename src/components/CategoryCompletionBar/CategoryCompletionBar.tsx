@@ -109,18 +109,8 @@ export const CategoryCompletionBar: React.FC = () => {
   const completedByCategory = useSelector(selectTodayCompletedByCategory)
   const prevLevelRef = useRef<number | null>(null)
 
-  const {
-    total,
-    percentages,
-    maxCategory,
-    message,
-    level,
-    nextLevelRequirement,
-  } = useMemo(() => {
-    const total = Object.values(completedByCategory).reduce(
-      (sum, count) => sum + count,
-      0
-    )
+  const { total, percentages, maxCategory, message, level, nextLevelRequirement } = useMemo(() => {
+    const total = Object.values(completedByCategory).reduce((sum, count) => sum + count, 0)
 
     // カテゴリごとの割合を計算
     const percentages = {
@@ -132,10 +122,7 @@ export const CategoryCompletionBar: React.FC = () => {
 
     // 最も多いカテゴリを特定
     const maxCategory = Object.entries(completedByCategory).reduce(
-      (max, [cat, count]) =>
-        count > completedByCategory[max as keyof typeof completedByCategory]
-          ? cat
-          : max,
+      (max, [cat, count]) => (count > completedByCategory[max as keyof typeof completedByCategory] ? cat : max),
       'work'
     )
 
@@ -184,8 +171,7 @@ export const CategoryCompletionBar: React.FC = () => {
 
   // レベルに応じたスタイルを取得
   const getBarStyles = () => {
-    const baseClasses =
-      'relative overflow-hidden rounded-full transition-all duration-500'
+    const baseClasses = 'relative overflow-hidden rounded-full transition-all duration-500'
     const heightClasses = [
       'h-2', // level 0: 0-2個
       'h-2.5', // level 1: 3-5個
@@ -202,14 +188,7 @@ export const CategoryCompletionBar: React.FC = () => {
       'shadow-xl shadow-orange-500/40',
       'shadow-2xl shadow-red-500/50',
     ]
-    const animationClasses = [
-      '',
-      '',
-      'animate-pulse-slow',
-      'animate-pulse',
-      'animate-pulse-fast',
-      'animate-glow',
-    ]
+    const animationClasses = ['', '', 'animate-pulse-slow', 'animate-pulse', 'animate-pulse-fast', 'animate-glow']
 
     return `${baseClasses} ${heightClasses[level]} ${shadowClasses[level]} ${animationClasses[level]}`
   }
@@ -241,17 +220,11 @@ export const CategoryCompletionBar: React.FC = () => {
           <div>
             <h3 className="text-sm font-bold text-gray-100">
               レベル {level}
-              {level === 5 && (
-                <span className="ml-1 text-xs text-yellow-400">MAX!</span>
-              )}
+              {level === 5 && <span className="ml-1 text-xs text-yellow-400">MAX!</span>}
             </h3>
             <p className="text-xs text-gray-500">
               {total}タスク完了
-              {level < 5 && (
-                <span className="ml-1">
-                  （次まであと{nextLevelRequirement}）
-                </span>
-              )}
+              {level < 5 && <span className="ml-1">（次まであと{nextLevelRequirement}）</span>}
             </p>
           </div>
         </div>
@@ -359,15 +332,9 @@ export const CategoryCompletionBar: React.FC = () => {
                   isMax ? 'text-white font-bold scale-110' : 'text-gray-500'
                 }`}
               >
-                <Icon
-                  className={`w-3 h-3 ${isMax ? categoryIconColors[category] : ''}`}
-                />
+                <Icon className={`w-3 h-3 ${isMax ? categoryIconColors[category] : ''}`} />
                 <span>{categoryIcons[category].label}</span>
-                {count > 0 && (
-                  <span className={`${isMax ? 'text-white' : 'text-gray-600'}`}>
-                    ({count})
-                  </span>
-                )}
+                {count > 0 && <span className={`${isMax ? 'text-white' : 'text-gray-600'}`}>({count})</span>}
               </div>
             )
           })}
@@ -388,7 +355,6 @@ export const CategoryCompletionBar: React.FC = () => {
         {message}
         {level >= 5 && ' 🔥'}
       </div>
-
     </div>
   )
 }

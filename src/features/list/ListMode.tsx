@@ -13,15 +13,7 @@ import {
 import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
 import { categoryIcons } from '../../config/icons'
 import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import {
-  Flame,
-  Trash2,
-  Inbox,
-  Target,
-  Play,
-  RefreshCw,
-  PenTool,
-} from 'lucide-react'
+import { Flame, Trash2, Inbox, Target, Play, RefreshCw, PenTool } from 'lucide-react'
 import type { Category, Task } from '../../types'
 
 interface SwipeState {
@@ -34,13 +26,10 @@ interface SwipeState {
 export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
   const topTasks = useSelector(selectTopTasksByCategory)
-  const scrollToCategory = useSelector(
-    (state: RootState) => state.ui.scrollToCategory
-  )
+  const scrollToCategory = useSelector((state: RootState) => state.ui.scrollToCategory)
 
   // 実行中のカテゴリを特定
-  const executingCategory = topTasks.find(task => task.isExecuting === true)
-    ?.category as Category | undefined
+  const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
 
   // スワイプ用の状態
   const [swipeState, setSwipeState] = useState<SwipeState>({
@@ -101,8 +90,7 @@ export const ListMode: React.FC = () => {
         if (element) {
           // カテゴリヘッダーが画面上部から少し余裕を持って表示されるように調整
           const yOffset = -80 // ヘッダーの上に80pxの余白を確保
-          const y =
-            element.getBoundingClientRect().top + window.pageYOffset + yOffset
+          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
 
           window.scrollTo({
             top: y,
@@ -130,10 +118,7 @@ export const ListMode: React.FC = () => {
   }
 
   // タッチ/マウス開始（スワイプ用）
-  const handleTouchStart = (
-    e: React.TouchEvent | React.MouseEvent,
-    task: Task
-  ) => {
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent, task: Task) => {
     if ('touches' in e) {
       const touch = e.touches[0]
       setSwipeState({
@@ -153,10 +138,7 @@ export const ListMode: React.FC = () => {
   }
 
   // タッチ/マウス移動
-  const handleMove = (
-    e: React.TouchEvent | React.MouseEvent,
-    taskId: string
-  ) => {
+  const handleMove = (e: React.TouchEvent | React.MouseEvent, taskId: string) => {
     if (!swipeState.taskId || swipeState.taskId !== taskId) return
 
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
@@ -263,10 +245,8 @@ export const ListMode: React.FC = () => {
   }
 
   const renderTask = (task: Task, index: number, category: Category) => {
-    const isSwipingLeft =
-      swipeState.taskId === task.id && swipeState.direction === 'left'
-    const isSwipingRight =
-      swipeState.taskId === task.id && swipeState.direction === 'right'
+    const isSwipingLeft = swipeState.taskId === task.id && swipeState.direction === 'left'
+    const isSwipingRight = swipeState.taskId === task.id && swipeState.direction === 'right'
 
     // スワイプ距離を計算（最大80px）
     let swipeOffset = 0
@@ -328,10 +308,7 @@ export const ListMode: React.FC = () => {
           }`}
           style={{
             transform: `translateX(${swipeOffset}px)`,
-            transition:
-              swipeState.taskId === task.id
-                ? 'none'
-                : 'transform 0.2s ease-out',
+            transition: swipeState.taskId === task.id ? 'none' : 'transform 0.2s ease-out',
             position: 'relative',
             zIndex: swipeState.taskId === task.id ? 10 : 1,
           }}
@@ -384,9 +361,7 @@ export const ListMode: React.FC = () => {
               {index === 0 && (
                 <div className="flex items-center gap-1 mt-1 opacity-70">
                   <Play className="w-3 h-3 text-orange-400" />
-                  <span className="text-xs text-orange-400">
-                    タップで実行開始
-                  </span>
+                  <span className="text-xs text-orange-400">タップで実行開始</span>
                 </div>
               )}
             </div>
@@ -404,11 +379,7 @@ export const ListMode: React.FC = () => {
                   <Target className="w-4 h-4 text-orange-400" />
                 </motion.div>
               )}
-              <div
-                className={`text-sm font-semibold ${
-                  index === 0 ? 'text-orange-400' : 'text-gray-400'
-                }`}
-              >
+              <div className={`text-sm font-semibold ${index === 0 ? 'text-orange-400' : 'text-gray-400'}`}>
                 #{index + 1}
               </div>
             </div>
@@ -437,9 +408,7 @@ export const ListMode: React.FC = () => {
               categoryRefs.current[category.id] = el
             }}
             className={`bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${
-              isExecuting
-                ? 'ring-2 ring-orange-400/60 shadow-orange-500/30'
-                : 'border-2 border-gray-700/60'
+              isExecuting ? 'ring-2 ring-orange-400/60 shadow-orange-500/30' : 'border-2 border-gray-700/60'
             } ${isEmpty ? 'opacity-60' : ''}`}
           >
             <div
@@ -449,22 +418,16 @@ export const ListMode: React.FC = () => {
               <div className="flex items-center gap-4">
                 <category.icon className="w-10 h-10 text-white" />
                 <div>
-                  <h3 className="text-xl font-bold text-white">
-                    {category.label}
-                  </h3>
+                  <h3 className="text-xl font-bold text-white">{category.label}</h3>
                   {isExecuting ? (
                     <div className="flex items-center gap-1.5 mt-1">
                       <Flame className="w-4 h-4 text-orange-300 animate-pulse" />
-                      <span className="text-xs font-semibold text-orange-200">
-                        実行中
-                      </span>
+                      <span className="text-xs font-semibold text-orange-200">実行中</span>
                     </div>
                   ) : tasks.length > 0 ? (
                     <div className="flex items-center gap-1.5 mt-1 opacity-60">
                       <RefreshCw className="w-3 h-3 text-white" />
-                      <span className="text-xs text-white">
-                        タップで切り替え
-                      </span>
+                      <span className="text-xs text-white">タップで切り替え</span>
                     </div>
                   ) : null}
                 </div>
@@ -476,17 +439,13 @@ export const ListMode: React.FC = () => {
               </div>
             </div>
 
-            <div
-              className={`p-5 min-h-[120px] ${isEmpty ? 'flex items-center justify-center' : ''}`}
-            >
+            <div className={`p-5 min-h-[120px] ${isEmpty ? 'flex items-center justify-center' : ''}`}>
               {isEmpty ? (
                 <div className="text-center">
                   <div
                     className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-${category.color}-500/10 mb-3`}
                   >
-                    <category.icon
-                      className={`w-8 h-8 text-${category.color}-400/50`}
-                    />
+                    <category.icon className={`w-8 h-8 text-${category.color}-400/50`} />
                   </div>
                   <p className="text-gray-500 text-sm">タスクがありません</p>
                   <button
@@ -499,11 +458,7 @@ export const ListMode: React.FC = () => {
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
-                  <div className="space-y-3">
-                    {tasks.map((task, index) =>
-                      renderTask(task, index, category.id)
-                    )}
-                  </div>
+                  <div className="space-y-3">{tasks.map((task, index) => renderTask(task, index, category.id))}</div>
                 </AnimatePresence>
               )}
             </div>
@@ -530,9 +485,7 @@ export const ListMode: React.FC = () => {
                 <div className="p-2 bg-red-500/20 rounded-lg">
                   <Trash2 className="w-5 h-5 text-red-400" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-100">
-                  タスクを削除
-                </h3>
+                <h3 className="text-lg font-bold text-gray-100">タスクを削除</h3>
               </div>
               <p className="text-gray-400 mb-6 text-sm break-words">
                 「{deleteConfirm.title}

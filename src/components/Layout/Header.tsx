@@ -51,10 +51,7 @@ export const Header: React.FC = () => {
       </header>
 
       {/* About モーダル */}
-      <AboutModal
-        isOpen={isAboutModalOpen}
-        onClose={() => setIsAboutModalOpen(false)}
-      />
+      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
     </>
   )
 }

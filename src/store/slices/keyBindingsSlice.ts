@@ -44,10 +44,7 @@ const keyBindingsSlice = createSlice({
   name: 'keyBindings',
   initialState,
   reducers: {
-    updateBinding: (
-      state,
-      action: PayloadAction<{ action: KeyAction; keys: string[] }>
-    ) => {
+    updateBinding: (state, action: PayloadAction<{ action: KeyAction; keys: string[] }>) => {
       state.bindings[action.payload.action] = action.payload.keys
     },
     resetBindings: () => initialState,
@@ -59,8 +56,7 @@ export const { updateBinding, resetBindings } = keyBindingsSlice.actions
 export default keyBindingsSlice.reducer
 
 // セレクター
-export const selectKeyBindings = (state: { keyBindings: KeyBindingsState }) =>
-  state.keyBindings.bindings
+export const selectKeyBindings = (state: { keyBindings: KeyBindingsState }) => state.keyBindings.bindings
 
 // 押されたキーに対応するアクションか判定する関数を返す
 export const isKeyPressed = (bindings: Record<KeyAction, string[]>, key: string) => (action: KeyAction) =>

@@ -1,11 +1,7 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from './store'
-import {
-  cleanupExpiredTasks,
-  updateStats,
-  selectInboxTasks,
-} from './store/slices/tasksSlice'
+import { cleanupExpiredTasks, updateStats, selectInboxTasks } from './store/slices/tasksSlice'
 import { Header } from './components/Layout/Header'
 import { ModeNavigator } from './components/Layout/ModeNavigator'
 import { CreateMode } from './features/create/CreateMode'
@@ -45,9 +41,7 @@ function App() {
     const hints = {
       mobile: {
         create: '下部のナビゲーションでモード切替',
-        classify: hasInboxTasks
-          ? '画面をタップして分類'
-          : '下部のナビゲーションでモード切替',
+        classify: hasInboxTasks ? '画面をタップして分類' : '下部のナビゲーションでモード切替',
         list: 'タップで最優先設定 • 左スワイプでInbox • 右スワイプで削除',
         execute: '実行タスクを完了ボタンで完了',
       },
@@ -79,9 +73,7 @@ function App() {
         </div>
       </div>
 
-      <main
-        className={`container mx-auto px-4 py-4 ${isMobile ? 'pb-24' : 'pb-8'}`}
-      >
+      <main className={`container mx-auto px-4 py-4 ${isMobile ? 'pb-24' : 'pb-8'}`}>
         {currentMode === 'create' && <CreateMode />}
         {currentMode === 'classify' && <ClassifyMode />}
         {currentMode === 'list' && <ListMode />}
