@@ -141,7 +141,9 @@ export const CategoryCompletionBar: React.FC = () => {
     }
 
     const messageList = messages[messageType]
-    const message = messageList[Math.floor(Math.random() * messageList.length)]
+    // messageTypeとtotalに基づいて決定的にメッセージを選択
+    const messageIndex = total % messageList.length
+    const message = messageList[messageIndex]
 
     // レベルを計算（0-15の範囲を0-5にマッピング、各レベル3タスク）
     const level = Math.min(5, Math.floor(total / 3))
