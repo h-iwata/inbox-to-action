@@ -149,8 +149,8 @@ export const ExecuteMode: React.FC = () => {
     )
   }
 
-  // 実行中タスクがない場合（ただしタスクは存在する）
-  if (!executingTask && topTasks.length > 0) {
+  // 実行中タスクがない場合（タスクは存在するがどれも実行中でない）
+  if (!executingTask) {
     return (
       <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
         {/* 統計情報は常に表示 */}
@@ -170,7 +170,6 @@ export const ExecuteMode: React.FC = () => {
             {topTasks.map(task => {
               const category = task.category as ListCategory
               const info = categoryInfo[category]
-              const taskCount = taskCountByCategory[category]
 
               return (
                 <button
@@ -186,7 +185,7 @@ export const ExecuteMode: React.FC = () => {
                   {/* 残り件数バッジ（右上） */}
                   <div className="absolute top-4 right-4">
                     <span className="bg-gray-700/50 px-2.5 py-1 rounded-full text-xs font-bold text-gray-300 backdrop-blur-sm">
-                      {taskCount}件
+                      {taskCountByCategory[category]}件
                     </span>
                   </div>
 
@@ -217,37 +216,7 @@ export const ExecuteMode: React.FC = () => {
     )
   }
 
-  // この時点で executingTask が存在することが保証される
-  if (!executingTask) {
-    // フォールバック（通常はここに到達しないはず）
-    return (
-      <div className="max-w-5xl mx-auto h-[calc(100vh-240px)] overflow-y-auto">
-        <div className="px-4 mb-3">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl border-2 border-gray-700/60 p-3 backdrop-blur-md">
-            <CategoryCompletionBar />
-          </div>
-        </div>
-        <div className="flex items-center justify-center h-[40vh]">
-          <div className="text-center">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-100 mb-2">実行するタスクがありません</h2>
-            <p className="text-gray-400">
-              タスクを
-              <button
-                onClick={() => dispatch(setMode('create'))}
-                className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
-              >
-                <PenTool className="w-3 h-3" />
-                <span>作成</span>
-              </button>
-              して分類してください
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // この時点で executingTask が存在することが保証される（上の条件分岐で網羅済み）
   const executingCategory = executingTask.category as ListCategory
   const executingInfo = categoryInfo[executingCategory]
   const executingTaskCount = taskCountByCategory[executingCategory]
@@ -375,9 +344,7 @@ export const ExecuteMode: React.FC = () => {
         <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
           {categoryTasks.map(({ category, task }, index) => {
             const info = categoryInfo[category]
-            const taskCount = taskCountByCategory[category]
             const isExecuting = task?.isExecuting === true
-            const isSwitching = task && switchingToTaskId === task.id
             const hasTask = !!task
 
             return (
@@ -393,7 +360,7 @@ export const ExecuteMode: React.FC = () => {
                         ? 'border-gray-700 bg-gradient-to-br from-gray-900/90 to-gray-800/90 hover:border-gray-600 hover:scale-105 cursor-pointer shadow-lg'
                         : 'border-gray-800 bg-gray-900/50 opacity-60 cursor-default'
                   }
-                  ${isSwitching ? 'animate-pulse' : ''}
+                  ${switchingToTaskId === task?.id ? 'animate-pulse' : ''}
                 `}
               >
                 {/* 残り件数バッジ（右上） */}
@@ -407,7 +374,7 @@ export const ExecuteMode: React.FC = () => {
                           : 'bg-gray-800/50 text-gray-500'
                     }`}
                   >
-                    {taskCount}件
+                    {taskCountByCategory[category]}件
                   </span>
                 </div>
 
