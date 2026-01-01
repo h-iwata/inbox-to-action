@@ -150,7 +150,9 @@ export const CreateMode: React.FC = () => {
                 <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 p-4 rounded-xl hover:bg-gray-800/70 hover:border-gray-600 transition-all group">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-100 font-medium overflow-wrap-break-word whitespace-pre-wrap">{task.title}</p>
+                      <p className="text-gray-100 font-medium overflow-wrap-break-word whitespace-pre-wrap">
+                        {task.title}
+                      </p>
                     </div>
                     <button
                       onClick={() => dispatch(deleteTask(task.id))}
