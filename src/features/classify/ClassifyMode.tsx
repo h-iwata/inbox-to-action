@@ -4,7 +4,8 @@ import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../sto
 import { setMode } from '../../store/slices/uiSlice'
 import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
 import { useResponsive } from '../../hooks/useResponsive'
-import { categoryIcons, actionIcons } from '../../config/icons'
+import { categoryIcons } from '../../config/icons'
+import { ClassifyOverlay } from './ClassifyOverlay'
 import {
   Trophy,
   Layers,
@@ -293,196 +294,13 @@ export const ClassifyMode: React.FC = () => {
       <div className="relative flex-1 flex items-center justify-center">
         {/* 操作オーバーレイ */}
         {isOperating && (
-          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in">
-            {/* シンプルな方向指示 - タスクカードの中心を基準に配置 */}
-            <div className="absolute inset-0">
-              {/* 上 - 学習 */}
-              <div
-                className={`
-                absolute left-1/2 -translate-x-1/2
-                transition-all duration-75
-                ${dragDirection === 'up' ? 'scale-125 -translate-y-2' : 'scale-100 opacity-60'}
-              `}
-                style={{ top: containerBounds.top + (isMobile ? 20 : 40) }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'up'
-                        ? 'bg-violet-500/30 backdrop-blur-md ring-2 ring-violet-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.study.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'up' ? 'text-violet-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.study.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* 左 - 仕事 */}
-              <div
-                className={`
-                absolute -translate-y-1/2 ${isMobile ? 'left-4' : 'left-20'}
-                transition-all duration-75
-                ${dragDirection === 'left' ? 'scale-125 -translate-x-2' : 'scale-100 opacity-60'}
-              `}
-                style={{ top: centerPosition.y }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'left'
-                        ? 'bg-sky-500/30 backdrop-blur-md ring-2 ring-sky-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.work.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'left' ? 'text-sky-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.work.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* 中央 - キャンセル */}
-              <div
-                className={`
-                absolute -translate-x-1/2 -translate-y-1/2
-                transition-all duration-75
-                ${dragDirection === 'center' ? 'scale-110' : 'scale-100 opacity-60'}
-              `}
-                style={{ left: centerPosition.x, top: centerPosition.y }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'center'
-                        ? 'bg-red-500/30 backdrop-blur-md ring-2 ring-red-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(actionIcons.cancel, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'center' ? 'text-red-300' : 'text-gray-400'}`}
-                  >
-                    キャンセル
-                  </span>
-                </div>
-              </div>
-
-              {/* 右 - 生活 */}
-              <div
-                className={`
-                absolute -translate-y-1/2 ${isMobile ? 'right-4' : 'right-20'}
-                transition-all duration-75
-                ${dragDirection === 'right' ? 'scale-125 translate-x-2' : 'scale-100 opacity-60'}
-              `}
-                style={{ top: centerPosition.y }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'right'
-                        ? 'bg-teal-500/30 backdrop-blur-md ring-2 ring-teal-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.life.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'right' ? 'text-teal-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.life.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* 下 - 趣味 */}
-              <div
-                className={`
-                absolute left-1/2 -translate-x-1/2
-                transition-all duration-75
-                ${dragDirection === 'down' ? 'scale-125 translate-y-2' : 'scale-100 opacity-60'}
-              `}
-                style={{ top: containerBounds.bottom - (isMobile ? 80 : 100) }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div
-                    className={`
-                    ${isMobile ? 'p-3' : 'p-4'} rounded-full
-                    ${
-                      dragDirection === 'down'
-                        ? 'bg-pink-500/30 backdrop-blur-md ring-2 ring-pink-400 shadow-lg'
-                        : 'bg-gray-800/50 backdrop-blur-sm'
-                    }
-                  `}
-                  >
-                    {React.createElement(categoryIcons.hobby.icon, {
-                      className: `${isMobile ? 'w-6 h-6' : 'w-8 h-8'} ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`,
-                    })}
-                  </div>
-                  <span
-                    className={`font-medium text-sm ${dragDirection === 'down' ? 'text-pink-300' : 'text-gray-400'}`}
-                  >
-                    {categoryIcons.hobby.label}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* ドラッグライン */}
-            {dragDirection && dragDirection !== 'center' && (
-              <svg className="absolute inset-0 pointer-events-none z-40" style={{ width: '100%', height: '100%' }}>
-                <line
-                  x1={centerPosition.x}
-                  y1={centerPosition.y}
-                  x2={currentPosition.x}
-                  y2={currentPosition.y}
-                  stroke={({ up: '#a78bfa', down: '#f9a8d4', left: '#7dd3fc', right: '#5eead4' } as const)[dragDirection]}
-                  strokeWidth="2"
-                  strokeDasharray="5,5"
-                  opacity="0.5"
-                />
-              </svg>
-            )}
-
-            {/* カーソル/タッチ位置のトラッカー */}
-            <div
-              className="fixed w-4 h-4 bg-white rounded-full shadow-lg pointer-events-none z-50 ring-2 ring-white/30"
-              style={{
-                left: `${currentPosition.x}px`,
-                top: `${currentPosition.y}px`,
-                transform: 'translate(-50%, -50%)',
-              }}
-            />
-          </div>
+          <ClassifyOverlay
+            dragDirection={dragDirection}
+            centerPosition={centerPosition}
+            currentPosition={currentPosition}
+            containerBounds={containerBounds}
+            isMobile={isMobile}
+          />
         )}
 
         {/* カテゴリヒント（小さく表示） */}
