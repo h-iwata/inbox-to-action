@@ -19,6 +19,10 @@ import {
 import type { Category } from '../../types'
 import './ClassifyMode.css'
 
+type Direction = 'up' | 'down' | 'left' | 'right'
+type DragDirection = Direction | 'center' | null
+type ClassifyCategory = Exclude<Category, 'inbox'>
+
 export const ClassifyMode: React.FC = () => {
   const dispatch = useDispatch()
   const inboxTasks = useSelector(selectInboxTasks)
@@ -34,7 +38,7 @@ export const ClassifyMode: React.FC = () => {
 
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
-  const [dragDirection, setDragDirection] = useState<'up' | 'down' | 'left' | 'right' | 'center' | null>(null)
+  const [dragDirection, setDragDirection] = useState<DragDirection>(null)
   const startPosition = useRef({ x: 0, y: 0 })
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
@@ -42,29 +46,29 @@ export const ClassifyMode: React.FC = () => {
 
   // アニメーション用の状態
   const [isClassifying, setIsClassifying] = useState(false)
-  const [classifiedDirection, setClassifiedDirection] = useState<'up' | 'down' | 'left' | 'right' | null>(null)
+  const [classifiedDirection, setClassifiedDirection] = useState<Direction | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const handleClassify = (category: Category, direction: 'up' | 'down' | 'left' | 'right') => {
-    if (currentTask && !isClassifying) {
-      setIsClassifying(true)
-      setClassifiedDirection(direction)
-      setShowSuccess(true)
+  const handleClassify = (category: ClassifyCategory) => {
+    if (!currentTask || isClassifying) return
 
-      // カードが飛んでいくアニメーション
+    setIsClassifying(true)
+    setClassifiedDirection(({ study: 'up', hobby: 'down', work: 'left', life: 'right' } as const)[category])
+    setShowSuccess(true)
+
+    // カードが飛んでいくアニメーション
+    setTimeout(() => {
+      dispatch(classifyTask({ id: currentTask.id, category }))
+      setShowSuccess(false)
+
+      // 次のカードが現れるアニメーション
       setTimeout(() => {
-        dispatch(classifyTask({ id: currentTask.id, category }))
-        setShowSuccess(false)
-
-        // 次のカードが現れるアニメーション
-        setTimeout(() => {
-          setIsClassifying(false)
-          setClassifiedDirection(null)
-          setIsOperating(false)
-          setDragDirection(null)
-        }, 100)
-      }, 150)
-    }
+        setIsClassifying(false)
+        setClassifiedDirection(null)
+        setIsOperating(false)
+        setDragDirection(null)
+      }, 100)
+    }, 150)
   }
 
   // 操作開始（クリック/タップ）
@@ -144,14 +148,8 @@ export const ClassifyMode: React.FC = () => {
     if (!isOperating || !currentTask) return
 
     // 方向に基づいてアクション（centerやnullの場合はキャンセル）
-    if (dragDirection === 'up') {
-      handleClassify('study', 'up')
-    } else if (dragDirection === 'down') {
-      handleClassify('hobby', 'down')
-    } else if (dragDirection === 'left') {
-      handleClassify('work', 'left')
-    } else if (dragDirection === 'right') {
-      handleClassify('life', 'right')
+    if (dragDirection && dragDirection !== 'center') {
+      handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
     } else {
       // center または null の場合はすべてキャンセル
       setIsOperating(false)
@@ -171,16 +169,16 @@ export const ClassifyMode: React.FC = () => {
 
       if (is('classifyStudy')) {
         e.preventDefault()
-        handleClassify('study', 'up')
+        handleClassify('study')
       } else if (is('classifyWork')) {
         e.preventDefault()
-        handleClassify('work', 'left')
+        handleClassify('work')
       } else if (is('classifyHobby')) {
         e.preventDefault()
-        handleClassify('hobby', 'down')
+        handleClassify('hobby')
       } else if (is('classifyLife')) {
         e.preventDefault()
-        handleClassify('life', 'right')
+        handleClassify('life')
       }
     }
 
