@@ -78,11 +78,9 @@ export const ClassifyMode: React.FC = () => {
 
   // 操作開始（クリック/タップ）
   const handleOperationStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!currentTask) return
+    if (!currentTask || isOperating) return
 
     const isTouchEvent = 'touches' in e
-    if (isTouchEvent) e.preventDefault()
-
     const clientX = isTouchEvent ? e.touches[0].clientX : e.clientX
     const clientY = isTouchEvent ? e.touches[0].clientY : e.clientY
 
@@ -190,7 +188,8 @@ export const ClassifyMode: React.FC = () => {
       }
     }
 
-    const handleOperationEnd = () => {
+    const handleOperationEnd = (e: MouseEvent | TouchEvent) => {
+      e.stopPropagation()
       if (!dragDirection || dragDirection === 'center') {
         resetOperation()
         return
@@ -200,24 +199,21 @@ export const ClassifyMode: React.FC = () => {
 
     const handleTouchCancel = () => resetOperation()
 
-    if (isMobile) {
-      window.addEventListener('touchmove', handleOperationMove, { passive: false })
-      window.addEventListener('touchend', handleOperationEnd)
-      window.addEventListener('touchcancel', handleTouchCancel)
-      return () => {
-        window.removeEventListener('touchmove', handleOperationMove)
-        window.removeEventListener('touchend', handleOperationEnd)
-        window.removeEventListener('touchcancel', handleTouchCancel)
-      }
-    }
-
+    // マウスとタッチの両方のイベントを登録（タッチスクリーン対応PCなどのため）
     window.addEventListener('mousemove', handleOperationMove)
     window.addEventListener('mouseup', handleOperationEnd)
+    window.addEventListener('touchmove', handleOperationMove, { passive: false })
+    window.addEventListener('touchend', handleOperationEnd)
+    window.addEventListener('touchcancel', handleTouchCancel)
+
     return () => {
       window.removeEventListener('mousemove', handleOperationMove)
       window.removeEventListener('mouseup', handleOperationEnd)
+      window.removeEventListener('touchmove', handleOperationMove)
+      window.removeEventListener('touchend', handleOperationEnd)
+      window.removeEventListener('touchcancel', handleTouchCancel)
     }
-  }, [isOperating, dragDirection, isMobile])
+  }, [isOperating, dragDirection])
 
   if (!currentTask) {
     return (
