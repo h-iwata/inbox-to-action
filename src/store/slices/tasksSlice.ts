@@ -247,64 +247,54 @@ const tasksSlice = createSlice({
       }
       task.updated_at = new Date().toISOString()
     },
-    changeCategory: (state, action: PayloadAction<{ taskId: string; newCategory: Category }>) => {
-      const removed = removeActiveTask(state, action.payload.taskId)
+    moveTaskToInbox: (state, action: PayloadAction<string>) => {
+      const taskId = action.payload
+      const removed = removeActiveTask(state, taskId)
       if (!removed) return
 
       const { task, category: oldCategory } = removed
-      const newCategory = action.payload.newCategory
-      const wasExecuting = task.isExecuting === true
 
-      if (oldCategory === newCategory) {
-        state.lists[newCategory].push(task)
+      // 既にinboxにある場合は何もしない
+      if (oldCategory === 'inbox') {
+        state.lists.inbox.push(task)
         return
       }
 
-      task.category = newCategory
+      const wasExecuting = task.isExecuting === true
+
+      // タスクをinboxに戻す
+      task.category = 'inbox'
       task.updated_at = new Date().toISOString()
       task.isExecuting = false
+      state.lists.inbox.push(task)
 
-      if (oldCategory === 'inbox' && newCategory !== 'inbox') {
-        trackTaskEvent('classify', newCategory)
-        state.dailyStats.classified++
-      }
-
-      state.lists[newCategory].push(task)
-
+      // 実行中だった場合、元のカテゴリの先頭タスクを実行中に設定
       if (wasExecuting) {
         setFirstTaskAsExecuting(state, oldCategory)
       }
-
-      if (newCategory !== 'inbox' && state.lists[newCategory].length === 1 && !hasExecutingTask(state)) {
-        clearExecutingFlags(state)
-        state.lists[newCategory][0].isExecuting = true
-      }
     },
-    reorderTasksInCategory: (
+    moveTaskToTop: (
       state,
       action: PayloadAction<{
         taskId: string
-        newPosition: number
         category: Category
       }>
     ) => {
-      const { category, taskId, newPosition } = action.payload
+      const { category, taskId } = action.payload
       const list = state.lists[category]
       const currentIndex = list.findIndex(task => task.id === taskId)
 
-      if (currentIndex === -1) return
+      // タスクが見つからない、または既に先頭の場合は何もしない
+      if (currentIndex <= 0) return
 
-      const targetIndex = Math.max(0, Math.min(newPosition - 1, list.length - 1))
-      if (currentIndex === targetIndex) return
-
+      // 配列から削除して先頭に挿入
       const [task] = list.splice(currentIndex, 1)
-      list.splice(targetIndex, 0, task)
+      list.unshift(task)
       task.updated_at = new Date().toISOString()
 
-      if (category !== 'inbox' && (currentIndex === 0 || targetIndex === 0)) {
-        list.forEach(t => {
-          t.isExecuting = false
-        })
+      // 先頭タスクが変わったので実行中フラグをリセット
+      if (category !== 'inbox') {
+        list.forEach(t => (t.isExecuting = false))
       }
     },
   },
@@ -326,8 +316,8 @@ export const {
   cleanupExpiredTasks,
   updateStats,
   toggleExecuting,
-  changeCategory,
-  reorderTasksInCategory,
+  moveTaskToInbox,
+  moveTaskToTop,
 } = tasksSlice.actions
 
 const selectTasksState = (state: RootState) => state.tasks

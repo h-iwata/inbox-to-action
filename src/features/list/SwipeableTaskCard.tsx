@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { motion } from 'framer-motion'
 import { Inbox, Trash2, Play, Target } from 'lucide-react'
-import { changeCategory } from '../../store/slices/tasksSlice'
+import { moveTaskToInbox } from '../../store/slices/tasksSlice'
 import type { Task } from '../../types'
 
 interface SwipeState {
@@ -70,7 +70,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({
     if (Math.abs(rawOffset) > 60 && swipeState.direction) {
       if (swipeState.direction === 'left') {
         // Inboxへ戻す
-        dispatch(changeCategory({ taskId: task.id, newCategory: 'inbox' }))
+        dispatch(moveTaskToInbox(task.id))
       } else if (swipeState.direction === 'right') {
         onDelete(task)
       }

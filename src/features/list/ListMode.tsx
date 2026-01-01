@@ -6,7 +6,7 @@ import {
   deleteTask,
   selectTasksByCategory,
   selectTopTasksByCategory,
-  reorderTasksInCategory,
+  moveTaskToTop,
   toggleExecuting,
 } from '../../store/slices/tasksSlice'
 import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
@@ -151,9 +151,8 @@ export const ListMode: React.FC = () => {
 
     // 先頭に移動
     dispatch(
-      reorderTasksInCategory({
+      moveTaskToTop({
         taskId: task.id,
-        newPosition: 1,
         category: task.category,
       })
     )
