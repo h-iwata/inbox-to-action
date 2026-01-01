@@ -469,17 +469,7 @@ export const ClassifyMode: React.FC = () => {
                   y1={centerPosition.y}
                   x2={currentPosition.x}
                   y2={currentPosition.y}
-                  stroke={
-                    dragDirection === 'up'
-                      ? '#a78bfa'
-                      : dragDirection === 'down'
-                        ? '#f9a8d4'
-                        : dragDirection === 'left'
-                          ? '#7dd3fc'
-                          : dragDirection === 'right'
-                            ? '#5eead4'
-                            : '#94a3b8'
-                  }
+                  stroke={({ up: '#a78bfa', down: '#f9a8d4', left: '#7dd3fc', right: '#5eead4' } as const)[dragDirection]}
                   strokeWidth="2"
                   strokeDasharray="5,5"
                   opacity="0.5"
