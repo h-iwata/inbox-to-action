@@ -1,5 +1,5 @@
 import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolkit'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import type { Task, Category, DailyStats, UUID } from '../../types'
 import type { RootState } from '../index'
 import { trackTaskEvent } from '../../utils/analytics'
@@ -45,6 +45,13 @@ const isValidCategory = (value: unknown): value is Category =>
 
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
+const toValidUUID = (value: unknown): UUID => {
+  if (typeof value === 'string' && uuidValidate(value)) {
+    return value as UUID
+  }
+  return uuidv4() as UUID
+}
+
 const toNumberOrZero = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : 0)
 
 const normalizeTask = (raw: unknown): Task => {
@@ -52,7 +59,7 @@ const normalizeTask = (raw: unknown): Task => {
   const now = new Date().toISOString()
 
   return {
-    id: (typeof s.id === 'string' ? s.id : typeof s.id === 'number' ? String(s.id) : uuidv4()) as UUID,
+    id: toValidUUID(s.id),
     title: typeof s.title === 'string' && s.title.trim() ? s.title : '(untitled)',
     category: isValidCategory(s.category) ? s.category : 'inbox',
     created_at: typeof s.created_at === 'string' ? s.created_at : now,
