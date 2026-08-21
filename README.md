@@ -18,11 +18,12 @@
 ### 主な機能
 
 - 📱 **レスポンシブデザイン** - モバイル/PC両対応
-- 🎯 **直感的な操作** - ドラッグ&ドロップ、スワイプジェスチャー対応
-- 🎨 **モダンなUI** - Lucide Reactアイコンによる洗練されたデザイン
+- 🎯 **直感的な操作** - 分類モードは4方向ドラッグ、一覧モードはスワイプジェスチャー
+- ⌨️ **キーボード操作** - PCではキーボードだけで分類から完了まで完結
+- 🎨 **モダンなUI** - Lucide React + Framer Motion による洗練されたデザイン
 - ⏰ **24時間ルール** - 作成から24時間で全タスクが自動削除
-- 💾 **自動保存** - ローカルストレージで即座に保存
-- 🌙 **ダークモード** - 目に優しい配色
+- 💾 **自動保存** - 操作するたびにローカルストレージへ保存
+- 🌙 **ダークテーマ** - 目に優しい配色
 
 ## 🎮 操作方法
 
@@ -49,12 +50,15 @@
 
 ## 🛠 技術スタック
 
-- **Frontend**: React 18 + TypeScript
+- **Frontend**: React 19 + TypeScript 5.9
 - **State Management**: Redux Toolkit + Redux Persist
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS 4
+- **Animation**: Framer Motion
 - **Icons**: Lucide React
-- **Build Tool**: Vite
-- **Toolchain**: mise
+- **Build Tool**: Vite 7
+- **Testing**: Vitest + Testing Library
+- **Toolchain**: mise（Node.js 24.15.0 を固定）
+- **CI**: CircleCI
 - **Hosting**: Vercel
 
 ## 🚀 セットアップ
@@ -95,6 +99,24 @@ npm run build
 npm run preview
 ```
 
+### 品質チェック
+
+```bash
+# 型チェック / リント / フォーマット確認をまとめて実行（CIと同一基準）
+npm run check-all
+
+# リントとフォーマットを自動修正
+npm run fix-all
+
+# テスト
+npm run test -- --run
+
+# カバレッジ付きテスト
+npm run test:coverage
+```
+
+CircleCI 上でも同じチェック（typecheck → lint → format → test → build）が走ります。CI は `mise.toml` から Node.js を解決するため、ローカルと同一バージョンで検証されます。
+
 ## 📝 タスク管理の哲学
 
 ### 24時間ルール
@@ -128,12 +150,16 @@ npm run preview
 
 ## 🔄 今後の計画
 
+- [ ] カテゴリプレフィックス入力（「仕事:」で自動分類）
+- [ ] タスクの検索機能
 - [ ] クラウド同期機能
 - [ ] 通知機能
 - [ ] タスクの詳細メモ
 - [ ] 統計ダッシュボード強化
 - [ ] カスタムカテゴリ
 - [ ] タスクのエクスポート/インポート
+- [ ] PWA対応
+- [ ] テストの拡充（コンポーネントテスト・E2E）
 
 ## 📄 ライセンス
 
@@ -145,5 +171,5 @@ MIT License
 
 ---
 
-**最終更新**: 2025年8月18日  
+**最終更新**: 2026年8月21日  
 **バージョン**: 1.1.0
