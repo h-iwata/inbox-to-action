@@ -54,14 +54,15 @@
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
 - **Build Tool**: Vite
+- **Toolchain**: mise
 - **Hosting**: Vercel
 
 ## 🚀 セットアップ
 
 ### 必要要件
 
-- Node.js 18以上
-- npm または yarn
+- [mise](https://mise.jdx.dev) — ツールチェーン管理
+- Node.js 24.15.0 / npm 11.12.1（`mise.toml` で固定。mise が自動で用意します）
 
 ### インストール
 
@@ -70,12 +71,19 @@
 git clone https://github.com/yourusername/inbox-to-action.git
 cd inbox-to-action
 
+# mise.toml を信頼して Node.js を用意
+mise trust
+mise install
+
 # 依存関係をインストール
-npm install
+npm ci
 
 # 開発サーバーを起動
 npm run dev
 ```
+
+> mise を使わない場合は Node.js 24.15.0 以上を手動で用意してください。
+> CI（CircleCI）も同じ `mise.toml` から Node.js を解決するため、ローカルと完全に同一のバージョンで動作します。
 
 ### ビルド
 

@@ -12,8 +12,12 @@ React、TypeScript、Redux Toolkit、Tailwind CSSで構築され、Inbox → 分
 
 ### 初期セットアップ
 ```bash
+# Node.js の用意（mise.toml で 24.15.0 に固定）
+mise trust
+mise install
+
 # 依存関係のインストール
-npm install
+npm ci
 
 # 開発サーバーの起動
 npm run dev
@@ -41,6 +45,7 @@ npm run typecheck
 - **状態管理**: Redux Toolkit + Redux Persist（ローカルストレージ永続化）
 - **スタイリング**: Tailwind CSS（レスポンシブデザイン）
 - **ビルドツール**: Vite
+- **ツールチェーン管理**: mise（`mise.toml` が Node.js バージョンの唯一の真実。ローカルと CircleCI で共有）
 - **デプロイ**: Vercel
 
 ### 主要な設計パターン
@@ -131,6 +136,9 @@ GitHub Actions経由でmainブランチへのプッシュ時にVercelへ自動�
 
 ### 開発を再開する際の手順
 ```bash
+# 0. ツールチェーンの同期
+mise install
+
 # 1. 開発サーバーの起動
 npm run dev
 
