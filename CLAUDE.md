@@ -103,4 +103,5 @@ ESLint + Prettier ではなく **Biome** に統一している。設定は [biom
 ## その他
 
 - Google Analytics は [analytics.ts](src/utils/analytics.ts) 経由。localhost とプライベートIPでは送信しない。計測イベントを増やすときもここに追加する
+- 調査メモ・レポート・一時ファイルは `.local/` に書き出す（gitignore 済み）。リポジトリのルートやコミット対象を汚さない
 - コミットは行わない（ユーザーが手動で行う）
