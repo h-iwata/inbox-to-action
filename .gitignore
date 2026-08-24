@@ -32,3 +32,6 @@ coverage/
 .env
 .env.example
 .env.*
+
+# mise
+mise.local.toml

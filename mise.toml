@@ -1,0 +1,10 @@
+# 開発ツールチェーンの定義（mise: https://mise.jdx.dev）
+#
+# このファイルがローカル・CI 共通の唯一の真実。
+# Node のバージョンを変える場合はここだけを書き換える。
+#   セットアップ: mise install
+#   個人的な上書き: mise.local.toml（gitignore 済み）
+
+[tools]
+# Active LTS 系をパッチまで固定して環境差異をなくす
+node = "24.15.0"

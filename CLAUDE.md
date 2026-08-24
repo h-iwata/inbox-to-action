@@ -1,154 +1,94 @@
 # CLAUDE.md
 
-このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業する際のガイドラインを提供します。
+24時間でタスクが消えるやることリスト。React + TypeScript + Redux Toolkit のクライアント完結型SPA（バックエンドなし）。
+Inbox → 分類 → 実行 → 完了 のワークフローを、4つの固定カテゴリ（仕事・生活・学習・趣味）で回す。
 
-## プロジェクト概要
+## コマンド
 
-InboxToActionは、24時間でタスクが消える新感覚のやることリストです。思いついたらメモして、4つのカテゴリに分けて、実行する。忘れることで、本当に大切なものが分かります。
-
-React、TypeScript、Redux Toolkit、Tailwind CSSで構築され、Inbox → 分類 → 実行 → 完了のワークフローに従い、4つの固定カテゴリ（仕事、生活、学習、趣味）でタスクを管理します。
-
-## 開発コマンド
-
-### 初期セットアップ
 ```bash
-# 依存関係のインストール
-npm install
+mise install        # Node.js を mise.toml (24.15.0) に同期。初回は mise trust も必要
+npm ci              # 依存関係を lock どおりに導入
 
-# 開発サーバーの起動
-npm run dev
-
-# プロダクションビルド
-npm run build
-
-# テストの実行
-npm run test
-
-# コードのリント
-npm run lint
-
-# コードのフォーマット
-npm run format
-
-# 型チェック
-npm run typecheck
+npm run dev         # 開発サーバー
+npm run build       # tsc -b && vite build
+npm run test -- --run   # テスト単発実行（引数なしの npm run test は watch）
+npm run check-all   # typecheck + lint:strict + format:check ← CIと同一基準
+npm run fix-all     # lint:fix + format
 ```
+
+変更を終えたら必ず `npm run check-all` を通す。`--max-warnings 0` なので warning もCIを落とす。
+
+## 技術スタック
+
+React 19 / TypeScript 5.9 / Redux Toolkit 2.11 + Redux Persist / Tailwind CSS 4（`@tailwindcss/postcss`）/ Framer Motion 12 / Vite 7 / Vitest 4 + jsdom / mise / CircleCI / Vercel
+
+Tailwind は v4 系。設定はCSS側の `@import 'tailwindcss'` が主で、`tailwind.config.js` に v3 流のユーティリティ定義を足そうとしないこと。
 
 ## アーキテクチャ
 
-### コア技術スタック
-- **フロントエンドフレームワーク**: React 18+ with TypeScript
-- **状態管理**: Redux Toolkit + Redux Persist（ローカルストレージ永続化）
-- **スタイリング**: Tailwind CSS（レスポンシブデザイン）
-- **ビルドツール**: Vite
-- **デプロイ**: Vercel
+### State（[src/store/index.ts](src/store/index.ts)）
 
-### 主要な設計パターン
-
-1. **モードベースUI**: アプリは4つの異なるモード間を切り替えて使用：
-   - 作成モード: タスクの素早い入力
-   - 分類モード: Inboxタスクをカテゴリに振り分け
-   - 一覧モード: カテゴリ別タスクの表示と優先順位調整
-   - 実行モード: 各カテゴリの最上位タスクに集中
-
-2. **タスクのライフサイクル（24時間ルール）**:
-   - タスクは作成から24時間で自動削除されます
-   - 消えたタスクを思い出すとき、その大切さに気づきます
-   - 繰り返し書くことで、実行への意欲が育ちます
-
-3. **State構造**:
-   ```typescript
-   RootState {
-     tasks: {
-       items: Task[]
-       filter: { category, status }
-       stats: { daily, weekly }
-     }
-     ui: {
-       currentMode: 'create' | 'classify' | 'list' | 'execute'
-       isLoading: boolean
-       error: string | null
-     }
-   }
-   ```
-
-### コンポーネント構成
-- `/components/ui/` - 再利用可能なUIコンポーネント（Button、Inputなど）
-- `/components/` - 共有コンポーネント（TaskCard、StatCardなど）
-- `/features/` - 機能別に整理されたモード固有のコンポーネント
-- `/store/` - Reduxストア、スライス、ミドルウェア
-- `/hooks/` - カスタムReactフック
-- `/utils/` - ユーティリティ関数
-
-## 重要な実装上の注意点
-
-1. **レスポンシブデザイン**: 
-   - モバイルUI（< 768px）: フルスクリーンモード切り替え
-   - デスクトップUI（≥ 768px）: 70%メインエリア、30%サイドパネルの分割ビュー
-
-2. **キーボードショートカット**:
-   - 分類モード: W/↑（学習）、A/←（仕事）、S/↓（趣味）、D/→（生活）、Space（スキップ）
-   - 実行モード: 1-4キーでタスク完了
-   - Tab: モード間の切り替え
-
-3. **タスク順序管理**:
-   - 「最上位に移動」操作のみ許可（細かい順序調整は不可）
-   - タスクが最上位に移動すると、他のタスクのorder値が自動調整
-
-4. **パフォーマンス考慮事項**:
-   - 高負荷コンポーネントにはReact.memoを使用
-   - reselectでReduxセレクターを最適化
-   - 長いタスクリストには仮想スクロールを実装
-
-5. **データ永続化**:
-   - Redux Persist経由でlocalStorageに全データを保存
-   - MVP版ではバックエンドAPIなし
-   - 将来的にクラウド同期を追加予定
-
-## テスト戦略
-
-- Reduxスライスとユーティリティ関数の単体テスト
-- React Testing Libraryによるコンポーネントテスト
-- 重要なユーザーフロー（タスク作成→分類→完了）のE2Eテスト
-- キーボードショートカットとタッチジェスチャーのテスト
-- 24時間自動削除ロジックの検証
-
-## デプロイ
-
-GitHub Actions経由でmainブランチへのプッシュ時にVercelへ自動デプロイされます。デプロイパイプラインは、デプロイ前にリント、テスト、ビルドを実行します。
-
-## 現在の開発状況（2025年8月18日更新）
-
-### 実装済み機能
-- ✅ 基本的な4モード（作成・分類・一覧・実行）
-- ✅ Redux Toolkit + Redux Persistによる状態管理
-- ✅ 24時間自動削除機能（5分ごとにチェック、例外なし）
-- ✅ ドラッグ&ドロップでカテゴリ間移動（一覧モード）
-- ✅ 実行中フラグのトグル機能（order=1のタスク）
-- ✅ Tabキーでモード切り替え（PC版）
-- ✅ カテゴリヒントバッジ（作成モード）
-- ✅ 分類モードでの残りタスクリスト表示
-
-### 開発を再開する際の手順
-```bash
-# 1. 開発サーバーの起動
-npm run dev
-
-# 2. 型チェック
-npm run typecheck
-
-# 3. リント
-npm run lint
+```typescript
+RootState {
+  tasks: {                          // persist対象（whitelist は tasks のみ）
+    lists: Record<Category, Task[]> // inbox / work / life / study / hobby
+    completed: Task[]
+    dailyStats: { created, classified, completed }
+  }
+  ui:          { currentMode, scrollToCategory }  // 永続化されない
+  keyBindings: { bindings }                       // 永続化されない
+}
 ```
 
-### 最近の変更点
-- 24時間ルールのシンプル化（全タスク一律24時間で削除）
-- 実行モードから一覧モードへのカテゴリスクロール機能追加
-- 最優先タスクのUIを簡潔に改善
-- 実行モードのスクロール対応
+- `ui` と `keyBindings` はリロードで初期化される。永続化したい状態を足すなら whitelist を変更する
+- セレクターは `createSelector` でメモ化する（[tasksSlice.ts](src/store/slices/tasksSlice.ts) の既存実装に合わせる）
 
-### 次の実装候補
-- カテゴリプレフィックス入力（「仕事:」で自動分類）
-- タスクの検索機能
-- 統計情報の詳細化
-- PWA対応
+### モードベースUI
+
+`ui.currentMode`（`create` / `classify` / `list` / `execute`）で表示を差し替える単一画面（[src/App.tsx](src/App.tsx)）。モード固有のUIは `src/features/<mode>/` に置く。
+
+### ディレクトリ
+
+| パス                                                    | 内容                                       |
+| ------------------------------------------------------- | ------------------------------------------ |
+| `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント                 |
+| `src/components/Layout/`                                | Header、ModeNavigator                      |
+| `src/store/slices/`                                     | tasks / ui / keyBindings                   |
+| `src/store/listenerMiddleware.ts`                       | window の keydown 購読（モード切り替え）   |
+| `src/hooks/`、`src/config/`、`src/types/`、`src/utils/` | useResponsive、アイコン定義、型、analytics |
+
+## 守るべき不変条件
+
+**タスクの並び順は配列そのもの。** `order` フィールドは存在しない。並べ替えは `moveTaskToTop`（最上位への移動）だけを提供し、任意の並べ替えUIは追加しない。
+
+**`isExecuting` はアプリ全体で常に1つだけ。** 立てられるのはカテゴリの先頭タスクのみで、inbox のタスクには立てられない。フラグを操作する処理を書くときは `clearExecutingFlags` / `setFirstTaskAsExecuting` を経由し、直接代入しない。
+
+**24時間ルールに例外を作らない。** `created_at` から24時間で削除。完了済みタスクも対象。判定は `cleanupExpiredTasks` に集約し、起動時と5分間隔で dispatch される。
+
+**localStorage の内容を信頼しない。** REHYDRATE 時に `normalizeTask` / `normalizeDailyStats` で型を矯正している。`Task` や `dailyStats` のスキーマを変えたら、この正規化も必ず更新する。
+
+**キーバインドの定義元は [keyBindingsSlice.ts](src/store/slices/keyBindingsSlice.ts) のみ。** 現状は Tab/Shift+Tab（モード切替）、W/A/S/D と矢印キー（分類）、Space（完了）、1〜4（実行モードのカテゴリ切替）。キー処理をコンポーネントに直書きせず、スライスにアクションを足して参照する。デスクトップ（768px以上）専用で、入力欄フォーカス中は無効。
+
+## UI上の制約
+
+- レスポンシブ判定は `useResponsive`（768px未満をモバイル）。モバイルは `ModeNavigator` を下部、デスクトップは上部に置く**単一カラム**構成（分割ビューではない）
+- 常時ダークテーマ。ライトテーマ切り替えは未実装
+- `React.memo` と仮想スクロールは未導入。パフォーマンス最適化を入れるなら計測してから
+
+## テスト
+
+現状は reducer とユーティリティの単体テストのみ（[tasksSlice.test.ts](src/store/slices/tasksSlice.test.ts) / [dateHelpers.test.ts](src/utils/dateHelpers.test.ts)、計10テスト）。コンポーネントテストとE2Eは未整備。
+
+テストを足すなら、まず中核ルールから: `cleanupExpiredTasks`（24時間削除）、`toggleExecuting`（単一実行の保証）、REHYDRATE時の正規化。
+
+## CI / デプロイ
+
+- [.circleci/config.yml](.circleci/config.yml): `cimg/base` 上で mise を入れ、`mise.toml` から Node.js を解決する。**Nodeバージョンの定義箇所は `mise.toml` の1箇所だけ**なので、CI設定にバージョンを書き足さない
+- `test` ジョブ: typecheck → lint:strict → format:check → test → build
+- `security-scan` ジョブ: `npm audit` / `npm outdated`（main と毎日UTC 2時）
+- デプロイは Vercel の GitHub 連携。リポジトリ内にデプロイ用ワークフローはない
+
+## その他
+
+- Google Analytics は [analytics.ts](src/utils/analytics.ts) 経由。localhost とプライベートIPでは送信しない。計測イベントを増やすときもここに追加する
+- コミットは行わない（ユーザーが手動で行う）

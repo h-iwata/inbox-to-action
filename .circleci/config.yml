@@ -1,10 +1,44 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@5.2.0
+executors:
+  default:
+    docker:
+      # Node は mise.toml で固定するため、ベースイメージには含めない
+      - image: cimg/base:current
+    working_directory: ~/repo
 
 commands:
-  restore-cache:
+  setup-mise:
+    description: "Install mise and provision the toolchain defined in mise.toml"
+    steps:
+      - restore_cache:
+          keys:
+            - v1-mise-{{ checksum "mise.toml" }}
+            - v1-mise-
+      - run:
+          name: Install mise
+          command: |
+            if [ ! -x "$HOME/.local/bin/mise" ]; then
+              curl -fsSL https://mise.run | sh
+            fi
+            echo 'export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"' >> "$BASH_ENV"
+      - run:
+          name: Install toolchain
+          command: |
+            mise trust
+            mise install
+      - save_cache:
+          paths:
+            - ~/.local/bin
+            - ~/.local/share/mise
+          key: v1-mise-{{ checksum "mise.toml" }}
+      - run:
+          name: Verify toolchain
+          command: |
+            node --version
+            npm --version
+
+  restore-node-modules:
     description: "Restore node_modules cache"
     steps:
       - restore_cache:
@@ -12,7 +46,7 @@ commands:
             - v1-dependencies-{{ checksum "package-lock.json" }}
             - v1-dependencies-
 
-  save-cache:
+  save-node-modules:
     description: "Save node_modules cache"
     steps:
       - save_cache:
@@ -20,18 +54,22 @@ commands:
             - node_modules
           key: v1-dependencies-{{ checksum "package-lock.json" }}
 
-jobs:
-  test:
-    docker:
-      - image: cimg/node:24.12.0
-    working_directory: ~/repo
+  install-deps:
+    description: "Set up the toolchain and install dependencies"
     steps:
       - checkout
-      - restore-cache
+      - setup-mise
+      - restore-node-modules
       - run:
           name: Install dependencies
           command: npm ci
-      - save-cache
+      - save-node-modules
+
+jobs:
+  test:
+    executor: default
+    steps:
+      - install-deps
       - run:
           name: Run type check
           command: npm run typecheck
@@ -53,16 +91,9 @@ jobs:
             - dist
 
   security-scan:
-    docker:
-      - image: cimg/node:24.12.0
-    working_directory: ~/repo
+    executor: default
     steps:
-      - checkout
-      - restore-cache
-      - run:
-          name: Install dependencies
-          command: npm ci
-      - save-cache
+      - install-deps
       - run:
           name: Run npm audit
           command: |
