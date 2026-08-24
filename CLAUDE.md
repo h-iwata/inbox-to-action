@@ -12,15 +12,15 @@ npm ci              # 依存関係を lock どおりに導入
 npm run dev         # 開発サーバー
 npm run build       # tsc -b && vite build
 npm run test -- --run   # テスト単発実行（引数なしの npm run test は watch）
-npm run check-all   # typecheck + lint:strict + format:check ← CIと同一基準
-npm run fix-all     # lint:fix + format
+npm run check-all   # typecheck + biome ci ← CIと同一基準
+npm run fix-all     # biome check --write（lint自動修正 + 整形 + import整理）
 ```
 
-変更を終えたら必ず `npm run check-all` を通す。`--max-warnings 0` なので warning もCIを落とす。
+変更を終えたら必ず `npm run check-all` を通す。`biome ci --error-on-warnings` なので warning もCIを落とす。
 
 ## 技術スタック
 
-React 19 / TypeScript 5.9 / Redux Toolkit 2.11 + Redux Persist / Tailwind CSS 4（`@tailwindcss/postcss`）/ Framer Motion 12 / Vite 7 / Vitest 4 + jsdom / mise / CircleCI / Vercel
+React 19 / TypeScript 5.9 / Redux Toolkit 2.11 + Redux Persist / Tailwind CSS 4（`@tailwindcss/postcss`）/ Framer Motion 12 / Vite 7 / Vitest 4 + jsdom / Biome 2.5 / mise / CircleCI / Vercel
 
 Tailwind は v4 系。設定はCSS側の `@import 'tailwindcss'` が主で、`tailwind.config.js` に v3 流のユーティリティ定義を足そうとしないこと。
 
@@ -69,6 +69,18 @@ RootState {
 
 **キーバインドの定義元は [keyBindingsSlice.ts](src/store/slices/keyBindingsSlice.ts) のみ。** 現状は Tab/Shift+Tab（モード切替）、W/A/S/D と矢印キー（分類）、Space（完了）、1〜4（実行モードのカテゴリ切替）。キー処理をコンポーネントに直書きせず、スライスにアクションを足して参照する。デスクトップ（768px以上）専用で、入力欄フォーカス中は無効。
 
+## Lint / Format
+
+ESLint + Prettier ではなく **Biome** に統一している。設定は [biome.json](biome.json) の1ファイルのみ。
+
+- `biome check` が lint・フォーマット・import整理を兼ねる。ESLint や Prettier を再導入しない
+- 例外を作るときは `// biome-ignore lint/<rule>: <理由>` で局所的に抑制する。理由の記述は必須（Biomeが空の理由を拒否する）
+- 無効化しているルールと理由:
+  - `a11y/noStaticElementInteractions`、`a11y/useKeyWithClickEvents` — ドラッグ/スワイプ前提のカードUIを `div` で実装しているため。キーボードからの操作は keyBindings 側で提供している
+  - `correctness/useExhaustiveDependencies` — 既存実装が依存配列を意図的に絞っているため
+  - `index.html` は Google Analytics の公式スニペットを含むので `overrides` で lint 対象外（フォーマットのみ適用）
+- a11y ルールを増やすより、`AboutModal` を Radix Dialog に置き換える方が本質的な改善になる（未着手）
+
 ## UI上の制約
 
 - レスポンシブ判定は `useResponsive`（768px未満をモバイル）。モバイルは `ModeNavigator` を下部、デスクトップは上部に置く**単一カラム**構成（分割ビューではない）
@@ -84,7 +96,7 @@ RootState {
 ## CI / デプロイ
 
 - [.circleci/config.yml](.circleci/config.yml): `cimg/base` 上で mise を入れ、`mise.toml` から Node.js を解決する。**Nodeバージョンの定義箇所は `mise.toml` の1箇所だけ**なので、CI設定にバージョンを書き足さない
-- `test` ジョブ: typecheck → lint:strict → format:check → test → build
+- `test` ジョブ: typecheck → lint:strict（`biome ci`）→ test → build
 - `security-scan` ジョブ: `npm audit` / `npm outdated`（main と毎日UTC 2時）
 - デプロイは Vercel の GitHub 連携。リポジトリ内にデプロイ用ワークフローはない
 

@@ -1,8 +1,8 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { REHYDRATE } from 'redux-persist'
 import type { RootState } from './index'
-import { setMode, type AppMode } from './slices/uiSlice'
 import type { KeyAction } from './slices/keyBindingsSlice'
+import { type AppMode, setMode } from './slices/uiSlice'
 
 export const listenerMiddleware = createListenerMiddleware()
 

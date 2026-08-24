@@ -57,6 +57,7 @@
 - **Icons**: Lucide React
 - **Build Tool**: Vite 7
 - **Testing**: Vitest + Testing Library
+- **Lint/Format**: Biome
 - **Toolchain**: mise（Node.js 24.15.0 を固定）
 - **CI**: CircleCI
 - **Hosting**: Vercel
@@ -105,7 +106,7 @@ npm run preview
 # 型チェック / リント / フォーマット確認をまとめて実行（CIと同一基準）
 npm run check-all
 
-# リントとフォーマットを自動修正
+# リントとフォーマットを自動修正（Biome）
 npm run fix-all
 
 # テスト
@@ -115,7 +116,7 @@ npm run test -- --run
 npm run test:coverage
 ```
 
-CircleCI 上でも同じチェック（typecheck → lint → format → test → build）が走ります。CI は `mise.toml` から Node.js を解決するため、ローカルと同一バージョンで検証されます。
+CircleCI 上でも同じチェック（typecheck → Biome → test → build）が走ります。CI は `mise.toml` から Node.js を解決するため、ローカルと同一バージョンで検証されます。
 
 ## 📝 タスク管理の哲学
 

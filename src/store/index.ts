@@ -1,11 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { persistStore, persistReducer } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
 import { combineReducers } from 'redux'
+import { persistReducer, persistStore } from 'redux-persist'
+import storage from 'redux-persist/lib/storage'
+import { listenerMiddleware } from './listenerMiddleware'
+import keyBindingsReducer from './slices/keyBindingsSlice'
 import tasksReducer from './slices/tasksSlice'
 import uiReducer from './slices/uiSlice'
-import keyBindingsReducer from './slices/keyBindingsSlice'
-import { listenerMiddleware } from './listenerMiddleware'
 
 const rootReducer = combineReducers({
   tasks: tasksReducer,

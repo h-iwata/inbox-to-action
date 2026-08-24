@@ -1,18 +1,18 @@
+import { BarChart3, Check, FileText, Flame, PenTool, PlayCircle, Sparkles, Zap } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
+import { categoryIcons } from '../../config/icons'
+import { useResponsive } from '../../hooks/useResponsive'
+import { isKeyPressed, selectKeyBindings } from '../../store/slices/keyBindingsSlice'
 import {
   completeTask,
+  type ListCategory,
+  selectTaskCountByCategory,
   selectTopTasksByCategory,
   toggleExecuting,
-  selectTaskCountByCategory,
-  type ListCategory,
 } from '../../store/slices/tasksSlice'
 import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
-import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
-import { useResponsive } from '../../hooks/useResponsive'
-import { categoryIcons } from '../../config/icons'
-import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import { FileText, Check, Sparkles, Zap, PlayCircle, Flame, BarChart3, PenTool } from 'lucide-react'
 
 const categoryInfo = {
   work: {
@@ -138,6 +138,7 @@ export const ExecuteMode: React.FC = () => {
             <p className="text-gray-400">
               タスクを
               <button
+                type="button"
                 onClick={() => dispatch(setMode('create'))}
                 className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
               >
@@ -176,6 +177,7 @@ export const ExecuteMode: React.FC = () => {
 
               return (
                 <button
+                  type="button"
                   key={task.id}
                   onClick={() => handleSwitchExecution(task.id)}
                   className={`
@@ -276,6 +278,7 @@ export const ExecuteMode: React.FC = () => {
                   {executingTaskCount}件
                 </span>
                 <button
+                  type="button"
                   onClick={() =>
                     dispatch(
                       setModeWithScroll({
@@ -301,6 +304,7 @@ export const ExecuteMode: React.FC = () => {
 
             {/* 完了ボタン */}
             <button
+              type="button"
               onClick={() => handleComplete(executingTask.id)}
               disabled={!!completingTaskId}
               className={`
@@ -397,7 +401,7 @@ export const ExecuteMode: React.FC = () => {
                     <>
                       {/* タスクタイトル */}
                       <p className={`text-sm truncate ${isExecuting ? 'text-white/90 font-medium' : 'text-gray-400'}`}>
-                        {task.title.length > 20 ? task.title.substring(0, 20) + '...' : task.title}
+                        {task.title.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
                       </p>
 
                       {/* アクションヒント */}
@@ -422,6 +426,7 @@ export const ExecuteMode: React.FC = () => {
                     <div className="flex flex-col items-center gap-2 py-1">
                       <span className="text-xs text-gray-500">タスクなし</span>
                       <button
+                        type="button"
                         onClick={e => {
                           e.stopPropagation()
                           dispatch(setMode('create'))

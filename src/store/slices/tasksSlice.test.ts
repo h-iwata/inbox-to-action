@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { configureStore } from '@reduxjs/toolkit'
-import tasksReducer, { addTask, deleteTask, completeTask, classifyTask } from './tasksSlice'
+import { describe, expect, it } from 'vitest'
+import tasksReducer, { addTask, classifyTask, completeTask, deleteTask } from './tasksSlice'
 
 describe('tasksSlice', () => {
   const createStore = () => {

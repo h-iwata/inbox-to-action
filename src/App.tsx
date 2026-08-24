@@ -1,15 +1,15 @@
+import { Info } from 'lucide-react'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import type { RootState } from './store'
-import { cleanupExpiredTasks, updateStats, selectInboxTasks } from './store/slices/tasksSlice'
 import { Header } from './components/Layout/Header'
 import { ModeNavigator } from './components/Layout/ModeNavigator'
-import { CreateMode } from './features/create/CreateMode'
 import { ClassifyMode } from './features/classify/ClassifyMode'
-import { ListMode } from './features/list/ListMode'
+import { CreateMode } from './features/create/CreateMode'
 import { ExecuteMode } from './features/execute/ExecuteMode'
+import { ListMode } from './features/list/ListMode'
 import { useResponsive } from './hooks/useResponsive'
-import { Info } from 'lucide-react'
+import type { RootState } from './store'
+import { cleanupExpiredTasks, selectInboxTasks, updateStats } from './store/slices/tasksSlice'
 
 function App() {
   const dispatch = useDispatch()

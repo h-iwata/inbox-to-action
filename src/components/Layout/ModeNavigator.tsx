@@ -1,10 +1,10 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import type { RootState } from '../../store'
-import { setMode, type AppMode } from '../../store/slices/uiSlice'
-import { selectInboxTasks } from '../../store/slices/tasksSlice'
-import { useResponsive } from '../../hooks/useResponsive'
 import { modeIcons } from '../../config/icons'
+import { useResponsive } from '../../hooks/useResponsive'
+import type { RootState } from '../../store'
+import { selectInboxTasks } from '../../store/slices/tasksSlice'
+import { type AppMode, setMode } from '../../store/slices/uiSlice'
 
 interface ModeItem {
   id: AppMode
@@ -34,6 +34,7 @@ export const ModeNavigator: React.FC = () => {
         <div className="grid grid-cols-4">
           {modes.map(mode => (
             <button
+              type="button"
               key={mode.id}
               onClick={() => handleModeChange(mode.id)}
               className={`py-3 text-center transition-all ${
@@ -65,6 +66,7 @@ export const ModeNavigator: React.FC = () => {
           <div className="flex">
             {modes.map(mode => (
               <button
+                type="button"
                 key={mode.id}
                 onClick={() => handleModeChange(mode.id)}
                 className={`px-6 py-3 font-medium transition-all border-b-2 ${

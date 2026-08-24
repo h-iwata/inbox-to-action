@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Flame, PenTool, RefreshCw, Trash2 } from 'lucide-react'
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
+import { categoryIcons } from '../../config/icons'
 import type { RootState } from '../../store'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   deleteTask,
+  moveTaskToTop,
   selectTasksGroupedByCategory,
   selectTopTasksByCategory,
-  moveTaskToTop,
   toggleExecuting,
 } from '../../store/slices/tasksSlice'
-import { setMode, clearScrollToCategory } from '../../store/slices/uiSlice'
-import { categoryIcons } from '../../config/icons'
-import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import { SwipeableTaskCard } from './SwipeableTaskCard'
-import { Flame, Trash2, RefreshCw, PenTool } from 'lucide-react'
+import { clearScrollToCategory, setMode } from '../../store/slices/uiSlice'
 import type { Category, Task } from '../../types'
+import { SwipeableTaskCard } from './SwipeableTaskCard'
 
 export const ListMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -181,6 +182,7 @@ export const ListMode: React.FC = () => {
                   </div>
                   <p className="text-gray-500 text-sm">タスクがありません</p>
                   <button
+                    type="button"
                     onClick={() => dispatch(setMode('create'))}
                     className="inline-flex items-center gap-1 px-3 py-1 mt-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-sm"
                   >
@@ -235,12 +237,14 @@ export const ListMode: React.FC = () => {
               </p>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setTaskToDelete(null)}
                   className="flex-1 px-4 py-2.5 bg-gray-700 text-gray-300 rounded-xl hover:bg-gray-600 transition-all font-medium"
                 >
                   キャンセル
                 </button>
                 <button
+                  type="button"
                   onClick={handleConfirmDelete}
                   className="flex-1 px-4 py-2.5 bg-linear-to-r from-red-600 to-red-500 text-white rounded-xl hover:from-red-500 hover:to-red-400 transition-all font-bold shadow-lg shadow-red-500/30"
                 >

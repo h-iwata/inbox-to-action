@@ -1,5 +1,5 @@
 import React from 'react'
-import { categoryIcons, actionIcons } from '../../config/icons'
+import { actionIcons, categoryIcons } from '../../config/icons'
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 type DragDirection = Direction | 'center' | null
@@ -147,7 +147,11 @@ export const ClassifyOverlay: React.FC<ClassifyOverlayProps> = ({
 
       {/* ドラッグライン */}
       {dragDirection && dragDirection !== 'center' && (
-        <svg className="absolute inset-0 pointer-events-none z-40" style={{ width: '100%', height: '100%' }}>
+        <svg
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none z-40"
+          style={{ width: '100%', height: '100%' }}
+        >
           <line
             x1={centerPosition.x}
             y1={centerPosition.y}

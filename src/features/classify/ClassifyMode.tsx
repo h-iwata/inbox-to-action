@@ -1,23 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
-import { setMode } from '../../store/slices/uiSlice'
-import { selectKeyBindings, isKeyPressed } from '../../store/slices/keyBindingsSlice'
-import { useResponsive } from '../../hooks/useResponsive'
-import { categoryIcons } from '../../config/icons'
-import { ClassifyOverlay } from './ClassifyOverlay'
 import {
-  Trophy,
-  Layers,
-  ChevronUp,
+  BarChart3,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  ChevronUp,
+  Layers,
   PenTool,
-  BarChart3,
+  Sparkles,
+  Trophy,
 } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { categoryIcons } from '../../config/icons'
+import { useResponsive } from '../../hooks/useResponsive'
+import { isKeyPressed, selectKeyBindings } from '../../store/slices/keyBindingsSlice'
+import { classifyTask, selectInboxTasks, selectTasksByCategory } from '../../store/slices/tasksSlice'
+import { setMode } from '../../store/slices/uiSlice'
 import type { Category } from '../../types'
+import { ClassifyOverlay } from './ClassifyOverlay'
 import './ClassifyMode.css'
 
 type Direction = 'up' | 'down' | 'left' | 'right'
@@ -224,6 +224,7 @@ export const ClassifyMode: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-100 mb-2">すべて分類完了！</h2>
           <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
             <button
+              type="button"
               onClick={() => dispatch(setMode('list'))}
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
             >
@@ -232,6 +233,7 @@ export const ClassifyMode: React.FC = () => {
             </button>
             <span>を確認、または</span>
             <button
+              type="button"
               onClick={() => dispatch(setMode('create'))}
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
             >
@@ -285,7 +287,7 @@ export const ClassifyMode: React.FC = () => {
           {/* 次のタスクのプレビュー（スタック表現） */}
           {inboxTasks.length > 1 && (
             <div className="text-xs text-gray-500">
-              次: {inboxTasks[1].title.length > 20 ? inboxTasks[1].title.substring(0, 20) + '...' : inboxTasks[1].title}
+              次: {inboxTasks[1].title.length > 20 ? `${inboxTasks[1].title.substring(0, 20)}...` : inboxTasks[1].title}
             </div>
           )}
         </div>
@@ -450,6 +452,7 @@ export const ClassifyMode: React.FC = () => {
           <div className="absolute inset-0 flex items-center justify-center">
             {[...Array(6)].map((_, i) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: 並び替えの起きない装飾用の固定長配列
                 key={i}
                 className="absolute animate-particle"
                 style={{

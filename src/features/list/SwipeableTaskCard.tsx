@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
 import { motion } from 'framer-motion'
-import { Inbox, Trash2, Play, Target } from 'lucide-react'
+import { Inbox, Play, Target, Trash2 } from 'lucide-react'
+import type React from 'react'
+import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { moveTaskToInbox } from '../../store/slices/tasksSlice'
 import type { Task } from '../../types'
 

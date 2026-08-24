@@ -1,10 +1,10 @@
-import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolkit'
-import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import type { Task, Category, DailyStats, UUID } from '../../types'
-import type { RootState } from '../index'
-import { trackTaskEvent } from '../../utils/analytics'
-import { REHYDRATE } from 'redux-persist/es/constants'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RehydrateAction } from 'redux-persist'
+import { REHYDRATE } from 'redux-persist/es/constants'
+import { validate as uuidValidate, v4 as uuidv4 } from 'uuid'
+import type { Category, DailyStats, Task, UUID } from '../../types'
+import { trackTaskEvent } from '../../utils/analytics'
+import type { RootState } from '../index'
 
 const CATEGORY_LIST: Category[] = ['inbox', 'work', 'life', 'study', 'hobby']
 
@@ -305,7 +305,9 @@ const tasksSlice = createSlice({
 
       // 先頭タスクが変わったので実行中フラグをリセット
       if (category !== 'inbox') {
-        list.forEach(t => (t.isExecuting = false))
+        list.forEach(t => {
+          t.isExecuting = false
+        })
       }
     },
   },

@@ -74,11 +74,8 @@ jobs:
           name: Run type check
           command: npm run typecheck
       - run:
-          name: Run linter
+          name: Run linter and formatter check (Biome)
           command: npm run lint:strict
-      - run:
-          name: Check code formatting
-          command: npm run format:check
       - run:
           name: Run tests
           command: npm run test

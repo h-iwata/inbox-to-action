@@ -1,8 +1,9 @@
-import React, { useMemo, useEffect, useRef } from 'react'
+import { BarChart3, Flame, Sparkles, Star, Zap } from 'lucide-react'
+import type React from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useSelector } from 'react-redux'
-import { selectTodayCompletedByCategory } from '../../store/slices/tasksSlice'
 import { categoryIcons } from '../../config/icons'
-import { BarChart3, Sparkles, Flame, Zap, Star } from 'lucide-react'
+import { selectTodayCompletedByCategory } from '../../store/slices/tasksSlice'
 import { trackLevelUp } from '../../utils/analytics'
 import './CategoryCompletionBar.css'
 
@@ -233,6 +234,7 @@ export const CategoryCompletionBar: React.FC = () => {
         <div className="flex gap-0.5">
           {[...Array(5)].map((_, i) => (
             <Star
+              // biome-ignore lint/suspicious/noArrayIndexKey: 並び替えの起きない装飾用の固定長配列
               key={i}
               className={`w-3.5 h-3.5 ${
                 i < level

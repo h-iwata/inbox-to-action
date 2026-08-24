@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { Inbox, Layers, Send, X } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { categoryIcons } from '../../config/icons'
 import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
 import { setMode } from '../../store/slices/uiSlice'
-import { categoryIcons } from '../../config/icons'
-import { Send, Inbox, Layers, X } from 'lucide-react'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -38,7 +38,7 @@ export const CreateMode: React.FC = () => {
     setInputValue(e.target.value)
     // 高さをリセットしてから、コンテンツに合わせて調整
     e.target.style.height = 'auto'
-    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px' // 最大200px（約5行）
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px` // 最大200px（約5行）
   }
 
   // Enterキーで送信（Shift+Enterで改行）
@@ -105,6 +105,7 @@ export const CreateMode: React.FC = () => {
                 rows={1}
                 className={`w-full px-6 py-8 text-xl bg-gray-800/90 backdrop-blur-sm border-2 border-gray-600 rounded-2xl focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder-gray-400 text-gray-100 shadow-xl resize-none overflow-hidden leading-relaxed ${inputValue ? 'pr-20' : ''}`}
                 style={{ minHeight: '96px' }}
+                // biome-ignore lint/a11y/noAutofocus: 作成モードは開いた直後に入力できることが要件
                 autoFocus
               />
               <div className="absolute top-3 right-4 text-sm text-gray-500">{inputValue.length}/100</div>
@@ -155,6 +156,7 @@ export const CreateMode: React.FC = () => {
                       </p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => dispatch(deleteTask(task.id))}
                       className="text-gray-400 hover:text-red-400 transition-all p-1.5 rounded-lg bg-gray-700/50 hover:bg-red-900/30"
                     >
@@ -174,6 +176,7 @@ export const CreateMode: React.FC = () => {
               <div className="mb-3 text-center text-sm text-gray-400">
                 作成したタスクを
                 <button
+                  type="button"
                   onClick={() => dispatch(setMode('classify'))}
                   className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
                 >

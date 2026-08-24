@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import { HelpCircle, Inbox, Info } from 'lucide-react'
+import type React from 'react'
+import { useState } from 'react'
 import { useResponsive } from '../../hooks/useResponsive'
 import { AboutModal } from '../AboutModal/AboutModal'
-import { Inbox, Info, HelpCircle } from 'lucide-react'
 
 export const Header: React.FC = () => {
   const { isMobile } = useResponsive()
@@ -33,6 +34,7 @@ export const Header: React.FC = () => {
 
             {/* About リンク */}
             <button
+              type="button"
               onClick={() => setIsAboutModalOpen(true)}
               className="flex items-center gap-1 px-3 py-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 rounded-lg transition-all"
               aria-label="このアプリについて"

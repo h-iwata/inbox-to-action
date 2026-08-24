@@ -1,19 +1,19 @@
-import React, { useEffect } from 'react'
-import { useResponsive } from '../../hooks/useResponsive'
 import {
-  X,
-  Lightbulb,
-  RotateCw,
-  PenTool,
-  FolderOpen,
-  List,
-  Target,
-  Sparkles,
-  Flame,
   Calendar,
+  Flame,
+  FolderOpen,
+  Lightbulb,
+  List,
+  PenTool,
+  RotateCw,
+  Sparkles,
+  Target,
   Trophy,
+  X,
 } from 'lucide-react'
+import React, { useEffect } from 'react'
 import { categoryIcons } from '../../config/icons'
+import { useResponsive } from '../../hooks/useResponsive'
 
 interface AboutModalProps {
   isOpen: boolean
@@ -64,7 +64,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
           {/* ヘッダー */}
           <div className="sticky top-0 bg-linear-to-r from-violet-800 to-cyan-800 px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">InboxToAction について</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
+            <button type="button" onClick={onClose} className="text-white/80 hover:text-white transition-colors">
               <X className="w-6 h-6" />
             </button>
           </div>
