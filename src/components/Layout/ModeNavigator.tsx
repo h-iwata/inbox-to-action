@@ -1,10 +1,10 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { modeIcons } from '../../config/icons'
-import { useResponsive } from '../../hooks/useResponsive'
-import type { RootState } from '../../store'
-import { selectInboxTasks } from '../../store/slices/tasksSlice'
-import { type AppMode, setMode } from '../../store/slices/uiSlice'
+import { modeIcons } from '@/config/icons'
+import { useResponsive } from '@/hooks/useResponsive'
+import type { RootState } from '@/store'
+import { selectInboxTasks } from '@/store/slices/tasksSlice'
+import { type AppMode, setMode } from '@/store/slices/uiSlice'
 
 interface ModeItem {
   id: AppMode

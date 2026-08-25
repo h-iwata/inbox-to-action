@@ -3,18 +3,18 @@ import { Flame, PenTool, RefreshCw, Trash2 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import { categoryIcons } from '../../config/icons'
-import type { RootState } from '../../store'
+import { CategoryCompletionBar } from '@/components/CategoryCompletionBar/CategoryCompletionBar'
+import { categoryIcons } from '@/config/icons'
+import type { RootState } from '@/store'
 import {
   deleteTask,
   moveTaskToTop,
   selectTasksGroupedByCategory,
   selectTopTasksByCategory,
   toggleExecuting,
-} from '../../store/slices/tasksSlice'
-import { clearScrollToCategory, setMode } from '../../store/slices/uiSlice'
-import type { Category, Task } from '../../types'
+} from '@/store/slices/tasksSlice'
+import { clearScrollToCategory, setMode } from '@/store/slices/uiSlice'
+import type { Category, Task } from '@/types'
 import { SwipeableTaskCard } from './SwipeableTaskCard'
 
 export const ListMode: React.FC = () => {

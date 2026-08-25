@@ -2,9 +2,9 @@ import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolki
 import type { RehydrateAction } from 'redux-persist'
 import { REHYDRATE } from 'redux-persist/es/constants'
 import { validate as uuidValidate, v4 as uuidv4 } from 'uuid'
-import type { Category, DailyStats, Task, UUID } from '../../types'
-import { trackTaskEvent } from '../../utils/analytics'
-import type { RootState } from '../index'
+import type { RootState } from '@/store'
+import type { Category, DailyStats, Task, UUID } from '@/types'
+import { trackTaskEvent } from '@/utils/analytics'
 
 const CATEGORY_LIST: Category[] = ['inbox', 'work', 'life', 'study', 'hobby']
 

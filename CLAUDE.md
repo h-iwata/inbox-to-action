@@ -12,11 +12,15 @@ npm ci              # 依存関係を lock どおりに導入
 npm run dev         # 開発サーバー
 npm run build       # tsc -b && vite build
 npm run test -- --run   # テスト単発実行（引数なしの npm run test は watch）
+npm run typecheck   # tsc -b --noEmit
 npm run check-all   # typecheck + biome ci ← CIと同一基準
 npm run fix-all     # biome check --write（lint自動修正 + 整形 + import整理）
 ```
 
 変更を終えたら必ず `npm run check-all` を通す。`biome ci --error-on-warnings` なので warning もCIを落とす。
+
+型チェックは **`tsc -b`（プロジェクト参照を辿る）で実行する**。ルートの [tsconfig.json](tsconfig.json) は
+`files: []` + `references` なので、`tsc --noEmit` にすると src を1ファイルも検査せずに成功してしまう。
 
 ## 技術スタック
 
@@ -59,6 +63,15 @@ RootState {
 | `src/store/slices/`                                     | tasks / ui / keyBindings                   |
 | `src/store/listenerMiddleware.ts`                       | window の keydown 購読（モード切り替え）   |
 | `src/hooks/`、`src/config/`、`src/types/`、`src/utils/` | useResponsive、アイコン定義、型、analytics |
+
+### import
+
+`src` 配下は `@/` エイリアスで参照する。親を遡る相対 import（`../../store` など）は書かない。
+同一ディレクトリ内の `./` は可。
+
+エイリアスの定義箇所は [vite.config.ts](vite.config.ts)（`resolve.alias`）と
+[tsconfig.app.json](tsconfig.app.json)（`paths`）の2つ。[vitest.config.ts](vitest.config.ts) は
+`mergeConfig` で vite の設定を継承しているので、そこに定義を書き足さない。
 
 ## 守るべき不変条件
 

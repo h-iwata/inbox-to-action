@@ -12,8 +12,8 @@ import {
   X,
 } from 'lucide-react'
 import React, { useEffect } from 'react'
-import { categoryIcons } from '../../config/icons'
-import { useResponsive } from '../../hooks/useResponsive'
+import { categoryIcons } from '@/config/icons'
+import { useResponsive } from '@/hooks/useResponsive'
 
 interface AboutModalProps {
   isOpen: boolean
