@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { barStyleClasses, summarizeCompletion } from '@/components/CategoryCompletionBar/completion-helpers'
-import type { CategoryRecord } from '@/store/slices/tasksSlice'
+import type { CategoryRecord } from '@/store/taskSelectors'
 
 describe('summarizeCompletion', () => {
   let completed: CategoryRecord<number>
@@ -22,8 +22,7 @@ describe('summarizeCompletion', () => {
     expect(sum).toBeCloseTo(100)
   })
 
-  it('同じ入力なら同じメッセージ（再レンダリングで踊らない）', () =>
-    expect(subject().message).toBe(subject().message))
+  it('同じ入力なら同じメッセージ（再レンダリングで踊らない）', () => expect(subject().message).toBe(subject().message))
 
   describe('レベル', () => {
     const levelOf = (total: number) => summarizeCompletion({ work: total, life: 0, study: 0, hobby: 0 }).level

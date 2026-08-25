@@ -1,4 +1,4 @@
-import type { AppMode } from '@/store/slices/uiSlice'
+import type { AppMode } from '@/store/uiStore'
 
 /** コマンドが有効になるスコープ。`global` は全モード共通、それ以外は特定のモード。 */
 export type Scope = 'global' | AppMode

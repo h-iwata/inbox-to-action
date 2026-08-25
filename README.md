@@ -51,7 +51,7 @@
 ## 🛠 技術スタック
 
 - **Frontend**: React 19 + TypeScript 7
-- **State Management**: Redux Toolkit + Redux Persist
+- **State Management**: Zustand（persist で localStorage 永続化）
 - **Styling**: Tailwind CSS 4
 - **Animation**: Motion（旧 Framer Motion）
 - **Icons**: Lucide React

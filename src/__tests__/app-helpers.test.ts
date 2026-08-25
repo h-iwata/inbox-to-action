@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { operationHint } from '@/app-helpers'
-import type { AppMode } from '@/store/slices/uiSlice'
+import type { AppMode } from '@/store/uiStore'
 
 describe('operationHint', () => {
   let mode: AppMode

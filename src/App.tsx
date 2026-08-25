@@ -1,6 +1,5 @@
 import { Info } from 'lucide-react'
 import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { Header } from '@/components/Layout/Header'
 import { ModeNavigator } from '@/components/Layout/ModeNavigator'
 import { ClassifyMode } from '@/features/classify'
@@ -9,39 +8,40 @@ import { ExecuteMode } from '@/features/execute'
 import { ListMode } from '@/features/list'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useCommandHandler, useKeybindings } from '@/lib/keybindings'
-import type { RootState } from '@/store'
-import { cleanupExpiredTasks, selectInboxTasks, updateStats } from '@/store/slices/tasksSlice'
-import { getNextMode, getPrevMode, setMode } from '@/store/slices/uiSlice'
+import { useTaskActions } from '@/store/tasksStore'
+import { getNextMode, getPrevMode, useCurrentMode, useUIActions } from '@/store/uiStore'
+import { useInboxTasks } from '@/store/useTasks'
 import { operationHint } from './app-helpers'
 
 function App() {
-  const dispatch = useDispatch()
-  const currentMode = useSelector((state: RootState) => state.ui.currentMode)
-  const inboxTasks = useSelector(selectInboxTasks)
+  const currentMode = useCurrentMode()
+  const inboxTasks = useInboxTasks()
+  const { setMode } = useUIActions()
+  const { cleanupExpiredTasks, updateStats } = useTaskActions()
   const { isMobile } = useResponsive()
 
   // キーバインドの接続（アプリ全体で1回だけ）とモード切り替えコマンドの登録
   useKeybindings()
-  useCommandHandler('mode.next', () => dispatch(setMode(getNextMode(currentMode))))
-  useCommandHandler('mode.prev', () => dispatch(setMode(getPrevMode(currentMode))))
+  useCommandHandler('mode.next', () => setMode(getNextMode(currentMode)))
+  useCommandHandler('mode.prev', () => setMode(getPrevMode(currentMode)))
 
   // 24時間自動削除機能
   useEffect(() => {
     // アプリ起動時に実行
-    dispatch(cleanupExpiredTasks())
-    dispatch(updateStats())
+    cleanupExpiredTasks()
+    updateStats()
 
     // 5分ごとに実行
     const interval = setInterval(
       () => {
-        dispatch(cleanupExpiredTasks())
-        dispatch(updateStats())
+        cleanupExpiredTasks()
+        updateStats()
       },
       5 * 60 * 1000
     )
 
     return () => clearInterval(interval)
-  }, [dispatch])
+  }, [cleanupExpiredTasks, updateStats])
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 text-gray-100">

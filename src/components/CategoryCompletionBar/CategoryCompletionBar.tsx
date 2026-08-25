@@ -1,15 +1,14 @@
 import { BarChart3, Flame, Sparkles, Star, Zap } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useRef } from 'react'
-import { useSelector } from 'react-redux'
 import { categoryIcons } from '@/config/icons'
-import { selectTodayCompletedByCategory } from '@/store/slices/tasksSlice'
+import { useTodayCompletedByCategory } from '@/store/useTasks'
 import { trackLevelUp } from '@/utils/analytics'
 import { barStyleClasses, summarizeCompletion } from './completion-helpers'
 import './CategoryCompletionBar.css'
 
 export const CategoryCompletionBar: React.FC = () => {
-  const completedByCategory = useSelector(selectTodayCompletedByCategory)
+  const completedByCategory = useTodayCompletedByCategory()
   const prevLevelRef = useRef<number | null>(null)
 
   const { total, percentages, maxCategory, message, level, nextLevelRequirement } = useMemo(

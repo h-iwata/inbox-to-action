@@ -1,4 +1,4 @@
-import type { CategoryRecord, ListCategory } from '@/store/slices/tasksSlice'
+import type { CategoryRecord, ListCategory } from '@/store/taskSelectors'
 
 /** 1レベル上がるのに必要な完了数。 */
 const TASKS_PER_LEVEL = 3

@@ -38,7 +38,7 @@ Go 実装のネイティブコンパイラ。CLI の型チェックが 5.9 比�
 
 ## 技術スタック
 
-React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / valibot 1 / Radix UI / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
+React 19 / TypeScript 7 / Zustand 5 + immer / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / valibot 1 / Radix UI / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
 
 Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css](src/index.css) の `@import 'tailwindcss'` が起点で、
 テーマを拡張するなら CSS 側の `@theme` を使う。`tailwind.config.js` と `postcss.config.js` は削除済み（v4 は
@@ -47,21 +47,48 @@ Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css]
 
 ## アーキテクチャ
 
-### State（[src/store/index.ts](src/store/index.ts)）
+### State
+
+Zustand のストアを2つ持つ。**ひとつの巨大なストアにまとめない。**
 
 ```typescript
-RootState {
-  tasks: {                          // persist対象（whitelist は tasks のみ）
-    lists: Record<Category, Task[]> // inbox / work / life / study / hobby
-    completed: Task[]
-    dailyStats: { created, classified, completed }
-  }
-  ui:          { currentMode, scrollToCategory }  // 永続化されない
+// useTasksStore（localStorage に永続化）
+{
+  lists: Record<Category, Task[]>   // inbox / work / life / study / hobby
+  completed: Task[]
+  dailyStats: { created, classified, completed }
+  actions: { addTask, deleteTask, completeTask, ... }   // 保存対象外
+}
+
+// useUIStore（永続化しない。リロードで作成モードに戻る）
+{
+  currentMode, scrollToCategory
+  actions: { setMode, setModeWithScroll, clearScrollToCategory }
 }
 ```
 
-- `ui` はリロードで初期化される。永続化したい状態を足すなら whitelist を変更する
-- セレクターは `createSelector` でメモ化する（[tasksSlice.ts](src/store/slices/tasksSlice.ts) の既存実装に合わせる）
+**責務を3層に分けている。**
+
+| ファイル | 責務 |
+|---|---|
+| [taskMutations.ts](src/store/taskMutations.ts) | 状態遷移の純粋ロジック。**ストア実装に依存しない**（Immer の draft を受け取る形） |
+| [taskSelectors.ts](src/store/taskSelectors.ts) | 派生値の計算。同じくストア非依存 |
+| [tasksStore.ts](src/store/tasksStore.ts) | mutation の呼び出しと計測イベントの送信だけを行う薄い配線 |
+
+こうしてある理由は、**状態遷移のテストをストアの API に縛られない形で書くため**。
+ロジックをストアに直接書くと、ストアを差し替えるたびにテストも書き直しになる。
+
+守るべきこと:
+
+- **すべての mutation は戻り値を持たない**。Immer の producer は値を返すとエラーになるため、
+  戻り値があると呼び出し側でブロック文にする必要が生じて事故りやすい。
+  計測などで変更前の情報が要るときは、`set` の前に `taskSelectors` で取得する
+- **アクションは `actions` オブジェクトにまとめる**。参照が安定するので
+  `useTasksStore(state => state.actions)` で購読しても再レンダリングを誘発しない
+- **新しい配列やオブジェクトを返すセレクターは `useShallow` で包む**
+  （[useTasks.ts](src/store/useTasks.ts) の実装に倣う）。包まないと値が同じでも毎回再レンダリングされる
+- 永続化の対象は `partialize` で明示する。`ui` を永続化したくなったら `useUIStore` に persist を足す
+  （tasks 側に混ぜない）
 
 ### モードベースUI
 
@@ -74,8 +101,11 @@ RootState {
 | `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント（`index.ts` が公開境界） |
 | `src/components/Layout/`                                | Header、ModeNavigator                      |
 | `src/components/ui/`                                    | 汎用UIコンポーネント（Dialog）             |
-| `src/store/slices/`                                     | tasks / ui                                 |
+| `src/store/tasksStore.ts`、`src/store/uiStore.ts`       | Zustand ストア（薄い配線）                 |
+| `src/store/taskMutations.ts`                            | 状態遷移の純粋ロジック                     |
+| `src/store/taskSelectors.ts`、`src/store/useTasks.ts`   | 派生値の計算と購読フック                   |
 | `src/store/persistSchema.ts`                            | 復元データの検証スキーマ（valibot）        |
+| `src/store/migrateLegacyStorage.ts`                     | 旧 redux-persist データの移行（一度きり）  |
 | `src/lib/keybindings/`                                  | コマンドレジストリ（tinykeys ブリッジ）    |
 | `src/config/commands.ts`                                | 全ショートカットの定義元                   |
 | `scripts/`、`docs/`                                     | ドキュメント生成スクリプトとその生成物     |
@@ -117,13 +147,16 @@ RootState {
 
 ## 守るべき不変条件
 
+不変条件はすべて [taskMutations.ts](src/store/taskMutations.ts) が担保する。コンポーネントや
+ストアの配線側で状態を直接いじらない。
+
 **タスクの並び順は配列そのもの。** `order` フィールドは存在しない。並べ替えは `moveTaskToTop`（最上位への移動）だけを提供し、任意の並べ替えUIは追加しない。
 
 **`isExecuting` はアプリ全体で常に1つだけ。** 立てられるのはカテゴリの先頭タスクのみで、inbox のタスクには立てられない。フラグを操作する処理を書くときは `clearExecutingFlags` / `setFirstTaskAsExecuting` を経由し、直接代入しない。
 
 **24時間ルールに例外を作らない。** `created_at` から24時間で削除。完了済みタスクも対象。判定は `cleanupExpiredTasks` に集約し、起動時と5分間隔で dispatch される。
 
-**localStorage の内容を信頼しない。** REHYDRATE 時に [persistSchema.ts](src/store/persistSchema.ts) の
+**localStorage の内容を信頼しない。** 復元時（persist の `merge`）に [persistSchema.ts](src/store/persistSchema.ts) の
 valibot スキーマで型を矯正している。壊れた値は例外を投げずに `fallback` で既定値へ倒す
 （データが読めなくてもアプリは起動する方を選ぶ）。
 

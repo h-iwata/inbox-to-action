@@ -2,8 +2,7 @@ import { Inbox, Play, Target, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import type React from 'react'
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { moveTaskToInbox } from '@/store/slices/tasksSlice'
+import { useTaskActions } from '@/store/tasksStore'
 import type { Task } from '@/types'
 import {
   clampSwipeOffset,
@@ -34,7 +33,7 @@ interface SwipeableTaskCardProps {
 }
 
 export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, index, onDelete, onTap }) => {
-  const dispatch = useDispatch()
+  const { moveTaskToInbox } = useTaskActions()
   const [swipeState, setSwipeState] = useState<SwipeState>(initialSwipeState)
   const [isSwiping, setIsSwiping] = useState(false)
 
@@ -67,7 +66,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
 
     const action = resolveSwipeAction(rawOffset, swipeState.direction)
     if (action === 'moveToInbox') {
-      dispatch(moveTaskToInbox(task.id))
+      moveTaskToInbox(task.id)
     } else if (action === 'delete') {
       onDelete(task)
     }

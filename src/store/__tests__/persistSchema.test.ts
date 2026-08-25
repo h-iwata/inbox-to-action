@@ -1,7 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit'
-import { REHYDRATE } from 'redux-persist/es/constants'
 import { beforeEach, describe, expect, it } from 'vitest'
-import tasksReducer from '@/store/slices/tasksSlice'
+import { parsePersistedTasks } from '@/store/persistSchema'
 import { taskFactory } from '@/test/factories/task'
 import type { Task } from '@/types'
 
@@ -10,14 +8,12 @@ import type { Task } from '@/types'
  *
  * 「localStorage の内容を信頼しない」という不変条件を守るためのもの。
  * 壊れた値・型の違う値・欠けた値が入ってきても、常に妥当な状態に矯正されることを検証する。
+ *
+ * ストア実装に依存しないよう、スキーマを直接呼んで検証する。
  */
-const rehydrate = (tasks: unknown) => {
-  const store = configureStore({ reducer: { tasks: tasksReducer } })
-  store.dispatch({ type: REHYDRATE, key: 'root', payload: { tasks } })
-  return store.getState().tasks
-}
+const rehydrate = (tasks: unknown) => parsePersistedTasks(tasks)
 
-describe('REHYDRATE の正規化', () => {
+describe('永続データの正規化', () => {
   let task: Task
   let persisted: unknown
   const subject = () => rehydrate(persisted)

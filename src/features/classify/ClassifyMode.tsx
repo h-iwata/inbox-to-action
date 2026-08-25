@@ -10,12 +10,12 @@ import {
   Trophy,
 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { categoryIcons } from '@/config/icons'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useCommandHandler } from '@/lib/keybindings'
-import { classifyTask, selectInboxTasks, selectTasksByCategory } from '@/store/slices/tasksSlice'
-import { setMode } from '@/store/slices/uiSlice'
+import { useTaskActions } from '@/store/tasksStore'
+import { useUIActions } from '@/store/uiStore'
+import { useInboxTasks, useTasksByCategory } from '@/store/useTasks'
 import { ClassifyOverlay } from './ClassifyOverlay'
 import {
   CATEGORY_BY_DIRECTION,
@@ -27,16 +27,17 @@ import {
 import './ClassifyMode.css'
 
 export const ClassifyMode: React.FC = () => {
-  const dispatch = useDispatch()
-  const inboxTasks = useSelector(selectInboxTasks)
+  const inboxTasks = useInboxTasks()
+  const { classifyTask } = useTaskActions()
+  const { setMode } = useUIActions()
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
 
   // カテゴリ別のタスク数を取得
-  const workTasks = useSelector(selectTasksByCategory('work'))
-  const lifeTasks = useSelector(selectTasksByCategory('life'))
-  const studyTasks = useSelector(selectTasksByCategory('study'))
-  const hobbyTasks = useSelector(selectTasksByCategory('hobby'))
+  const workTasks = useTasksByCategory('work')
+  const lifeTasks = useTasksByCategory('life')
+  const studyTasks = useTasksByCategory('study')
+  const hobbyTasks = useTasksByCategory('hobby')
 
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
@@ -66,7 +67,7 @@ export const ClassifyMode: React.FC = () => {
 
     // カードが飛んでいくアニメーション
     setTimeout(() => {
-      dispatch(classifyTask({ id: currentTask.id, category }))
+      classifyTask(currentTask.id, category)
       setShowSuccess(false)
 
       // 次のカードが現れるアニメーション
@@ -185,7 +186,7 @@ export const ClassifyMode: React.FC = () => {
           <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
             <button
               type="button"
-              onClick={() => dispatch(setMode('list'))}
+              onClick={() => setMode('list')}
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
             >
               <BarChart3 className="w-4 h-4" />
@@ -194,7 +195,7 @@ export const ClassifyMode: React.FC = () => {
             <span>を確認、または</span>
             <button
               type="button"
-              onClick={() => dispatch(setMode('create'))}
+              onClick={() => setMode('create')}
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
             >
               <PenTool className="w-4 h-4" />

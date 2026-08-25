@@ -1,4 +1,4 @@
-import type { AppMode } from '@/store/slices/uiSlice'
+import type { AppMode } from '@/store/uiStore'
 
 /** モードごとの操作ヒント。モバイルとデスクトップで操作方法が違うので分けている。 */
 const HINTS: Record<'mobile' | 'desktop', Record<AppMode, string>> = {

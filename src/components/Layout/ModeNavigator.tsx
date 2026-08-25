@@ -1,10 +1,8 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { modeIcons } from '@/config/icons'
 import { useResponsive } from '@/hooks/useResponsive'
-import type { RootState } from '@/store'
-import { selectInboxTasks } from '@/store/slices/tasksSlice'
-import { type AppMode, setMode } from '@/store/slices/uiSlice'
+import { type AppMode, useCurrentMode, useUIActions } from '@/store/uiStore'
+import { useInboxTasks } from '@/store/useTasks'
 
 interface ModeItem {
   id: AppMode
@@ -19,13 +17,13 @@ const modes: ModeItem[] = [
 ]
 
 export const ModeNavigator: React.FC = () => {
-  const dispatch = useDispatch()
-  const currentMode = useSelector((state: RootState) => state.ui.currentMode)
-  const inboxTasks = useSelector(selectInboxTasks)
+  const currentMode = useCurrentMode()
+  const inboxTasks = useInboxTasks()
+  const { setMode } = useUIActions()
   const { isMobile } = useResponsive()
 
   const handleModeChange = (mode: AppMode) => {
-    dispatch(setMode(mode))
+    setMode(mode)
   }
 
   if (isMobile) {

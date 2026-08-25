@@ -1,9 +1,8 @@
 import { useEffect } from 'react'
-import { useSelector } from 'react-redux'
 import { defaultKeybindingsHandlerIgnore, tinykeys } from 'tinykeys'
 import { COMMANDS } from '@/config/commands'
 import { useResponsive } from '@/hooks/useResponsive'
-import type { RootState } from '@/store'
+import { useCurrentMode } from '@/store/uiStore'
 import { getHandler } from './registry'
 import type { CommandDefinition, Scope } from './types'
 import { isActiveScope } from './when'
@@ -43,7 +42,7 @@ export const shouldIgnoreEvent = (event: KeyboardEvent): boolean => {
  * - モバイル（768px未満）では一切バインドしない
  */
 export function useKeybindings(): void {
-  const currentMode = useSelector((state: RootState) => state.ui.currentMode)
+  const currentMode = useCurrentMode()
   const { isDesktop } = useResponsive()
 
   useEffect(() => {

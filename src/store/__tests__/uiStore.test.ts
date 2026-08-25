@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type AppMode, getNextMode, getPrevMode, MODE_ORDER } from '@/store/slices/uiSlice'
+import { type AppMode, getNextMode, getPrevMode, MODE_ORDER } from '@/store/uiStore'
 
 describe('getNextMode', () => {
   let current: AppMode

@@ -1,13 +1,14 @@
 import { Inbox, Layers, Send, X } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { categoryIcons } from '@/config/icons'
-import { addTask, deleteTask, selectInboxTasks } from '@/store/slices/tasksSlice'
-import { setMode } from '@/store/slices/uiSlice'
+import { useTaskActions } from '@/store/tasksStore'
+import { useUIActions } from '@/store/uiStore'
+import { useInboxTasks } from '@/store/useTasks'
 
 export const CreateMode: React.FC = () => {
-  const dispatch = useDispatch()
-  const tasks = useSelector(selectInboxTasks)
+  const tasks = useInboxTasks()
+  const { addTask, deleteTask } = useTaskActions()
+  const { setMode } = useUIActions()
   const [inputValue, setInputValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showClassifyPrompt, setShowClassifyPrompt] = useState(false)
@@ -18,7 +19,7 @@ export const CreateMode: React.FC = () => {
     e.preventDefault()
     if (inputValue.trim() && !isSubmitting) {
       setIsSubmitting(true)
-      dispatch(addTask(inputValue.trim()))
+      addTask(inputValue.trim())
       setInputValue('')
       setTimeout(() => {
         setIsSubmitting(false)
@@ -157,7 +158,7 @@ export const CreateMode: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => dispatch(deleteTask(task.id))}
+                      onClick={() => deleteTask(task.id)}
                       className="text-gray-400 hover:text-red-400 transition-all p-1.5 rounded-lg bg-gray-700/50 hover:bg-red-900/30"
                     >
                       <X className="w-4 h-4" />
@@ -177,7 +178,7 @@ export const CreateMode: React.FC = () => {
                 作成したタスクを
                 <button
                   type="button"
-                  onClick={() => dispatch(setMode('classify'))}
+                  onClick={() => setMode('classify')}
                   className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
                 >
                   <Layers className="w-3 h-3" />
