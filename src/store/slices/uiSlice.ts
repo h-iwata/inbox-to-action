@@ -4,6 +4,15 @@ import { trackModeChange } from '@/utils/analytics'
 
 export type AppMode = 'create' | 'classify' | 'list' | 'execute' // 作成, 分類, 一覧, 実行
 
+/** モードの並び順。Tab / Shift+Tab はこの順序で循環する。 */
+export const MODE_ORDER: readonly AppMode[] = ['create', 'classify', 'list', 'execute']
+
+export const getNextMode = (current: AppMode): AppMode =>
+  MODE_ORDER[(MODE_ORDER.indexOf(current) + 1) % MODE_ORDER.length]
+
+export const getPrevMode = (current: AppMode): AppMode =>
+  MODE_ORDER[(MODE_ORDER.indexOf(current) - 1 + MODE_ORDER.length) % MODE_ORDER.length]
+
 interface UIState {
   currentMode: AppMode
   scrollToCategory: Category | null

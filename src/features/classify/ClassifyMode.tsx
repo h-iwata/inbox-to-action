@@ -13,7 +13,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { categoryIcons } from '@/config/icons'
 import { useResponsive } from '@/hooks/useResponsive'
-import { isKeyPressed, selectKeyBindings } from '@/store/slices/keyBindingsSlice'
+import { useCommandHandler } from '@/lib/keybindings'
 import { classifyTask, selectInboxTasks, selectTasksByCategory } from '@/store/slices/tasksSlice'
 import { setMode } from '@/store/slices/uiSlice'
 import type { Category } from '@/types'
@@ -29,7 +29,6 @@ export const ClassifyMode: React.FC = () => {
   const inboxTasks = useSelector(selectInboxTasks)
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
-  const keyBindings = useSelector(selectKeyBindings)
 
   // カテゴリ別のタスク数を取得
   const workTasks = useSelector(selectTasksByCategory('work'))
@@ -90,34 +89,16 @@ export const ClassifyMode: React.FC = () => {
     setDragDirection('center')
   }
 
-  // キーボードショートカット
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (!currentTask || isOperating) return
+  // キーボードショートカット（キーの割り当ては src/config/commands.ts）
+  const classifyByCommand = (category: ClassifyCategory) => {
+    if (!currentTask || isOperating) return
+    handleClassify(category)
+  }
 
-      // Tabキーはモード切り替えに使うのでスキップ
-      if (e.key === 'Tab') return
-
-      const is = isKeyPressed(keyBindings, e.key)
-
-      if (is('classifyStudy')) {
-        e.preventDefault()
-        handleClassify('study')
-      } else if (is('classifyWork')) {
-        e.preventDefault()
-        handleClassify('work')
-      } else if (is('classifyHobby')) {
-        e.preventDefault()
-        handleClassify('hobby')
-      } else if (is('classifyLife')) {
-        e.preventDefault()
-        handleClassify('life')
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [currentTask, isOperating, keyBindings])
+  useCommandHandler('classify.work', () => classifyByCommand('work'))
+  useCommandHandler('classify.life', () => classifyByCommand('life'))
+  useCommandHandler('classify.study', () => classifyByCommand('study'))
+  useCommandHandler('classify.hobby', () => classifyByCommand('hobby'))
 
   // モバイルでのプルダウン更新を防ぐ
   useEffect(() => {

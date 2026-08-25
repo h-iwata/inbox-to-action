@@ -1,7 +1,12 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "files": {
-    "includes": ["**", "!dist", "!coverage", "!node_modules"]
+    "includes": [
+      "**",
+      "!dist",
+      "!coverage",
+      "!node_modules"
+    ]
   },
   "vcs": {
     "enabled": true,
@@ -23,7 +28,9 @@
       "arrowParentheses": "asNeeded",
       "bracketSpacing": true
     },
-    "globals": ["context"]
+    "globals": [
+      "context"
+    ]
   },
   "css": {
     "parser": {
@@ -60,9 +67,23 @@
   },
   "overrides": [
     {
-      "includes": ["index.html"],
+      "includes": [
+        "index.html"
+      ],
       "linter": {
         "enabled": false
+      }
+    },
+    {
+      "includes": [
+        "scripts/**"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
       }
     }
   ]

@@ -1,21 +1,28 @@
 import { Info } from 'lucide-react'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Header } from './components/Layout/Header'
-import { ModeNavigator } from './components/Layout/ModeNavigator'
-import { ClassifyMode } from './features/classify/ClassifyMode'
-import { CreateMode } from './features/create/CreateMode'
-import { ExecuteMode } from './features/execute/ExecuteMode'
-import { ListMode } from './features/list/ListMode'
-import { useResponsive } from './hooks/useResponsive'
-import type { RootState } from './store'
-import { cleanupExpiredTasks, selectInboxTasks, updateStats } from './store/slices/tasksSlice'
+import { Header } from '@/components/Layout/Header'
+import { ModeNavigator } from '@/components/Layout/ModeNavigator'
+import { ClassifyMode } from '@/features/classify/ClassifyMode'
+import { CreateMode } from '@/features/create/CreateMode'
+import { ExecuteMode } from '@/features/execute/ExecuteMode'
+import { ListMode } from '@/features/list/ListMode'
+import { useResponsive } from '@/hooks/useResponsive'
+import { useCommandHandler, useKeybindings } from '@/lib/keybindings'
+import type { RootState } from '@/store'
+import { cleanupExpiredTasks, selectInboxTasks, updateStats } from '@/store/slices/tasksSlice'
+import { getNextMode, getPrevMode, setMode } from '@/store/slices/uiSlice'
 
 function App() {
   const dispatch = useDispatch()
   const currentMode = useSelector((state: RootState) => state.ui.currentMode)
   const inboxTasks = useSelector(selectInboxTasks)
   const { isMobile } = useResponsive()
+
+  // キーバインドの接続（アプリ全体で1回だけ）とモード切り替えコマンドの登録
+  useKeybindings()
+  useCommandHandler('mode.next', () => dispatch(setMode(getNextMode(currentMode))))
+  useCommandHandler('mode.prev', () => dispatch(setMode(getPrevMode(currentMode))))
 
   // 24時間自動削除機能
   useEffect(() => {

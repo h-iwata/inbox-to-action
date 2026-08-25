@@ -13,6 +13,7 @@ npm run dev         # 開発サーバー
 npm run build       # tsc -b && vite build
 npm run test -- --run   # テスト単発実行（引数なしの npm run test は watch）
 npm run typecheck   # tsc -b --noEmit
+npm run docs:keybindings   # src/config/commands.ts から docs/KEY_BINDINGS.md を生成
 npm run check-all   # typecheck + biome ci ← CIと同一基準
 npm run fix-all     # biome check --write（lint自動修正 + 整形 + import整理）
 ```
@@ -37,7 +38,7 @@ Go 実装のネイティブコンパイラ。CLI の型チェックが 5.9 比�
 
 ## 技術スタック
 
-React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
+React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
 
 Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css](src/index.css) の `@import 'tailwindcss'` が起点で、
 テーマを拡張するなら CSS 側の `@theme` を使う。`tailwind.config.js` と `postcss.config.js` は削除済み（v4 は
@@ -56,11 +57,10 @@ RootState {
     dailyStats: { created, classified, completed }
   }
   ui:          { currentMode, scrollToCategory }  // 永続化されない
-  keyBindings: { bindings }                       // 永続化されない
 }
 ```
 
-- `ui` と `keyBindings` はリロードで初期化される。永続化したい状態を足すなら whitelist を変更する
+- `ui` はリロードで初期化される。永続化したい状態を足すなら whitelist を変更する
 - セレクターは `createSelector` でメモ化する（[tasksSlice.ts](src/store/slices/tasksSlice.ts) の既存実装に合わせる）
 
 ### モードベースUI
@@ -73,8 +73,10 @@ RootState {
 | ------------------------------------------------------- | ------------------------------------------ |
 | `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント                 |
 | `src/components/Layout/`                                | Header、ModeNavigator                      |
-| `src/store/slices/`                                     | tasks / ui / keyBindings                   |
-| `src/store/listenerMiddleware.ts`                       | window の keydown 購読（モード切り替え）   |
+| `src/store/slices/`                                     | tasks / ui                                 |
+| `src/lib/keybindings/`                                  | コマンドレジストリ（tinykeys ブリッジ）    |
+| `src/config/commands.ts`                                | 全ショートカットの定義元                   |
+| `scripts/`、`docs/`                                     | ドキュメント生成スクリプトとその生成物     |
 | `src/hooks/`、`src/config/`、`src/types/`、`src/utils/` | useResponsive、アイコン定義、型、analytics |
 
 ### import
@@ -96,7 +98,18 @@ RootState {
 
 **localStorage の内容を信頼しない。** REHYDRATE 時に `normalizeTask` / `normalizeDailyStats` で型を矯正している。`Task` や `dailyStats` のスキーマを変えたら、この正規化も必ず更新する。
 
-**キーバインドの定義元は [keyBindingsSlice.ts](src/store/slices/keyBindingsSlice.ts) のみ。** 現状は Tab/Shift+Tab（モード切替）、W/A/S/D と矢印キー（分類）、Space（完了）、1〜4（実行モードのカテゴリ切替）。キー処理をコンポーネントに直書きせず、スライスにアクションを足して参照する。デスクトップ（768px以上）専用で、入力欄フォーカス中は無効。
+**キーバインドの定義元は [src/config/commands.ts](src/config/commands.ts) のみ。** VS Code 風のコマンドレジストリ方式で、
+定義（キー・ラベル・有効スコープ）と実装（ハンドラ）を分離している。
+
+- コマンドを足すときは `COMMANDS` に定義を書き、コンポーネント側で `useCommandHandler(id, fn)` を呼ぶ。
+  **`window.addEventListener('keydown', ...)` をコンポーネントに直接書かない**
+- `id` は `COMMANDS` から型が引かれるので、存在しないIDを渡すとコンパイルエラーになる
+- `when` に有効なモードを書く（全モード共通なら `'global'`）。スコープ判定は [use-keybindings.ts](src/lib/keybindings/use-keybindings.ts) が行う
+- 実際にキーへ接続するのは `useKeybindings()`。**[App.tsx](src/App.tsx) で1回だけ呼ぶ**
+- ハンドラ未登録のコマンドは発火しない。「このモードではこの操作を有効にしない」は登録の有無で制御する
+- デスクトップ（768px以上）専用。入力欄フォーカス中・IME変換中・キーリピート中に発火しないのは
+  **tinykeys 側の既定動作**なので、自前で判定を書かない
+- コマンドを変更したら `npm run docs:keybindings` で [docs/KEY_BINDINGS.md](docs/KEY_BINDINGS.md) を再生成する
 
 ## Lint / Format
 
@@ -105,7 +118,7 @@ ESLint + Prettier ではなく **Biome** に統一している。設定は [biom
 - `biome check` が lint・フォーマット・import整理を兼ねる。ESLint や Prettier を再導入しない
 - 例外を作るときは `// biome-ignore lint/<rule>: <理由>` で局所的に抑制する。理由の記述は必須（Biomeが空の理由を拒否する）
 - 無効化しているルールと理由:
-  - `a11y/noStaticElementInteractions`、`a11y/useKeyWithClickEvents` — ドラッグ/スワイプ前提のカードUIを `div` で実装しているため。キーボードからの操作は keyBindings 側で提供している
+  - `a11y/noStaticElementInteractions`、`a11y/useKeyWithClickEvents` — ドラッグ/スワイプ前提のカードUIを `div` で実装しているため。キーボードからの操作はコマンドレジストリ側で提供している
   - `correctness/useExhaustiveDependencies` — 既存実装が依存配列を意図的に絞っているため
   - `index.html` は Google Analytics の公式スニペットを含むので `overrides` で lint 対象外（フォーマットのみ適用）
 - a11y ルールを増やすより、`AboutModal` を Radix Dialog に置き換える方が本質的な改善になる（未着手）

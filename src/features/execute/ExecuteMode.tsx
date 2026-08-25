@@ -1,10 +1,10 @@
 import { BarChart3, Check, FileText, Flame, PenTool, PlayCircle, Sparkles, Zap } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { CategoryCompletionBar } from '@/components/CategoryCompletionBar/CategoryCompletionBar'
 import { categoryIcons } from '@/config/icons'
 import { useResponsive } from '@/hooks/useResponsive'
-import { isKeyPressed, selectKeyBindings } from '@/store/slices/keyBindingsSlice'
+import { useCommandHandler } from '@/lib/keybindings'
 import {
   completeTask,
   type ListCategory,
@@ -46,7 +46,6 @@ export const ExecuteMode: React.FC = () => {
   const topTasks = useSelector(selectTopTasksByCategory)
   const taskCountByCategory = useSelector(selectTaskCountByCategory)
   const { isMobile, isDesktop } = useResponsive()
-  const keyBindings = useSelector(selectKeyBindings)
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null)
   const [switchingToTaskId, setSwitchingToTaskId] = useState<string | null>(null)
 
@@ -80,45 +79,21 @@ export const ExecuteMode: React.FC = () => {
     }, 300)
   }
 
-  // キーボードショートカット（PC版のみ）
-  useEffect(() => {
-    if (!isDesktop) return
+  // キーボードショートカット（キーの割り当ては src/config/commands.ts。デスクトップ限定の判定は useKeybindings 側）
+  const switchToCategory = (category: ListCategory) => {
+    const targetTask = topTasks.find(task => task.category === category)
+    if (!targetTask || targetTask.isExecuting || switchingToTaskId) return
+    handleSwitchExecution(targetTask.id)
+  }
 
-    const handleKeyPress = (e: KeyboardEvent) => {
-      const is = isKeyPressed(keyBindings, e.key)
-
-      // 実行中タスクの完了（スペースキー）
-      if (is('completeTask') && executingTask && !completingTaskId) {
-        e.preventDefault()
-        handleComplete(executingTask.id)
-        return
-      }
-
-      // カテゴリ切り替え
-      const switchActions: {
-        action: 'switchToWork' | 'switchToLife' | 'switchToStudy' | 'switchToHobby'
-        category: ListCategory
-      }[] = [
-        { action: 'switchToWork', category: 'work' },
-        { action: 'switchToLife', category: 'life' },
-        { action: 'switchToStudy', category: 'study' },
-        { action: 'switchToHobby', category: 'hobby' },
-      ]
-
-      for (const { action, category } of switchActions) {
-        if (is(action)) {
-          const targetTask = topTasks.find(t => t.category === category)
-          if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
-            handleSwitchExecution(targetTask.id)
-          }
-          return
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [executingTask, topTasks, isDesktop, completingTaskId, switchingToTaskId, keyBindings])
+  useCommandHandler('execute.complete', () => {
+    if (!executingTask || completingTaskId) return
+    handleComplete(executingTask.id)
+  })
+  useCommandHandler('execute.switchToWork', () => switchToCategory('work'))
+  useCommandHandler('execute.switchToLife', () => switchToCategory('life'))
+  useCommandHandler('execute.switchToStudy', () => switchToCategory('study'))
+  useCommandHandler('execute.switchToHobby', () => switchToCategory('hobby'))
 
   // タスクがない場合
   if (topTasks.length === 0) {
