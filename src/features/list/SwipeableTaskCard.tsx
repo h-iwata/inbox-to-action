@@ -2,9 +2,16 @@ import { Inbox, Play, Target, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import type React from 'react'
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { moveTaskToInbox } from '@/store/slices/tasksSlice'
+import { useTaskActions } from '@/store/tasksStore'
 import type { Task } from '@/types'
+import {
+  clampSwipeOffset,
+  detectSwipeDirection,
+  isSwipeVisible,
+  isTap,
+  resolveSwipeAction,
+  swipeProgress,
+} from './swipe-helpers'
 
 interface SwipeState {
   startX: number
@@ -26,16 +33,15 @@ interface SwipeableTaskCardProps {
 }
 
 export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, index, onDelete, onTap }) => {
-  const dispatch = useDispatch()
+  const { moveTaskToInbox } = useTaskActions()
   const [swipeState, setSwipeState] = useState<SwipeState>(initialSwipeState)
   const [isSwiping, setIsSwiping] = useState(false)
 
   const isSwipingLeft = swipeState.direction === 'left'
   const isSwipingRight = swipeState.direction === 'right'
 
-  // スワイプ距離を計算（最大80px）
   const rawOffset = swipeState.currentX - swipeState.startX
-  const swipeOffset = isSwiping ? Math.max(-80, Math.min(80, rawOffset)) : 0
+  const swipeOffset = isSwiping ? clampSwipeOffset(rawOffset) : 0
 
   const handleStart = (clientX: number) => {
     setIsSwiping(true)
@@ -49,27 +55,20 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
   const handleMove = (clientX: number) => {
     if (!isSwiping) return
 
-    const deltaX = clientX - swipeState.startX
+    const direction = detectSwipeDirection(clientX - swipeState.startX)
+    if (!direction) return
 
-    if (Math.abs(deltaX) > 5) {
-      setSwipeState(prev => ({
-        ...prev,
-        currentX: clientX,
-        direction: deltaX > 0 ? 'right' : 'left',
-      }))
-    }
+    setSwipeState(prev => ({ ...prev, currentX: clientX, direction }))
   }
 
   const handleEnd = () => {
     if (!isSwiping) return
 
-    if (Math.abs(rawOffset) > 60 && swipeState.direction) {
-      if (swipeState.direction === 'left') {
-        // Inboxへ戻す
-        dispatch(moveTaskToInbox(task.id))
-      } else if (swipeState.direction === 'right') {
-        onDelete(task)
-      }
+    const action = resolveSwipeAction(rawOffset, swipeState.direction)
+    if (action === 'moveToInbox') {
+      moveTaskToInbox(task.id)
+    } else if (action === 'delete') {
+      onDelete(task)
     }
 
     setIsSwiping(false)
@@ -101,7 +100,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
               : 'hidden'
         } rounded-xl`}
         style={{
-          opacity: Math.abs(swipeOffset) / 80,
+          opacity: swipeProgress(swipeOffset),
           zIndex: 0,
         }}
       >
@@ -123,7 +122,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
         className={`relative rounded-xl p-4 border-2 backdrop-blur-sm shadow-lg transition-colors cursor-pointer ${
           index === 0
             ? 'bg-linear-to-r from-orange-500/10 to-yellow-500/10 border-orange-400/60 shadow-orange-500/20 hover:from-orange-500/20 hover:to-yellow-500/20 hover:border-orange-400/80'
-            : isSwiping && Math.abs(swipeOffset) > 10
+            : isSwiping && isSwipeVisible(swipeOffset)
               ? 'bg-gray-800/60 border-gray-700/50'
               : 'bg-linear-to-r from-gray-800/80 to-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:shadow-xl'
         }`}
@@ -134,7 +133,7 @@ export const SwipeableTaskCard: React.FC<SwipeableTaskCardProps> = ({ task, inde
           zIndex: isSwiping ? 10 : 1,
         }}
         onClick={() => {
-          if (Math.abs(swipeOffset) < 10) {
+          if (isTap(swipeOffset)) {
             onTap(task, index)
           }
         }}

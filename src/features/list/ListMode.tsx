@@ -2,25 +2,19 @@ import { Flame, PenTool, RefreshCw, Trash2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { CategoryCompletionBar } from '@/components/CategoryCompletionBar/CategoryCompletionBar'
 import { categoryIcons } from '@/config/icons'
-import type { RootState } from '@/store'
-import {
-  deleteTask,
-  moveTaskToTop,
-  selectTasksGroupedByCategory,
-  selectTopTasksByCategory,
-  toggleExecuting,
-} from '@/store/slices/tasksSlice'
-import { clearScrollToCategory, setMode } from '@/store/slices/uiSlice'
+import { useTaskActions } from '@/store/tasksStore'
+import { useUIActions, useUIStore } from '@/store/uiStore'
+import { useTasksGroupedByCategory, useTopTasksByCategory } from '@/store/useTasks'
 import type { Category, Task } from '@/types'
 import { SwipeableTaskCard } from './SwipeableTaskCard'
 
 export const ListMode: React.FC = () => {
-  const dispatch = useDispatch()
-  const topTasks = useSelector(selectTopTasksByCategory)
-  const scrollToCategory = useSelector((state: RootState) => state.ui.scrollToCategory)
+  const topTasks = useTopTasksByCategory()
+  const scrollToCategory = useUIStore(state => state.scrollToCategory)
+  const { deleteTask, toggleExecuting, moveTaskToTop } = useTaskActions()
+  const { setMode, clearScrollToCategory } = useUIActions()
 
   // 実行中のカテゴリを特定
   const executingCategory = topTasks.find(task => task.isExecuting === true)?.category as Category | undefined
@@ -75,16 +69,16 @@ export const ListMode: React.FC = () => {
     setTimeout(() => {
       const y = element.getBoundingClientRect().top + window.pageYOffset - 80
       window.scrollTo({ top: y, behavior: 'smooth' })
-      dispatch(clearScrollToCategory())
+      clearScrollToCategory()
     }, 100)
-  }, [scrollToCategory, dispatch])
+  }, [scrollToCategory, clearScrollToCategory])
 
   // カテゴリごとのタスク
-  const tasksByCategory = useSelector(selectTasksGroupedByCategory)
+  const tasksByCategory = useTasksGroupedByCategory()
 
   // 削除確認後の処理
   const handleConfirmDelete = () => {
-    dispatch(deleteTask(taskToDelete!.id))
+    deleteTask(taskToDelete!.id)
     setTaskToDelete(null)
   }
 
@@ -96,7 +90,7 @@ export const ListMode: React.FC = () => {
     navigator.vibrate?.(15)
 
     if (!topTask.isExecuting) {
-      dispatch(toggleExecuting(topTask.id))
+      toggleExecuting(topTask.id)
     }
   }
 
@@ -106,20 +100,15 @@ export const ListMode: React.FC = () => {
     if (index === 0) {
       navigator.vibrate?.(20)
       if (!task.isExecuting) {
-        dispatch(toggleExecuting(task.id))
+        toggleExecuting(task.id)
       }
-      dispatch(setMode('execute'))
+      setMode('execute')
       return
     }
 
     // 先頭に移動
     navigator.vibrate?.(10)
-    dispatch(
-      moveTaskToTop({
-        taskId: task.id,
-        category: task.category,
-      })
-    )
+    moveTaskToTop(task.id, task.category)
   }
 
   return (
@@ -183,7 +172,7 @@ export const ListMode: React.FC = () => {
                   <p className="text-gray-500 text-sm">タスクがありません</p>
                   <button
                     type="button"
-                    onClick={() => dispatch(setMode('create'))}
+                    onClick={() => setMode('create')}
                     className="inline-flex items-center gap-1 px-3 py-1 mt-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-sm"
                   >
                     <PenTool className="w-3 h-3" />

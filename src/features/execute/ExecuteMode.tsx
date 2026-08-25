@@ -1,18 +1,13 @@
 import { BarChart3, Check, FileText, Flame, PenTool, PlayCircle, Sparkles, Zap } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useState } from 'react'
 import { CategoryCompletionBar } from '@/components/CategoryCompletionBar/CategoryCompletionBar'
 import { categoryIcons } from '@/config/icons'
 import { useResponsive } from '@/hooks/useResponsive'
-import { isKeyPressed, selectKeyBindings } from '@/store/slices/keyBindingsSlice'
-import {
-  completeTask,
-  type ListCategory,
-  selectTaskCountByCategory,
-  selectTopTasksByCategory,
-  toggleExecuting,
-} from '@/store/slices/tasksSlice'
-import { setMode, setModeWithScroll } from '@/store/slices/uiSlice'
+import { useCommandHandler } from '@/lib/keybindings'
+import type { ListCategory } from '@/store/taskSelectors'
+import { useTaskActions } from '@/store/tasksStore'
+import { useUIActions } from '@/store/uiStore'
+import { useTaskCountByCategory, useTopTasksByCategory } from '@/store/useTasks'
 
 const categoryInfo = {
   work: {
@@ -42,11 +37,11 @@ const categoryInfo = {
 }
 
 export const ExecuteMode: React.FC = () => {
-  const dispatch = useDispatch()
-  const topTasks = useSelector(selectTopTasksByCategory)
-  const taskCountByCategory = useSelector(selectTaskCountByCategory)
+  const topTasks = useTopTasksByCategory()
+  const taskCountByCategory = useTaskCountByCategory()
+  const { completeTask, toggleExecuting } = useTaskActions()
+  const { setMode, setModeWithScroll } = useUIActions()
   const { isMobile, isDesktop } = useResponsive()
-  const keyBindings = useSelector(selectKeyBindings)
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null)
   const [switchingToTaskId, setSwitchingToTaskId] = useState<string | null>(null)
 
@@ -65,7 +60,7 @@ export const ExecuteMode: React.FC = () => {
 
     // 完了アニメーション後にタスク完了
     setTimeout(() => {
-      dispatch(completeTask(taskId))
+      completeTask(taskId)
       setCompletingTaskId(null)
     }, 600)
   }
@@ -75,50 +70,26 @@ export const ExecuteMode: React.FC = () => {
 
     // 切り替えアニメーション
     setTimeout(() => {
-      dispatch(toggleExecuting(taskId))
+      toggleExecuting(taskId)
       setSwitchingToTaskId(null)
     }, 300)
   }
 
-  // キーボードショートカット（PC版のみ）
-  useEffect(() => {
-    if (!isDesktop) return
+  // キーボードショートカット（キーの割り当ては src/config/commands.ts。デスクトップ限定の判定は useKeybindings 側）
+  const switchToCategory = (category: ListCategory) => {
+    const targetTask = topTasks.find(task => task.category === category)
+    if (!targetTask || targetTask.isExecuting || switchingToTaskId) return
+    handleSwitchExecution(targetTask.id)
+  }
 
-    const handleKeyPress = (e: KeyboardEvent) => {
-      const is = isKeyPressed(keyBindings, e.key)
-
-      // 実行中タスクの完了（スペースキー）
-      if (is('completeTask') && executingTask && !completingTaskId) {
-        e.preventDefault()
-        handleComplete(executingTask.id)
-        return
-      }
-
-      // カテゴリ切り替え
-      const switchActions: {
-        action: 'switchToWork' | 'switchToLife' | 'switchToStudy' | 'switchToHobby'
-        category: ListCategory
-      }[] = [
-        { action: 'switchToWork', category: 'work' },
-        { action: 'switchToLife', category: 'life' },
-        { action: 'switchToStudy', category: 'study' },
-        { action: 'switchToHobby', category: 'hobby' },
-      ]
-
-      for (const { action, category } of switchActions) {
-        if (is(action)) {
-          const targetTask = topTasks.find(t => t.category === category)
-          if (targetTask && !targetTask.isExecuting && !switchingToTaskId) {
-            handleSwitchExecution(targetTask.id)
-          }
-          return
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [executingTask, topTasks, isDesktop, completingTaskId, switchingToTaskId, keyBindings])
+  useCommandHandler('execute.complete', () => {
+    if (!executingTask || completingTaskId) return
+    handleComplete(executingTask.id)
+  })
+  useCommandHandler('execute.switchToWork', () => switchToCategory('work'))
+  useCommandHandler('execute.switchToLife', () => switchToCategory('life'))
+  useCommandHandler('execute.switchToStudy', () => switchToCategory('study'))
+  useCommandHandler('execute.switchToHobby', () => switchToCategory('hobby'))
 
   // タスクがない場合
   if (topTasks.length === 0) {
@@ -139,7 +110,7 @@ export const ExecuteMode: React.FC = () => {
               タスクを
               <button
                 type="button"
-                onClick={() => dispatch(setMode('create'))}
+                onClick={() => setMode('create')}
                 className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
               >
                 <PenTool className="w-3 h-3" />
@@ -279,14 +250,7 @@ export const ExecuteMode: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() =>
-                    dispatch(
-                      setModeWithScroll({
-                        mode: 'list',
-                        scrollToCategory: executingCategory,
-                      })
-                    )
-                  }
+                  onClick={() => setModeWithScroll('list', executingCategory)}
                   className="text-xs text-white/70 hover:text-white/90 transition-colors flex items-center gap-1"
                 >
                   <BarChart3 className="w-3 h-3" />
@@ -429,7 +393,7 @@ export const ExecuteMode: React.FC = () => {
                         type="button"
                         onClick={e => {
                           e.stopPropagation()
-                          dispatch(setMode('create'))
+                          setMode('create')
                         }}
                         className="inline-flex items-center gap-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg transition-colors text-xs"
                       >

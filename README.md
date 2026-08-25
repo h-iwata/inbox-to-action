@@ -51,7 +51,7 @@
 ## 🛠 技術スタック
 
 - **Frontend**: React 19 + TypeScript 7
-- **State Management**: Redux Toolkit + Redux Persist
+- **State Management**: Zustand（persist で localStorage 永続化）
 - **Styling**: Tailwind CSS 4
 - **Animation**: Motion（旧 Framer Motion）
 - **Icons**: Lucide React
@@ -112,7 +112,7 @@ npm run fix-all
 # テスト
 npm run test -- --run
 
-# カバレッジ付きテスト
+# カバレッジ付きテスト（中核ロジックは 100% を維持。閾値を割ると失敗する）
 npm run test:coverage
 ```
 

@@ -48,7 +48,18 @@
       },
       "style": {
         "noNonNullAssertion": "off",
-        "useConst": "error"
+        "useConst": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["@/features/*/*"],
+                "message": "feature の内部ファイルを直接参照しないでください。バレル（@/features/<name>）経由で import してください。"
+              }
+            ]
+          }
+        }
       },
       "suspicious": {
         "noConsole": "warn",
@@ -63,6 +74,16 @@
       "includes": ["index.html"],
       "linter": {
         "enabled": false
+      }
+    },
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
       }
     }
   ]

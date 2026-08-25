@@ -1,0 +1,6 @@
+export { formatKey } from './key-format'
+export { getHandler } from './registry'
+export type { CommandDefinition, CommandHandler, Scope, WhenCondition } from './types'
+export { useCommandHandler } from './use-command-handler'
+export { useKeybindings } from './use-keybindings'
+export { isActiveScope, scopesOf } from './when'

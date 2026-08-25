@@ -10,32 +10,34 @@ import {
   Trophy,
 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { categoryIcons } from '@/config/icons'
 import { useResponsive } from '@/hooks/useResponsive'
-import { isKeyPressed, selectKeyBindings } from '@/store/slices/keyBindingsSlice'
-import { classifyTask, selectInboxTasks, selectTasksByCategory } from '@/store/slices/tasksSlice'
-import { setMode } from '@/store/slices/uiSlice'
-import type { Category } from '@/types'
+import { useCommandHandler } from '@/lib/keybindings'
+import { useTaskActions } from '@/store/tasksStore'
+import { useUIActions } from '@/store/uiStore'
+import { useInboxTasks, useTasksByCategory } from '@/store/useTasks'
 import { ClassifyOverlay } from './ClassifyOverlay'
+import {
+  CATEGORY_BY_DIRECTION,
+  type ClassifyCategory,
+  type Direction,
+  type DragDirection,
+  detectDragDirection,
+} from './classify-helpers'
 import './ClassifyMode.css'
 
-type Direction = 'up' | 'down' | 'left' | 'right'
-type DragDirection = Direction | 'center' | null
-type ClassifyCategory = Exclude<Category, 'inbox'>
-
 export const ClassifyMode: React.FC = () => {
-  const dispatch = useDispatch()
-  const inboxTasks = useSelector(selectInboxTasks)
+  const inboxTasks = useInboxTasks()
+  const { classifyTask } = useTaskActions()
+  const { setMode } = useUIActions()
   const currentTask = inboxTasks[0]
   const { isMobile } = useResponsive()
-  const keyBindings = useSelector(selectKeyBindings)
 
   // カテゴリ別のタスク数を取得
-  const workTasks = useSelector(selectTasksByCategory('work'))
-  const lifeTasks = useSelector(selectTasksByCategory('life'))
-  const studyTasks = useSelector(selectTasksByCategory('study'))
-  const hobbyTasks = useSelector(selectTasksByCategory('hobby'))
+  const workTasks = useTasksByCategory('work')
+  const lifeTasks = useTasksByCategory('life')
+  const studyTasks = useTasksByCategory('study')
+  const hobbyTasks = useTasksByCategory('hobby')
 
   // 操作モード管理
   const [isOperating, setIsOperating] = useState(false)
@@ -65,7 +67,7 @@ export const ClassifyMode: React.FC = () => {
 
     // カードが飛んでいくアニメーション
     setTimeout(() => {
-      dispatch(classifyTask({ id: currentTask.id, category }))
+      classifyTask(currentTask.id, category)
       setShowSuccess(false)
 
       // 次のカードが現れるアニメーション
@@ -90,34 +92,16 @@ export const ClassifyMode: React.FC = () => {
     setDragDirection('center')
   }
 
-  // キーボードショートカット
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (!currentTask || isOperating) return
+  // キーボードショートカット（キーの割り当ては src/config/commands.ts）
+  const classifyByCommand = (category: ClassifyCategory) => {
+    if (!currentTask || isOperating) return
+    handleClassify(category)
+  }
 
-      // Tabキーはモード切り替えに使うのでスキップ
-      if (e.key === 'Tab') return
-
-      const is = isKeyPressed(keyBindings, e.key)
-
-      if (is('classifyStudy')) {
-        e.preventDefault()
-        handleClassify('study')
-      } else if (is('classifyWork')) {
-        e.preventDefault()
-        handleClassify('work')
-      } else if (is('classifyHobby')) {
-        e.preventDefault()
-        handleClassify('hobby')
-      } else if (is('classifyLife')) {
-        e.preventDefault()
-        handleClassify('life')
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [currentTask, isOperating, keyBindings])
+  useCommandHandler('classify.work', () => classifyByCommand('work'))
+  useCommandHandler('classify.life', () => classifyByCommand('life'))
+  useCommandHandler('classify.study', () => classifyByCommand('study'))
+  useCommandHandler('classify.hobby', () => classifyByCommand('hobby'))
 
   // モバイルでのプルダウン更新を防ぐ
   useEffect(() => {
@@ -162,31 +146,8 @@ export const ClassifyMode: React.FC = () => {
 
       setCurrentPosition({ x: clientX, y: clientY })
 
-      // キャンセルボタン中心からの距離で方向を判定
-      const deltaX = clientX - centerPosition.x
-      const deltaY = clientY - centerPosition.y
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-      // 方向判定のしきい値を大きくして、明確な方向のみ判定
-      if (distance > 80) {
-        // より明確な方向判定（45度の範囲で判定）
-        const angle = Math.atan2(deltaY, deltaX)
-        const degrees = angle * (180 / Math.PI)
-
-        // 各方向の判定範囲（45度ずつ）
-        if (degrees >= -135 && degrees < -45) {
-          setDragDirection('up')
-        } else if (degrees >= -45 && degrees < 45) {
-          setDragDirection('right')
-        } else if (degrees >= 45 && degrees < 135) {
-          setDragDirection('down')
-        } else {
-          setDragDirection('left')
-        }
-      } else {
-        // しきい値未満はすべてキャンセル扱い
-        setDragDirection('center')
-      }
+      // キャンセルボタン中心からの変位で方向を判定する
+      setDragDirection(detectDragDirection(clientX - centerPosition.x, clientY - centerPosition.y))
     }
 
     const handleOperationEnd = (e: MouseEvent | TouchEvent) => {
@@ -195,7 +156,7 @@ export const ClassifyMode: React.FC = () => {
         resetOperation()
         return
       }
-      handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
+      handleClassify(CATEGORY_BY_DIRECTION[dragDirection])
     }
 
     const handleTouchCancel = () => resetOperation()
@@ -225,7 +186,7 @@ export const ClassifyMode: React.FC = () => {
           <p className="text-gray-400 flex items-center justify-center gap-2 flex-wrap">
             <button
               type="button"
-              onClick={() => dispatch(setMode('list'))}
+              onClick={() => setMode('list')}
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
             >
               <BarChart3 className="w-4 h-4" />
@@ -234,7 +195,7 @@ export const ClassifyMode: React.FC = () => {
             <span>を確認、または</span>
             <button
               type="button"
-              onClick={() => dispatch(setMode('create'))}
+              onClick={() => setMode('create')}
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-gray-100 rounded-lg transition-colors"
             >
               <PenTool className="w-4 h-4" />
