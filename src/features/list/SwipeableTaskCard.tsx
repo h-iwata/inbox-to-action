@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
 import { Inbox, Play, Target, Trash2 } from 'lucide-react'
+import { motion } from 'motion/react'
 import type React from 'react'
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'

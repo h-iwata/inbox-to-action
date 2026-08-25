@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { Flame, PenTool, RefreshCw, Trash2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'

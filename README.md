@@ -53,7 +53,7 @@
 - **Frontend**: React 19 + TypeScript 5.9
 - **State Management**: Redux Toolkit + Redux Persist
 - **Styling**: Tailwind CSS 4
-- **Animation**: Framer Motion
+- **Animation**: Motion（旧 Framer Motion）
 - **Icons**: Lucide React
 - **Build Tool**: Vite 8
 - **Testing**: Vitest + Testing Library
