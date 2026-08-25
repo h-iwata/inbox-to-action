@@ -118,6 +118,10 @@ ESLint + Prettier ではなく **Biome** に統一している。設定は [biom
 
 ## その他
 
+- UUID の生成・検証は [utils/uuid.ts](src/utils/uuid.ts) の `generateUUID()` / `isUUID()` を使う。
+  `crypto.randomUUID()` を直接呼ばない — セキュアコンテキスト（HTTPS / localhost）でしか使えず、
+  LAN の IP 経由で開発サーバーに繋いだ実機確認時に落ちるため、`crypto.getRandomValues()` による
+  フォールバックを持たせてある
 - Google Analytics は [analytics.ts](src/utils/analytics.ts) 経由。localhost とプライベートIPでは送信しない。計測イベントを増やすときもここに追加する
 - 調査メモ・レポート・一時ファイルは `.local/` に書き出す（gitignore 済み）。リポジトリのルートやコミット対象を汚さない
 - コミットは行わない（ユーザーが手動で行う）

@@ -1,10 +1,10 @@
 import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RehydrateAction } from 'redux-persist'
 import { REHYDRATE } from 'redux-persist/es/constants'
-import { validate as uuidValidate, v4 as uuidv4 } from 'uuid'
 import type { RootState } from '@/store'
 import type { Category, DailyStats, Task, UUID } from '@/types'
 import { trackTaskEvent } from '@/utils/analytics'
+import { generateUUID, isUUID } from '@/utils/uuid'
 
 const CATEGORY_LIST: Category[] = ['inbox', 'work', 'life', 'study', 'hobby']
 
@@ -45,12 +45,7 @@ const isValidCategory = (value: unknown): value is Category =>
 
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
-const toValidUUID = (value: unknown): UUID => {
-  if (typeof value === 'string' && uuidValidate(value)) {
-    return value as UUID
-  }
-  return uuidv4() as UUID
-}
+const toValidUUID = (value: unknown): UUID => (isUUID(value) ? value : generateUUID())
 
 const toNumberOrZero = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : 0)
 
@@ -141,7 +136,7 @@ const tasksSlice = createSlice({
   reducers: {
     addTask: (state, action: PayloadAction<string>) => {
       const newTask: Task = {
-        id: uuidv4() as UUID,
+        id: generateUUID(),
         title: action.payload,
         category: 'inbox',
         created_at: new Date().toISOString(),
