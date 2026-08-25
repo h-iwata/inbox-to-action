@@ -1,9 +1,9 @@
 import { Inbox, Layers, Send, X } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { categoryIcons } from '../../config/icons'
-import { addTask, deleteTask, selectInboxTasks } from '../../store/slices/tasksSlice'
-import { setMode } from '../../store/slices/uiSlice'
+import { categoryIcons } from '@/config/icons'
+import { addTask, deleteTask, selectInboxTasks } from '@/store/slices/tasksSlice'
+import { setMode } from '@/store/slices/uiSlice'
 
 export const CreateMode: React.FC = () => {
   const dispatch = useDispatch()

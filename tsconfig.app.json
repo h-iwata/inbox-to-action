@@ -8,6 +8,11 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
+    /* Path alias（baseUrl は TypeScript 7 で削除された。paths は tsconfig からの相対で解決される） */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

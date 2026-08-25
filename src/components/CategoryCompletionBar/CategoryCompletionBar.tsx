@@ -2,9 +2,9 @@ import { BarChart3, Flame, Sparkles, Star, Zap } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useRef } from 'react'
 import { useSelector } from 'react-redux'
-import { categoryIcons } from '../../config/icons'
-import { selectTodayCompletedByCategory } from '../../store/slices/tasksSlice'
-import { trackLevelUp } from '../../utils/analytics'
+import { categoryIcons } from '@/config/icons'
+import { selectTodayCompletedByCategory } from '@/store/slices/tasksSlice'
+import { trackLevelUp } from '@/utils/analytics'
 import './CategoryCompletionBar.css'
 
 const messages = {

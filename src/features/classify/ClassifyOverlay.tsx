@@ -1,5 +1,5 @@
 import React from 'react'
-import { actionIcons, categoryIcons } from '../../config/icons'
+import { actionIcons, categoryIcons } from '@/config/icons'
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 type DragDirection = Direction | 'center' | null

@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { Category } from '../../types'
-import { trackModeChange } from '../../utils/analytics'
+import type { Category } from '@/types'
+import { trackModeChange } from '@/utils/analytics'
 
 export type AppMode = 'create' | 'classify' | 'list' | 'execute' // 作成, 分類, 一覧, 実行
 

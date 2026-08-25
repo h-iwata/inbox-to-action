@@ -1,10 +1,10 @@
-import { motion } from 'framer-motion'
 import { Inbox, Play, Target, Trash2 } from 'lucide-react'
+import { motion } from 'motion/react'
 import type React from 'react'
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { moveTaskToInbox } from '../../store/slices/tasksSlice'
-import type { Task } from '../../types'
+import { moveTaskToInbox } from '@/store/slices/tasksSlice'
+import type { Task } from '@/types'
 
 interface SwipeState {
   startX: number

@@ -50,12 +50,12 @@
 
 ## 🛠 技術スタック
 
-- **Frontend**: React 19 + TypeScript 5.9
+- **Frontend**: React 19 + TypeScript 7
 - **State Management**: Redux Toolkit + Redux Persist
 - **Styling**: Tailwind CSS 4
-- **Animation**: Framer Motion
+- **Animation**: Motion（旧 Framer Motion）
 - **Icons**: Lucide React
-- **Build Tool**: Vite 7
+- **Build Tool**: Vite 8
 - **Testing**: Vitest + Testing Library
 - **Lint/Format**: Biome
 - **Toolchain**: mise（Node.js 24.15.0 を固定）

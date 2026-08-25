@@ -1,18 +1,18 @@
 import { BarChart3, Check, FileText, Flame, PenTool, PlayCircle, Sparkles, Zap } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { CategoryCompletionBar } from '../../components/CategoryCompletionBar/CategoryCompletionBar'
-import { categoryIcons } from '../../config/icons'
-import { useResponsive } from '../../hooks/useResponsive'
-import { isKeyPressed, selectKeyBindings } from '../../store/slices/keyBindingsSlice'
+import { CategoryCompletionBar } from '@/components/CategoryCompletionBar/CategoryCompletionBar'
+import { categoryIcons } from '@/config/icons'
+import { useResponsive } from '@/hooks/useResponsive'
+import { isKeyPressed, selectKeyBindings } from '@/store/slices/keyBindingsSlice'
 import {
   completeTask,
   type ListCategory,
   selectTaskCountByCategory,
   selectTopTasksByCategory,
   toggleExecuting,
-} from '../../store/slices/tasksSlice'
-import { setMode, setModeWithScroll } from '../../store/slices/uiSlice'
+} from '@/store/slices/tasksSlice'
+import { setMode, setModeWithScroll } from '@/store/slices/uiSlice'
 
 const categoryInfo = {
   work: {

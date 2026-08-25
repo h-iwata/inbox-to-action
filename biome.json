@@ -22,11 +22,16 @@
       "trailingCommas": "es5",
       "arrowParentheses": "asNeeded",
       "bracketSpacing": true
-    }
+    },
+    "globals": ["context"]
   },
   "css": {
-    "parser": { "tailwindDirectives": true },
-    "linter": { "enabled": false }
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "linter": {
+      "enabled": false
+    }
   },
   "linter": {
     "rules": {
@@ -48,14 +53,17 @@
       "suspicious": {
         "noConsole": "warn",
         "noExplicitAny": "error",
-        "noVar": "error"
+        "noVar": "error",
+        "noDuplicateTestHooks": "off"
       }
     }
   },
   "overrides": [
     {
       "includes": ["index.html"],
-      "linter": { "enabled": false }
+      "linter": {
+        "enabled": false
+      }
     }
   ]
 }

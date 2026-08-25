@@ -1,8 +1,8 @@
 import { HelpCircle, Inbox, Info } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { useResponsive } from '../../hooks/useResponsive'
-import { AboutModal } from '../AboutModal/AboutModal'
+import { AboutModal } from '@/components/AboutModal/AboutModal'
+import { useResponsive } from '@/hooks/useResponsive'
 
 export const Header: React.FC = () => {
   const { isMobile } = useResponsive()
