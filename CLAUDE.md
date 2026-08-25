@@ -22,9 +22,22 @@ npm run fix-all     # biome check --write（lint自動修正 + 整形 + import�
 型チェックは **`tsc -b`（プロジェクト参照を辿る）で実行する**。ルートの [tsconfig.json](tsconfig.json) は
 `files: []` + `references` なので、`tsc --noEmit` にすると src を1ファイルも検査せずに成功してしまう。
 
+### TypeScript 7 について
+
+Go 実装のネイティブコンパイラ。CLI の型チェックが 5.9 比で約3倍速い（キャッシュなしで 1.98s → 0.67s）。
+移行にあたって知っておくべき制約:
+
+- **`baseUrl` は削除された**（TS5102）。`paths` は tsconfig からの相対で解決されるので `baseUrl` なしで書く
+- **パッケージに `tsserver.js` / `typescript.js` が含まれない**。同梱されるのは `tsc.js` と
+  プラットフォーム別のネイティブバイナリだけ。そのため
+  - VSCode の `typescript.tsdk` にこの `lib` を指定できない → **エディタの IntelliSense は VSCode 内蔵の
+    TypeScript（5.x 系）が担当し、CLI とはバージョンが分かれる**
+  - Compiler API（`import ts from 'typescript'`）に依存するツールは動かない。導入する前に確認すること
+  - このプロジェクトのツールチェーン（Vite / Vitest / Biome）はいずれも TS の Compiler API を使わないため影響はない
+
 ## 技術スタック
 
-React 19 / TypeScript 5.9 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
+React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
 
 Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css](src/index.css) の `@import 'tailwindcss'` が起点で、
 テーマを拡張するなら CSS 側の `@theme` を使う。`tailwind.config.js` と `postcss.config.js` は削除済み（v4 は

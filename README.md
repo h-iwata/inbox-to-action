@@ -50,7 +50,7 @@
 
 ## 🛠 技術スタック
 
-- **Frontend**: React 19 + TypeScript 5.9
+- **Frontend**: React 19 + TypeScript 7
 - **State Management**: Redux Toolkit + Redux Persist
 - **Styling**: Tailwind CSS 4
 - **Animation**: Motion（旧 Framer Motion）
