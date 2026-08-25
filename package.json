@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",
+    "@faker-js/faker": "^10.6.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
@@ -42,6 +43,7 @@
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.0",
     "@vitest/coverage-v8": "^4.1.11",
+    "fishery": "^2.4.0",
     "jsdom": "^30.0.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",

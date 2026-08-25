@@ -118,9 +118,33 @@ ESLint + Prettier ではなく **Biome** に統一している。設定は [biom
 
 ## テスト
 
-現状は reducer とユーティリティの単体テストのみ（[tasksSlice.test.ts](src/store/slices/tasksSlice.test.ts) / [dateHelpers.test.ts](src/utils/dateHelpers.test.ts)、計10テスト）。コンポーネントテストとE2Eは未整備。
+Vitest + jsdom。`__tests__/` を対象ファイルの隣に置く（[tasksSlice の例](src/store/slices/__tests__/tasksSlice.test.ts)）。
 
-テストを足すなら、まず中核ルールから: `cleanupExpiredTasks`（24時間削除）、`toggleExecuting`（単一実行の保証）、REHYDRATE時の正規化。
+**BDD スタイルで書く。**
+
+- `context`（`describe` の alias。[setup.ts](src/test/setup.ts) で注入、import 不要）で「ある状態のとき」を表す
+- `let` + `beforeEach` で default setup を作り、各 context では**差分だけ**上書きする
+- `const subject = () => ...` でテスト対象を固定する
+- `context` 名は実装の説明ではなく**引数・状態**で書く（`with 存在しない id` / `with created_at=25時間前`）
+- `it` は短い日本語で結論を書く（`そのまま` / `末尾に追加`）。1行で書けるなら1行に
+- 並び順は **成功 → 失敗 → 特殊ケース**
+- フィルタ系の default には**境界の両側を混在**させる。削除対象と非対象を両方置けば、default のテスト1つで
+  「何が残るか」＝関数の本質が見える
+
+**テストデータは [taskFactory](src/test/factories/task.ts)（fishery + faker）を使う。**
+
+- trait は作らず `taskFactory.build({ ... })` の overrides でテスト側に差分を書く
+- faker は `faker.seed(12345)` で決定論。ただし**時刻に依存するテストでは `created_at` を必ず明示的に
+  override する**（[hoursAgo](src/test/helpers.ts) を使う）。ランダム日時のままだと24時間境界で不安定になる
+
+**カバレッジ計測は `.ts` のみ**（`*.tsx` は対象外）。これは component をテストしないという意味ではなく、
+カバレッジ数値に引きずられて JSX の分岐網羅テストを増やさないための選択。component は behavior 駆動で書き、
+分岐の多いロジックは `*-helpers.ts` に抽出して unit test で覆う。閾値の強制は未設定（最終的に中核ロジック100%を目指す）。
+
+未整備なのはコンポーネントテストとE2E。埋める順序は中核ルールから: `cleanupExpiredTasks`（24時間削除）、
+`toggleExecuting`（単一実行の保証）、REHYDRATE 時の正規化。
+
+なお `context` を alias にしている都合で Biome の `noDuplicateTestHooks` が誤検知するため、このルールは off にしてある。
 
 ## CI / デプロイ
 
@@ -131,6 +155,11 @@ ESLint + Prettier ではなく **Biome** に統一している。設定は [biom
 
 ## その他
 
+- **redux-persist は `es/` 配下から import する**（`redux-persist/es/storage`、`redux-persist/es/constants`）。
+  `lib/` は CommonJS で、Vite 8（Rolldown）の CJS interop が `export default require_storage()` という
+  二重ラップを生むため、`storage.getItem is not a function` で起動時に落ちる。
+  パッケージ本体（`from 'redux-persist'`）と `integration/react` は `module` フィールドがあるので
+  そのままで ESM 版が使われる
 - UUID の生成・検証は [utils/uuid.ts](src/utils/uuid.ts) の `generateUUID()` / `isUUID()` を使う。
   `crypto.randomUUID()` を直接呼ばない — セキュアコンテキスト（HTTPS / localhost）でしか使えず、
   LAN の IP 経由で開発サーバーに繋いだ実機確認時に落ちるため、`crypto.getRandomValues()` による
