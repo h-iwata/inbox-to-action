@@ -20,9 +20,12 @@ npm run fix-all     # biome check --write（lint自動修正 + 整形 + import�
 
 ## 技術スタック
 
-React 19 / TypeScript 5.9 / Redux Toolkit 2.11 + Redux Persist / Tailwind CSS 4（`@tailwindcss/postcss`）/ Framer Motion 12 / Vite 7 / Vitest 4 + jsdom / Biome 2.5 / mise / CircleCI / Vercel
+React 19 / TypeScript 5.9 / Redux Toolkit 2.11 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Framer Motion 12 / Vite 7 / Vitest 4 + jsdom / Biome 2.5 / mise / CircleCI / Vercel
 
-Tailwind は v4 系。設定はCSS側の `@import 'tailwindcss'` が主で、`tailwind.config.js` に v3 流のユーティリティ定義を足そうとしないこと。
+Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css](src/index.css) の `@import 'tailwindcss'` が起点で、
+テーマを拡張するなら CSS 側の `@theme` を使う。`tailwind.config.js` と `postcss.config.js` は削除済み（v4 は
+`@config` を書かない限り config ファイルを読まないため、置いても効かない）。PostCSS は経由せず
+`@tailwindcss/vite` プラグインで直接処理する。
 
 ## アーキテクチャ
 
