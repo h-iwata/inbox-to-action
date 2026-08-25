@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { CATEGORY_BY_DIRECTION, detectDragDirection } from '@/features/classify/classify-helpers'
+import { CATEGORY_BY_DIRECTION, detectDragDirection } from '../classify-helpers'
 
 describe('detectDragDirection', () => {
   let deltaX: number

@@ -6,7 +6,7 @@ import {
   isTap,
   resolveSwipeAction,
   swipeProgress,
-} from '@/features/list/swipe-helpers'
+} from '../swipe-helpers'
 
 describe('clampSwipeOffset', () => {
   it('default: 範囲内はそのまま', () => expect(clampSwipeOffset(50)).toBe(50))

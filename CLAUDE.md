@@ -117,7 +117,8 @@ Zustand のストアを2つ持つ。**ひとつの巨大なストアにまとめ
 
 - **外部から feature を使うときは必ずバレル（`@/features/<name>`）経由**。内部ファイルへの直接参照は
   Biome の `style/noRestrictedImports` がエラーにする（規約を口約束にせず lint で守らせる）
-- feature 内部のファイル同士は相対 import（`./ClassifyOverlay`）でよい
+- feature 内部のファイル同士は相対 import でよい。`__tests__/` から親の実装を参照する場合も相対
+  （`../classify-helpers`）にする。**`@/features/<name>/<file>` と書くと lint エラーになる**
 - **feature 間では import しない**。共有が必要になったら `components/` / `hooks/` / `lib/` に昇格させる
 - feature に新しい公開物を足したら `index.ts` に export を追加する
 
