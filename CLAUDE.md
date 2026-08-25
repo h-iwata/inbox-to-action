@@ -243,7 +243,18 @@ Vitest + jsdom。`__tests__/` を対象ファイルの隣に置く（[tasksSlice
 - テストできない設計になっていたら、まずロジックを純粋関数に切り出す。
   `taskMutations` / `taskSelectors` / `*-helpers.ts` がその形
 
-未整備なのは E2E（主要フローの通し確認）。
+**component は Integration テストで behavior を検証する**（カバレッジ対象外なので数を追わない）。
+
+- 書くもの: interaction を持つ component（1〜2シナリオ）、feature 全体の縦串
+- 書かないもの: 純表示 component、分岐網羅を目的にしたテスト
+- **DOM 構造に強く依存するクエリは避ける**。同じ文言が複数箇所に出る画面が多いので、
+  `getByText` で複数マッチして落ちるより `getAllByText` か role ベースのクエリを選ぶ。
+  それでも不安定なら、そのシナリオは書かない（ロジックを helper に切り出して unit test で覆う）
+- アニメーション待ちがある操作（完了ボタンなど）は `waitFor` で待つ。fake timers と userEvent の併用は避ける
+- 既存の縦串テスト: [App.test.tsx](src/__tests__/App.test.tsx)（作成 → 分類 → 実行 → 完了、
+  キーボードでのモード遷移、入力中はショートカットが無効）
+
+未整備なのは E2E（実ブラウザでの通し確認）。
 
 なお `context` を alias にしている都合で Biome の `noDuplicateTestHooks` が誤検知するため、このルールは off にしてある。
 
