@@ -38,7 +38,7 @@ Go 実装のネイティブコンパイラ。CLI の型チェックが 5.9 比�
 
 ## 技術スタック
 
-React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / valibot 1 / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
+React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / valibot 1 / Radix UI / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
 
 Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css](src/index.css) の `@import 'tailwindcss'` が起点で、
 テーマを拡張するなら CSS 側の `@theme` を使う。`tailwind.config.js` と `postcss.config.js` は削除済み（v4 は
@@ -73,6 +73,7 @@ RootState {
 | ------------------------------------------------------- | ------------------------------------------ |
 | `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント                 |
 | `src/components/Layout/`                                | Header、ModeNavigator                      |
+| `src/components/ui/`                                    | 汎用UIコンポーネント（Dialog）             |
 | `src/store/slices/`                                     | tasks / ui                                 |
 | `src/store/persistSchema.ts`                            | 復元データの検証スキーマ（valibot）        |
 | `src/lib/keybindings/`                                  | コマンドレジストリ（tinykeys ブリッジ）    |
@@ -127,10 +128,24 @@ ESLint + Prettier ではなく **Biome** に統一している。設定は [biom
 - `biome check` が lint・フォーマット・import整理を兼ねる。ESLint や Prettier を再導入しない
 - 例外を作るときは `// biome-ignore lint/<rule>: <理由>` で局所的に抑制する。理由の記述は必須（Biomeが空の理由を拒否する）
 - 無効化しているルールと理由:
-  - `a11y/noStaticElementInteractions`、`a11y/useKeyWithClickEvents` — ドラッグ/スワイプ前提のカードUIを `div` で実装しているため。キーボードからの操作はコマンドレジストリ側で提供している
+  - `a11y/noStaticElementInteractions`、`a11y/useKeyWithClickEvents` — ドラッグ/スワイプ前提のカードUIを `div` で実装しているため（[ClassifyMode](src/features/classify/ClassifyMode.tsx) / [ExecuteMode](src/features/execute/ExecuteMode.tsx) / [ListMode](src/features/list/ListMode.tsx) / [SwipeableTaskCard](src/features/list/SwipeableTaskCard.tsx) の計7箇所）。キーボードからの操作はコマンドレジストリ側で提供している
   - `correctness/useExhaustiveDependencies` — 既存実装が依存配列を意図的に絞っているため
   - `index.html` は Google Analytics の公式スニペットを含むので `overrides` で lint 対象外（フォーマットのみ適用）
-- a11y ルールを増やすより、`AboutModal` を Radix Dialog に置き換える方が本質的な改善になる（未着手）
+  - `suspicious/noDuplicateTestHooks` — `context` を `describe` の alias にしているため誤検知する
+- クリックのみの箇所（ExecuteMode / ListMode）は `button` 要素に置き換えれば違反を減らせる。ドラッグ・スワイプ前提の2箇所は構造上残る
+
+## UIコンポーネント
+
+汎用UIは [src/components/ui/](src/components/ui/) に置く。**shadcn/ui の CSS 変数によるテーマ機構は導入していない**
+（常時ダークテーマなので不要）。配色は Tailwind のクラスを直接書く。
+
+- モーダルは [Dialog](src/components/ui/Dialog.tsx)（Radix Dialog の薄いラッパー）を使う。
+  フォーカストラップ・ESC・背景クリック・背景スクロール固定・aria 属性は Radix が担当するので**自前で実装しない**
+- **ダイアログを開いている間、アプリのショートカットは無効になる**
+  （[use-keybindings.ts](src/lib/keybindings/use-keybindings.ts) の `shouldIgnoreEvent` が `[role="dialog"]` 配下を無視する）。
+  Radix はフォーカスを閉じ込めるが tinykeys は window で購読しているため、この処理がないと Tab がアプリ側に届く
+- `class-variance-authority` / `tailwind-merge` は入れていない。ボタン等は個別のスタイルが強く、
+  バリアントに切り出す利点が薄いため。必要になった時点で導入する
 
 ## UI上の制約
 

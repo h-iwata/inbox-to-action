@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { tinykeys } from 'tinykeys'
+import { defaultKeybindingsHandlerIgnore, tinykeys } from 'tinykeys'
 import { COMMANDS } from '@/config/commands'
 import { useResponsive } from '@/hooks/useResponsive'
 import type { RootState } from '@/store'
@@ -22,11 +22,24 @@ const groupByKey = (commands: readonly CommandDefinition[]): Map<string, Command
 }
 
 /**
+ * ダイアログを開いている間はアプリのショートカットを無効にする。
+ *
+ * Radix Dialog はフォーカスをダイアログ内に閉じ込めるが、tinykeys は window で購読しているため
+ * そのままでは Tab などが背後のアプリに届いてしまう。ESC での閉じる操作は Radix 側が処理する。
+ */
+export const shouldIgnoreEvent = (event: KeyboardEvent): boolean => {
+  const target = event.target
+  if (target instanceof Element && target.closest('[role="dialog"]')) return true
+  return defaultKeybindingsHandlerIgnore(event)
+}
+
+/**
  * アプリのルートで1回だけ呼び、全コマンドをキーボードに接続する。
  *
  * - スコープ（現在のモード）が変わるたびに再バインドする
  * - ハンドラが未登録のコマンドは発火しない（各コンポーネントが `useCommandHandler` で登録する）
  * - フォーム入力中・IME変換中・キーリピートの除外は tinykeys 側が行う
+ * - モーダルダイアログを開いている間はアプリのショートカットを止める
  * - モバイル（768px未満）では一切バインドしない
  */
 export function useKeybindings(): void {
@@ -52,6 +65,6 @@ export function useKeybindings(): void {
       }
     }
 
-    return tinykeys(window, keyMap)
+    return tinykeys(window, keyMap, { ignore: shouldIgnoreEvent })
   }, [currentMode, isDesktop])
 }
