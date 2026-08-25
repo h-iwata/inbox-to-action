@@ -71,7 +71,7 @@ RootState {
 
 | パス                                                    | 内容                                       |
 | ------------------------------------------------------- | ------------------------------------------ |
-| `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント                 |
+| `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント（`index.ts` が公開境界） |
 | `src/components/Layout/`                                | Header、ModeNavigator                      |
 | `src/components/ui/`                                    | 汎用UIコンポーネント（Dialog）             |
 | `src/store/slices/`                                     | tasks / ui                                 |
@@ -80,6 +80,31 @@ RootState {
 | `src/config/commands.ts`                                | 全ショートカットの定義元                   |
 | `scripts/`、`docs/`                                     | ドキュメント生成スクリプトとその生成物     |
 | `src/hooks/`、`src/config/`、`src/types/`、`src/utils/` | useResponsive、アイコン定義、型、analytics |
+
+### feature の境界
+
+[Bulletproof React](https://github.com/alan2207/bulletproof-react) の feature-based architecture に従う。
+
+- **外部から feature を使うときは必ずバレル（`@/features/<name>`）経由**。内部ファイルへの直接参照は
+  Biome の `style/noRestrictedImports` がエラーにする（規約を口約束にせず lint で守らせる）
+- feature 内部のファイル同士は相対 import（`./ClassifyOverlay`）でよい
+- **feature 間では import しない**。共有が必要になったら `components/` / `hooks/` / `lib/` に昇格させる
+- feature に新しい公開物を足したら `index.ts` に export を追加する
+
+### ロジックの抽出
+
+分岐が3つ以上ある純粋ロジックは、コンポーネントから `*-helpers.ts` に切り出す。
+
+- `.ts` なのでカバレッジ計測の対象に残り、component 側は「helper を呼ぶだけ」になる
+- しきい値などのマジックナンバーは helper 側に名前付き定数として置く
+  （例: [swipe-helpers.ts](src/features/list/swipe-helpers.ts) の `SWIPE_ACTION_THRESHOLD_PX`）
+- 既存の例: [classify-helpers.ts](src/features/classify/classify-helpers.ts)（ドラッグ方向の判定）、
+  [swipe-helpers.ts](src/features/list/swipe-helpers.ts)（スワイプ判定）、
+  [completion-helpers.ts](src/components/CategoryCompletionBar/completion-helpers.ts)（レベル算出）、
+  [app-helpers.ts](src/app-helpers.ts)（操作ヒント）
+- **JSX が大きいだけのファイルは helper では小さくならない**（`ExecuteMode` が該当）。
+  分割するなら `features/<name>/ui/` に UI コンポーネントとして切り出すが、
+  回帰を検出できるコンポーネントテストを用意してから行うこと
 
 ### import
 

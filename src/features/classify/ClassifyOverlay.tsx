@@ -1,8 +1,6 @@
 import React from 'react'
 import { actionIcons, categoryIcons } from '@/config/icons'
-
-type Direction = 'up' | 'down' | 'left' | 'right'
-type DragDirection = Direction | 'center' | null
+import type { DragDirection } from './classify-helpers'
 
 interface Position {
   x: number

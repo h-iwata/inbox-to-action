@@ -16,13 +16,15 @@ import { useResponsive } from '@/hooks/useResponsive'
 import { useCommandHandler } from '@/lib/keybindings'
 import { classifyTask, selectInboxTasks, selectTasksByCategory } from '@/store/slices/tasksSlice'
 import { setMode } from '@/store/slices/uiSlice'
-import type { Category } from '@/types'
 import { ClassifyOverlay } from './ClassifyOverlay'
+import {
+  CATEGORY_BY_DIRECTION,
+  type ClassifyCategory,
+  type Direction,
+  type DragDirection,
+  detectDragDirection,
+} from './classify-helpers'
 import './ClassifyMode.css'
-
-type Direction = 'up' | 'down' | 'left' | 'right'
-type DragDirection = Direction | 'center' | null
-type ClassifyCategory = Exclude<Category, 'inbox'>
 
 export const ClassifyMode: React.FC = () => {
   const dispatch = useDispatch()
@@ -143,31 +145,8 @@ export const ClassifyMode: React.FC = () => {
 
       setCurrentPosition({ x: clientX, y: clientY })
 
-      // キャンセルボタン中心からの距離で方向を判定
-      const deltaX = clientX - centerPosition.x
-      const deltaY = clientY - centerPosition.y
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-      // 方向判定のしきい値を大きくして、明確な方向のみ判定
-      if (distance > 80) {
-        // より明確な方向判定（45度の範囲で判定）
-        const angle = Math.atan2(deltaY, deltaX)
-        const degrees = angle * (180 / Math.PI)
-
-        // 各方向の判定範囲（45度ずつ）
-        if (degrees >= -135 && degrees < -45) {
-          setDragDirection('up')
-        } else if (degrees >= -45 && degrees < 45) {
-          setDragDirection('right')
-        } else if (degrees >= 45 && degrees < 135) {
-          setDragDirection('down')
-        } else {
-          setDragDirection('left')
-        }
-      } else {
-        // しきい値未満はすべてキャンセル扱い
-        setDragDirection('center')
-      }
+      // キャンセルボタン中心からの変位で方向を判定する
+      setDragDirection(detectDragDirection(clientX - centerPosition.x, clientY - centerPosition.y))
     }
 
     const handleOperationEnd = (e: MouseEvent | TouchEvent) => {
@@ -176,7 +155,7 @@ export const ClassifyMode: React.FC = () => {
         resetOperation()
         return
       }
-      handleClassify(({ up: 'study', down: 'hobby', left: 'work', right: 'life' } as const)[dragDirection])
+      handleClassify(CATEGORY_BY_DIRECTION[dragDirection])
     }
 
     const handleTouchCancel = () => resetOperation()

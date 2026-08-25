@@ -1,12 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "files": {
-    "includes": [
-      "**",
-      "!dist",
-      "!coverage",
-      "!node_modules"
-    ]
+    "includes": ["**", "!dist", "!coverage", "!node_modules"]
   },
   "vcs": {
     "enabled": true,
@@ -28,9 +23,7 @@
       "arrowParentheses": "asNeeded",
       "bracketSpacing": true
     },
-    "globals": [
-      "context"
-    ]
+    "globals": ["context"]
   },
   "css": {
     "parser": {
@@ -55,7 +48,18 @@
       },
       "style": {
         "noNonNullAssertion": "off",
-        "useConst": "error"
+        "useConst": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["@/features/*/*"],
+                "message": "feature の内部ファイルを直接参照しないでください。バレル（@/features/<name>）経由で import してください。"
+              }
+            ]
+          }
+        }
       },
       "suspicious": {
         "noConsole": "warn",
@@ -67,17 +71,13 @@
   },
   "overrides": [
     {
-      "includes": [
-        "index.html"
-      ],
+      "includes": ["index.html"],
       "linter": {
         "enabled": false
       }
     },
     {
-      "includes": [
-        "scripts/**"
-      ],
+      "includes": ["scripts/**"],
       "linter": {
         "rules": {
           "suspicious": {
