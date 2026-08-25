@@ -13,6 +13,7 @@
 const LEGACY_KEY = 'persist:root'
 
 export const migrateLegacyStorage = (storageKey: string): void => {
+  /* v8 ignore next -- localStorage の無い環境（SSR やビルド時実行）への防御。jsdom では到達しない */
   if (typeof localStorage === 'undefined') return
 
   const legacy = localStorage.getItem(LEGACY_KEY)

@@ -17,6 +17,14 @@ describe('summarizeCompletion', () => {
     expect(maxCategory).toBe('work')
   })
 
+  context('with work 以外が最多', () => {
+    beforeEach(() => {
+      completed = { work: 1, life: 5, study: 0, hobby: 0 }
+    })
+
+    it('最多カテゴリを正しく拾う', () => expect(subject().maxCategory).toBe('life'))
+  })
+
   it('割合の合計は100%', () => {
     const sum = Object.values(subject().percentages).reduce((acc, value) => acc + value, 0)
     expect(sum).toBeCloseTo(100)

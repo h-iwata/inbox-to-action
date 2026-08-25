@@ -232,12 +232,18 @@ Vitest + jsdom。`__tests__/` を対象ファイルの隣に置く（[tasksSlice
 - faker は `faker.seed(12345)` で決定論。ただし**時刻に依存するテストでは `created_at` を必ず明示的に
   override する**（[hoursAgo](src/test/helpers.ts) を使う）。ランダム日時のままだと24時間境界で不安定になる
 
-**カバレッジ計測は `.ts` のみ**（`*.tsx` は対象外）。これは component をテストしないという意味ではなく、
-カバレッジ数値に引きずられて JSX の分岐網羅テストを増やさないための選択。component は behavior 駆動で書き、
-分岐の多いロジックは `*-helpers.ts` に抽出して unit test で覆う。閾値の強制は未設定（最終的に中核ロジック100%を目指す）。
+**カバレッジは `.ts` のみを計測し、100% を維持する**（`npm run test:coverage`。CI でも強制される）。
 
-未整備なのはコンポーネントテストとE2E。埋める順序は中核ルールから: `cleanupExpiredTasks`（24時間削除）、
-`toggleExecuting`（単一実行の保証）、REHYDRATE 時の正規化。
+- `*.tsx` は計測対象外。component をテストしないという意味ではなく、**カバレッジ数値に引きずられて
+  JSX の分岐網羅テストを増やさない**ための選択。component は behavior 駆動で書き、分岐の多いロジックは
+  `*-helpers.ts` に抽出して unit test で覆う
+- **新しい `.ts` を追加したらテストも書く**。100% を割ると CI が落ちる
+- 到達不能な防御分岐だけ `/* v8 ignore next -- 理由 */` で個別に除外する（濫用しない）。
+  現在の唯一の例は [migrateLegacyStorage.ts](src/store/migrateLegacyStorage.ts) の `localStorage` 未定義チェック
+- テストできない設計になっていたら、まずロジックを純粋関数に切り出す。
+  `taskMutations` / `taskSelectors` / `*-helpers.ts` がその形
+
+未整備なのは E2E（主要フローの通し確認）。
 
 なお `context` を alias にしている都合で Biome の `noDuplicateTestHooks` が誤検知するため、このルールは off にしてある。
 

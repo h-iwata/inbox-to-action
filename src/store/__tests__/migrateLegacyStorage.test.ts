@@ -67,6 +67,22 @@ describe('migrateLegacyStorage', () => {
     })
   })
 
+  context('with 旧データが JSON だがオブジェクトでない', () => {
+    beforeEach(() => {
+      localStorage.setItem(LEGACY_KEY, '123')
+    })
+
+    it('何も書き込まない', () => expect(subject().migrated).toBeNull())
+  })
+
+  context('with 旧データが null', () => {
+    beforeEach(() => {
+      localStorage.setItem(LEGACY_KEY, 'null')
+    })
+
+    it('何も書き込まない', () => expect(subject().migrated).toBeNull())
+  })
+
   context('with tasks スライスがない', () => {
     beforeEach(() => {
       localStorage.setItem(LEGACY_KEY, JSON.stringify({ _persist: '{}' }))

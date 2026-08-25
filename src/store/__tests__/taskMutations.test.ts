@@ -84,6 +84,34 @@ describe('deleteTask', () => {
     it('completed からも消せる', () => expect(subject().completed).toEqual([other]))
   })
 
+  context('with inbox のタスクに実行中フラグが立っている（壊れたデータから復元された場合）', () => {
+    beforeEach(() => {
+      // 通常はあり得ないが、localStorage の内容次第では起こりうる
+      target = taskFactory.build({ isExecuting: true })
+      other = taskFactory.build()
+      state = tasksStateWith({ lists: listsWith({ inbox: [target, other] }) })
+    })
+
+    it('削除できて、inbox に実行中は生まれない', () => {
+      const result = subject()
+      expect(result.lists.inbox.map(t => t.id)).toEqual([other.id])
+      expect(executingTasks(result)).toEqual([])
+    })
+  })
+
+  context('with 実行中タスクが最後の1件', () => {
+    beforeEach(() => {
+      target = taskFactory.build({ category: 'work', isExecuting: true })
+      state = tasksStateWith({ lists: listsWith({ work: [target] }) })
+    })
+
+    it('引き継ぐ相手がいないので実行中は消える', () => {
+      const result = subject()
+      expect(result.lists.work).toEqual([])
+      expect(executingTasks(result)).toEqual([])
+    })
+  })
+
   context('with 実行中タスクを削除', () => {
     beforeEach(() => {
       target = taskFactory.build({ category: 'work', isExecuting: true })
@@ -126,6 +154,22 @@ describe('completeTask', () => {
 
     it('実行中は引き継がれない（inbox は対象外）', () => expect(executingTasks(subject())).toEqual([]))
   })
+})
+
+describe('存在しないタスクを指定したとき', () => {
+  let state: TasksState
+
+  beforeEach(() => {
+    state = tasksStateWith({ lists: listsWith({ work: [taskFactory.build({ category: 'work' })] }) })
+  })
+
+  it('completeTask: 何も起きない', () => expect(apply(state, draft => completeTask(draft, 'missing'))).toEqual(state))
+
+  it('classifyTask: 何も起きない', () =>
+    expect(apply(state, draft => classifyTask(draft, 'missing', 'life'))).toEqual(state))
+
+  it('moveTaskToInbox: 何も起きない', () =>
+    expect(apply(state, draft => moveTaskToInbox(draft, 'missing'))).toEqual(state))
 })
 
 describe('classifyTask', () => {
@@ -392,6 +436,17 @@ describe('moveTaskToTop', () => {
     })
 
     it('何も変わらない', () => expect(subject().lists.work).toHaveLength(3))
+  })
+})
+
+describe('moveTaskToTop（inbox）', () => {
+  it('inbox では実行中フラグを触らない', () => {
+    const first = taskFactory.build()
+    const second = taskFactory.build()
+    const state = tasksStateWith({ lists: listsWith({ inbox: [first, second] }) })
+
+    const result = apply(state, draft => moveTaskToTop(draft, second.id, 'inbox'))
+    expect(result.lists.inbox.map(t => t.id)).toEqual([second.id, first.id])
   })
 })
 

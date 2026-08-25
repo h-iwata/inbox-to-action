@@ -112,7 +112,7 @@ npm run fix-all
 # テスト
 npm run test -- --run
 
-# カバレッジ付きテスト
+# カバレッジ付きテスト（中核ロジックは 100% を維持。閾値を割ると失敗する）
 npm run test:coverage
 ```
 

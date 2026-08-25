@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type AppMode, getNextMode, getPrevMode, MODE_ORDER } from '@/store/uiStore'
+import { type AppMode, getNextMode, getPrevMode, MODE_ORDER, useUIStore } from '@/store/uiStore'
 
 describe('getNextMode', () => {
   let current: AppMode
@@ -44,4 +44,45 @@ describe('getPrevMode', () => {
   })
 
   it('next の逆になる', () => expect(getPrevMode(getNextMode('list'))).toBe('list'))
+})
+
+describe('useUIStore', () => {
+  const { actions } = useUIStore.getState()
+
+  beforeEach(() => {
+    useUIStore.setState({ currentMode: 'create', scrollToCategory: null })
+  })
+
+  it('default: 作成モードで始まる', () => expect(useUIStore.getState().currentMode).toBe('create'))
+
+  it('actions の参照は安定している', () => expect(useUIStore.getState().actions).toBe(actions))
+
+  context('when setMode を呼ぶ', () => {
+    it('モードが変わる', () => {
+      actions.setMode('execute')
+      expect(useUIStore.getState().currentMode).toBe('execute')
+    })
+  })
+
+  context('when setModeWithScroll を呼ぶ', () => {
+    it('モードとスクロール先が同時に変わる', () => {
+      actions.setModeWithScroll('list', 'work')
+      expect(useUIStore.getState()).toMatchObject({ currentMode: 'list', scrollToCategory: 'work' })
+    })
+
+    context('with スクロール先を省略', () => {
+      it('scrollToCategory は null になる', () => {
+        actions.setModeWithScroll('list')
+        expect(useUIStore.getState().scrollToCategory).toBeNull()
+      })
+    })
+  })
+
+  context('when clearScrollToCategory を呼ぶ', () => {
+    it('スクロール先が消える', () => {
+      actions.setModeWithScroll('list', 'life')
+      actions.clearScrollToCategory()
+      expect(useUIStore.getState().scrollToCategory).toBeNull()
+    })
+  })
 })

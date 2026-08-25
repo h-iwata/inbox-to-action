@@ -77,8 +77,8 @@ jobs:
           name: Run linter and formatter check (Biome)
           command: npm run lint:strict
       - run:
-          name: Run tests
-          command: npm run test
+          name: Run tests with coverage threshold
+          command: npm run test:coverage
       - run:
           name: Build application
           command: npm run build
