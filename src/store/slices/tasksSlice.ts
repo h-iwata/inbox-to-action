@@ -2,11 +2,10 @@ import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolki
 import type { RehydrateAction } from 'redux-persist'
 import { REHYDRATE } from 'redux-persist/es/constants'
 import type { RootState } from '@/store'
-import type { Category, DailyStats, Task, UUID } from '@/types'
+import { parsePersistedTasks } from '@/store/persistSchema'
+import { CATEGORIES, type Category, type DailyStats, type Task } from '@/types'
 import { trackTaskEvent } from '@/utils/analytics'
-import { generateUUID, isUUID } from '@/utils/uuid'
-
-const CATEGORY_LIST: Category[] = ['inbox', 'work', 'life', 'study', 'hobby']
+import { generateUUID } from '@/utils/uuid'
 
 // inbox以外のカテゴリ用の型
 export type ListCategory = Exclude<Category, 'inbox'>
@@ -36,59 +35,12 @@ const initialState: TasksState = {
   },
 }
 
-const getAllActiveTasks = (state: TasksState): Task[] => CATEGORY_LIST.flatMap(category => state.lists[category])
+const getAllActiveTasks = (state: TasksState): Task[] => CATEGORIES.flatMap(category => state.lists[category])
 
 const getAllTasks = (state: TasksState): Task[] => [...getAllActiveTasks(state), ...state.completed]
 
-const isValidCategory = (value: unknown): value is Category =>
-  typeof value === 'string' && (CATEGORY_LIST as readonly string[]).includes(value)
-
-const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
-
-const toValidUUID = (value: unknown): UUID => (isUUID(value) ? value : generateUUID())
-
-const toNumberOrZero = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : 0)
-
-const normalizeTask = (raw: unknown): Task => {
-  const s = isObject(raw) ? raw : {}
-  const now = new Date().toISOString()
-
-  return {
-    id: toValidUUID(s.id),
-    title: typeof s.title === 'string' && s.title.trim() ? s.title : '(untitled)',
-    category: isValidCategory(s.category) ? s.category : 'inbox',
-    created_at: typeof s.created_at === 'string' ? s.created_at : now,
-    updated_at: typeof s.updated_at === 'string' ? s.updated_at : now,
-    status: s.status === 'done' ? 'done' : 'active',
-    isExecuting: s.isExecuting === true,
-  }
-}
-
-const normalizeDailyStats = (value: unknown): DailyStats => {
-  const v = isObject(value) ? value : {}
-  return {
-    created: toNumberOrZero(v.created),
-    classified: toNumberOrZero(v.classified),
-    completed: toNumberOrZero(v.completed),
-  }
-}
-
-const normalizePersistedState = (persisted: unknown): TasksState => {
-  if (!isObject(persisted) || !isObject(persisted.lists)) return { ...initialState, lists: createEmptyLists() }
-
-  const lists = persisted.lists
-
-  return {
-    lists: Object.fromEntries(
-      CATEGORY_LIST.map(cat => [cat, Array.isArray(lists[cat]) ? (lists[cat] as unknown[]).map(normalizeTask) : []])
-    ) as Record<Category, Task[]>,
-    completed: Array.isArray(persisted.completed) ? (persisted.completed as unknown[]).map(normalizeTask) : [],
-    dailyStats: normalizeDailyStats(persisted.dailyStats),
-  }
-}
-
 const findActiveTaskLocation = (state: TasksState, taskId: string): { category: Category; index: number } | null => {
-  for (const category of CATEGORY_LIST) {
+  for (const category of CATEGORIES) {
     const index = state.lists[category].findIndex(task => task.id === taskId)
     if (index !== -1) {
       return { category, index }
@@ -112,10 +64,10 @@ const removeCompletedTask = (state: TasksState, taskId: string): Task | null => 
 }
 
 const hasExecutingTask = (state: TasksState): boolean =>
-  CATEGORY_LIST.some(category => state.lists[category].some(task => task.isExecuting === true))
+  CATEGORIES.some(category => state.lists[category].some(task => task.isExecuting === true))
 
 const clearExecutingFlags = (state: TasksState) => {
-  CATEGORY_LIST.forEach(category => {
+  CATEGORIES.forEach(category => {
     state.lists[category].forEach(task => {
       task.isExecuting = false
     })
@@ -210,7 +162,7 @@ const tasksSlice = createSlice({
       const now = new Date()
       const threshold = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
-      CATEGORY_LIST.forEach(category => {
+      CATEGORIES.forEach(category => {
         state.lists[category] = state.lists[category].filter(task => {
           const createdAt = new Date(task.created_at)
           return createdAt > threshold
@@ -308,7 +260,7 @@ const tasksSlice = createSlice({
   },
   extraReducers: builder => {
     builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {
-      const normalized = normalizePersistedState((action.payload as Record<string, unknown> | undefined)?.tasks)
+      const normalized = parsePersistedTasks((action.payload as Record<string, unknown> | undefined)?.tasks)
       state.lists = normalized.lists
       state.completed = normalized.completed
       state.dailyStats = normalized.dailyStats

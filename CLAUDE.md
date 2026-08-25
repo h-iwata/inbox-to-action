@@ -38,7 +38,7 @@ Go 実装のネイティブコンパイラ。CLI の型チェックが 5.9 比�
 
 ## 技術スタック
 
-React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
+React 19 / TypeScript 7 / Redux Toolkit 2.12 + Redux Persist / Tailwind CSS 4（`@tailwindcss/vite`）/ Motion 13（`motion/react`）/ tinykeys 4 / valibot 1 / Vite 8 / Vitest 4 + jsdom 30 / Biome 2.5 / mise / CircleCI / Vercel
 
 Tailwind は v4 系で、**設定ファイルを持たない**。[src/index.css](src/index.css) の `@import 'tailwindcss'` が起点で、
 テーマを拡張するなら CSS 側の `@theme` を使う。`tailwind.config.js` と `postcss.config.js` は削除済み（v4 は
@@ -74,6 +74,7 @@ RootState {
 | `src/features/{create,classify,list,execute}/`          | モード固有のコンポーネント                 |
 | `src/components/Layout/`                                | Header、ModeNavigator                      |
 | `src/store/slices/`                                     | tasks / ui                                 |
+| `src/store/persistSchema.ts`                            | 復元データの検証スキーマ（valibot）        |
 | `src/lib/keybindings/`                                  | コマンドレジストリ（tinykeys ブリッジ）    |
 | `src/config/commands.ts`                                | 全ショートカットの定義元                   |
 | `scripts/`、`docs/`                                     | ドキュメント生成スクリプトとその生成物     |
@@ -96,7 +97,15 @@ RootState {
 
 **24時間ルールに例外を作らない。** `created_at` から24時間で削除。完了済みタスクも対象。判定は `cleanupExpiredTasks` に集約し、起動時と5分間隔で dispatch される。
 
-**localStorage の内容を信頼しない。** REHYDRATE 時に `normalizeTask` / `normalizeDailyStats` で型を矯正している。`Task` や `dailyStats` のスキーマを変えたら、この正規化も必ず更新する。
+**localStorage の内容を信頼しない。** REHYDRATE 時に [persistSchema.ts](src/store/persistSchema.ts) の
+valibot スキーマで型を矯正している。壊れた値は例外を投げずに `fallback` で既定値へ倒す
+（データが読めなくてもアプリは起動する方を選ぶ）。
+
+- `Task` や `DailyStats` のスキーマを変えたら、このスキーマも必ず更新する
+- **スキーマの責務は型の矯正まで**。24時間ルールや `isExecuting` の単一性のような状態の整合性は
+  reducer 側の責務なので、スキーマに持ち込まない
+- カテゴリと status の一覧は [types/Task.ts](src/types/Task.ts) の `CATEGORIES` / `TASK_STATUSES` が
+  型と値の単一の真実。`v.picklist` はここから引く
 
 **キーバインドの定義元は [src/config/commands.ts](src/config/commands.ts) のみ。** VS Code 風のコマンドレジストリ方式で、
 定義（キー・ラベル・有効スコープ）と実装（ハンドラ）を分離している。
